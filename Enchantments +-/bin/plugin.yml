@@ -1,0 +1,19 @@
+name: EnchantmentsPlusMinus
+version: 1.0
+author: whyisthisnecessary
+main: org.whyisthisnecessary.eps.Main
+description: Provides a unique way of obtaining enchantments above the enchantment limit for tools and armor
+api-version: 1.16
+softdepend: [PlaceholderAPI]
+
+commands:
+    eps:
+        description: EPS admin commnads
+    enchants:
+        aliases: [enchantments]
+        description: Opens the enchantment GUI to apply enchants to tools and armor
+    tokens:
+        aliases: [token]
+        description: Tells you how many tokens you have
+    scrap:
+        description: Scraps your current tool for tokens.

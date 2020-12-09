@@ -1,0 +1,202 @@
+# +-------------------------+
+# |                         |
+# |      Enchantments+-     |
+# |                         |
+# +-------------------------+
+
+# This is the configuration file for Enchantments+-.
+# Need help? Check the GitHub wiki: https://github.com/dsdd/EnchantmentsPlusMinus
+
+enchants:
+    efficiency:
+        maxlevel: 10 # The maximum level a player can upgrade a tool through /enchants
+        scrapvalue: 8 # How many tokens will be given for scrapping this enchant (Multiplied with enchantment level)
+        upgradeicon: DIAMOND_PICKAXE # The item shown in /enchants for this enchant
+        upgradedesc: Increases your mining speed. # The description of the upgrade in /enchants
+        cost:
+            type: linear # Linear: The cost goes up in a fixed value
+                         # Exponential: The cost goes up in an exponential rate
+                         # Manual: The cost is preset
+            startvalue: 20 # The cost for the first level of the enchant (linear + exponential)
+            value: 10 # How much the cost will go up by (linear)
+            multi: 1.1 # How much the cost will be multiplied by per upgrade (exponential)
+            '1': 10 # The preset cost for the enchantment level
+            '2': 15
+    unbreaking:
+        maxlevel: 10
+        scrapvalue: 3
+        upgradeicon: BEDROCK
+        upgradedesc: Increases the durability of items.
+        cost:
+            type: manual
+            '1': 5
+            '2': 8
+            '3': 12
+            '4': 18
+            '5': 32
+            '6': 60
+            '7': 90
+            '8': 130
+            '9': 200
+            '10': 500
+    fortune:
+        maxlevel: 10
+        scrapvalue: 24
+        upgradeicon: DIAMOND
+        upgradedesc: Increases the amount of item drops when mining.
+        cost:
+            type: exponential
+            startvalue: 30
+            multi: 1.2
+    sharpness:
+        maxlevel: 10
+        scrapvalue: 16
+        upgradeicon: DIAMOND_SWORD
+        upgradedesc: Increases the attack damage of a weapon.
+        cost:
+            type: exponential
+            startvalue: 24
+            multi: 1.2
+    fire_aspect:
+        maxlevel: 4
+        scrapvalue: 65
+        upgradeicon: FIRE_CHARGE
+        upgradedesc: Burns anyone who gets hit by a weapon.
+        cost:
+            type: exponential
+            startvalue: 90
+            multi: 1.35
+    mending:
+        maxlevel: 1
+        scrapvalue: 200
+        upgradeicon: PRISMARINE_SHARD
+        upgradedesc: Automatically repairs a tool or armor with XP.
+        cost:
+            type: exponential
+            startvalue: 300
+            multi: 1
+    haste:
+        maxlevel: 2
+        scrapvalue: 50
+        upgradeicon: GOLDEN_PICKAXE
+        upgradedesc: Gives a random chance to apply Haste while mining
+        cost:
+            type: exponential
+            startvalue: 75
+            multi: 2
+    explosive:
+        maxlevel: 10
+        scrapvalue: 75
+        upgradeicon: TNT
+        upgradedesc: "Has a chance to blow up blocks. Works with fortune!"
+        cost:
+            type: exponential
+            startvalue: 125
+            multi: 1.5
+        chance: "%s*1.5" # Sets the chance to activate explosive PER block with %s being the enchantment level
+    autosmelt:
+        maxlevel: 10
+        scrapvalue: 40
+        upgradeicon: COAL
+        upgradedesc: "Has a chance to automatically smelt items. Works with fortune!"
+        cost:
+            type: exponential
+            startvalue: 50
+            multi: 1.5
+        chance: "%s*10"
+    telepathy:
+        maxlevel: 1
+        scrapvalue: 400
+        upgradeicon: ENDER_PEARL
+        upgradedesc: "Automatically transfers items to your inventory."
+        cost:
+            type: exponential
+            startvalue: 500
+            multi: 1
+        chance: "100"
+    tokenblocks:
+        maxlevel: 20
+        scrapvalue: 100
+        upgradeicon: GOLD_BLOCK
+        upgradedesc: Has a chance to give tokens while mining.
+        cost:
+            type: exponential
+            startvalue: 200
+            multi: 1.2
+        chance: "%s/10"
+        value: "%s" # A value needed to make this enchant work.
+                    # In this case, the value is for the amount of tokens gained if TokenBlocks activates.
+        
+# GUI configuration
+guis:
+    pickaxe:     # You can use your own names
+        enchants:    # Which enchants will be shown in the GUI
+            - efficiency
+            - unbreaking
+            - fortune
+            - mending
+            - haste
+            - explosive
+            - autosmelt
+            - telepathy
+            - tokenblocks
+        items:       # Which items can be used to show the GUI to upgrade it
+            - WOODEN_PICKAXE
+            - STONE_PICKAXE
+            - IRON_PICKAXE
+            - DIAMOND_PICKAXE
+            - NETHERITE_PICKAXE
+    sword:
+        enchants:
+            - sharpness
+            - unbreaking
+            - fire_aspect
+            - mending
+        items:
+            - WOODEN_SWORD
+            - STONE_SWORD
+            - IRON_SWORD
+            - DIAMOND_SWORD
+            - NETHERITE_SWORD
+    axe:
+        enchants:
+            - sharpness
+            - unbreaking
+            - mending
+            - efficiency
+        items:
+            - WOODEN_AXE
+            - STONE_AXE
+            - IRON_AXE
+            - DIAMOND_AXE
+            - NETHERITE_AXE
+    
+        
+misc:
+    applyfortuneon: # Applies fortune on these item drops
+    # (item drops = the drops received when mining something)
+        - COAL
+        - LAPIS_LAZULI
+        - REDSTONE
+        - DIAMOND
+        - EMERALD
+        - QUARTZ
+        
+# Language Config
+
+prefix: ''
+
+messages:
+    insufficientpermission: "&cYou do not have permission to use this command."
+    invalidplayertype: "&cThis command can only be executed by a player."
+    invalidplayer: "&cCannot find specified player."
+    reloadconfig: "&aReloaded config!"
+    openenchantsgui: "&2Opening enchants GUI..."
+    invaliditem: "&cYou must hold a tool or armor to use this command."
+    unspecifiedplayer: "&cYou must specify a player."
+    tokenbalance: "&aTokens: %s"
+    insufficienttokens: "&cYou do not have enough tokens to buy this."
+    upgradedpickaxe: "&aUpgraded pickaxe successfully!"
+    maxedupgrade: "&cYou already have the maximum level for this enchantment."
+    cannotscrap: "&cThis item has no scrap value."
+    lockedupgrade: "&cYou may not upgrade this enchant as it is locked."
