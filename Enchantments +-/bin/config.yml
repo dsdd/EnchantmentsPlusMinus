@@ -84,6 +84,7 @@ enchants:
             type: exponential
             startvalue: 75
             multi: 2
+        chance: "%s*0.5"
     explosive:
         maxlevel: 10
         scrapvalue: 75
@@ -93,7 +94,8 @@ enchants:
             type: exponential
             startvalue: 125
             multi: 1.5
-        chance: "%s*1.5" # Sets the chance to activate explosive PER block with %s being the enchantment level
+        chance: "%s*1.5" 
+# Sets the chance to activate explosive PER block with %s being the enchantment level
     autosmelt:
         maxlevel: 10
         scrapvalue: 40
@@ -124,13 +126,20 @@ enchants:
             startvalue: 200
             multi: 1.2
         chance: "%s/10"
-        value: "%s" # A value needed to make this enchant work.
-                    # In this case, the value is for the amount of tokens gained if TokenBlocks activates.
+        value: "%s" 
+# A value needed to make this enchant work.
+# In this case, the value is for the amount of tokens gained if TokenBlocks activates.
         
 # GUI configuration
 guis:
-    pickaxe:     # You can use your own names
-        enchants:    # Which enchants will be shown in the GUI
+    examplegui:
+        enchants:
+            - depth_strider
+        items:
+            - BEDROCK
+    pickaxe:     
+# Enchants that can be bought in the GUI
+        enchants: 
             - efficiency
             - unbreaking
             - fortune
@@ -140,7 +149,8 @@ guis:
             - autosmelt
             - telepathy
             - tokenblocks
-        items:       # Which items can be used to show the GUI to upgrade it
+# Which items can be used to show the GUI to upgrade it
+        items:       
             - WOODEN_PICKAXE
             - STONE_PICKAXE
             - IRON_PICKAXE
@@ -173,8 +183,9 @@ guis:
     
         
 misc:
-    applyfortuneon: # Applies fortune on these item drops
-    # (item drops = the drops received when mining something)
+    applyfortuneon: 
+# Applies fortune on these item drops
+# (item drops = the drops received when mining something)
         - COAL
         - LAPIS_LAZULI
         - REDSTONE

@@ -1,7 +1,14 @@
 package org.whyisthisnecessary.eps;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,15 +23,13 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.InvalidDescriptionException;
-import org.bukkit.plugin.InvalidPluginException;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.UnknownDependencyException;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin implements Listener, CommandExecutor {
@@ -32,9 +37,11 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	private Main plugin;
 	private File DataFolder;
 	private File PackFolder;
+	private File LangFile;
 	private File userstore;
 	public FileConfiguration config;
 	private FileConfiguration usconfig;
+	private FileConfiguration lang;
 	public List<String> list;
 	public List<Material> fortuneapply = new ArrayList<Material>(Arrays.asList());
 	
@@ -50,6 +57,17 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         if (!DataFolder.exists()) {
             DataFolder.mkdirs();
          }
+        LangFile = new File(getDataFolder(), "lang.yml");
+        if (!LangFile.exists())
+        {
+            try {
+				LangFile.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+        }
+        lang = YamlConfiguration.loadConfiguration(LangFile);
+        
         PackFolder = new File(getDataFolder(), "packs");
         
         userstore = new File(DataFolder, "usernamestore.yml");
@@ -69,13 +87,17 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     	plugin.getCommand("enchants").setExecutor(new enchants(this));
     	plugin.getCommand("scrap").setExecutor(new scrap(this));
     	
+    	new TokenManager(this);
+    	
     	list =  config.getStringList("misc.applyfortuneon");
     	for (int i=0;i<list.size();i++)
     	fortuneapply.add(Material.getMaterial(list.get(i)));
     	
     	if (!PackFolder.exists()) {
             PackFolder.mkdirs();
-            
+			File file = downloadFile(PackFolder.getPath()+"/PickaxePack.jar", "https://github.com/dsdd/EnchantmentsPlusMinus/raw/main/Packs/PickaxePack.jar"); try{        
+			Plugin plugin1 = Bukkit.getPluginManager().loadPlugin(file);
+			Bukkit.getPluginManager().enablePlugin(plugin1); } catch (Exception e) {}
         }
     	else
     	{
@@ -84,11 +106,11 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     	    {
     	    	for (File file : files)
     	    	{
-    	    		Plugin plugin = null;
 					try {
-						plugin = Bukkit.getPluginManager().loadPlugin(file);
-						Bukkit.getPluginManager().enablePlugin(plugin);
-					} catch (UnknownDependencyException | InvalidDescriptionException | InvalidPluginException e) {
+						if (!(Bukkit.getPluginManager().isPluginEnabled(FilenameUtils.removeExtension(file.getName())))) {
+						Plugin plugin1 = Bukkit.getPluginManager().loadPlugin(file);
+						Bukkit.getPluginManager().enablePlugin(plugin1); }
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
     	    	}
@@ -148,6 +170,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 			sender.sendMessage(ChatColor.RED + "/eps settokens [plr] [amount]");
 			sender.sendMessage(ChatColor.RED + "/eps changetokens [plr] [amount]");
 			sender.sendMessage(ChatColor.RED + "/eps enchant [enchant] [lvl]");
+			sender.sendMessage(ChatColor.RED + "/eps reloadpack [packname]");
 			return false;
 		}
 		
@@ -162,26 +185,11 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 			reloadConfig();
 			config = plugin.getConfig();
 			usconfig = YamlConfiguration.loadConfiguration(userstore);
+			lang = YamlConfiguration.loadConfiguration(LangFile);
 			sender.sendMessage(translatebukkittext("messages.reloadconfig"));
 			list = config.getStringList("misc.applyfortuneon");
 			for (int i=0;i<list.size();i++)
 	    	fortuneapply.add(Material.getMaterial(list.get(i)));
-			File[] files = PackFolder.listFiles();
-    	    if (files != null)
-    	    {
-    	    	for (File file : files)
-    	    	{
-    	    		Plugin plugin = null;
-					try {
-						plugin = Bukkit.getPluginManager().loadPlugin(file);
-						Bukkit.getPluginManager().disablePlugin(plugin);
-						Bukkit.getPluginManager().enablePlugin(plugin);
-					} catch (UnknownDependencyException | InvalidDescriptionException | InvalidPluginException e) {
-						e.printStackTrace();
-					}
-    	    	}
-
-    	    }
 			return false;
 		}
 		
@@ -274,11 +282,55 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 			}
 		}
 		
+		if (args[0].equalsIgnoreCase("reloadpack"))
+		{
+			try {
+		    Plugin pl = Bukkit.getPluginManager().getPlugin(args[1]);	
+		    Bukkit.getPluginManager().disablePlugin(pl);
+		    Plugin pl1 = Bukkit.getPluginManager().loadPlugin(new File(PackFolder, args[1]+".jar"));
+		    Bukkit.getPluginManager().enablePlugin(pl1);
+		    sender.sendMessage(ChatColor.GREEN + "Reloaded pack!");
+		    }
+		    catch (Exception e)
+		    {
+		    	sender.sendMessage(ChatColor.RED + "Invalid pack name.");
+		    }
+		}
+		
 		return false;
 	}
 	
 	public String translatebukkittext(String text)
 	{
-		return ChatColor.translateAlternateColorCodes('&',config.getString("prefix")) + ChatColor.translateAlternateColorCodes('&', config.getString(text));
+		return ChatColor.translateAlternateColorCodes('&',lang.getString("prefix")) + ChatColor.translateAlternateColorCodes('&', lang.getString(text));
+	}
+	
+	public File downloadFile(String localFileName, String fromUrl) { try {
+	    File localFile = new File(localFileName);
+	    if (!localFile.exists()) {
+	    	localFile.createNewFile();
+	    }
+	    URL url = new URL(fromUrl);
+	    OutputStream out = new BufferedOutputStream(new FileOutputStream(localFileName));
+	    URLConnection conn = url.openConnection();
+	    ((HttpURLConnection) conn).setRequestMethod("GET"); 
+	    conn.setRequestProperty("User-Agent", "  Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2 (.NET CLR 3.5.30729)");
+	    conn.connect();
+	    InputStream in = conn.getInputStream();
+	    byte[] buffer = new byte[16384];
+
+	    int numRead;
+	    while ((numRead = in.read(buffer)) != -1) {
+	        out.write(buffer, 0, numRead);
+	    }
+	    if (in != null) {
+	        in.close();
+	    }
+	    if (out != null) {
+	        out.close();
+	    }
+	    out.flush();
+	    
+	    return localFile;   } catch (Exception e){return null;}
 	}
 }

@@ -25,7 +25,7 @@ public class scrap implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
 		if (!(sender instanceof Player)) {
-        	sender.sendMessage(translatebukkittext("messages.invalidplayertype"));
+        	sender.sendMessage(plugin.translatebukkittext("messages.invalidplayertype"));
         	return true;
         }
 		
@@ -51,20 +51,15 @@ public class scrap implements CommandExecutor {
         	}
         	else
         	{
-        		p.sendMessage(translatebukkittext("messages.cannotscrap"));
+        		p.sendMessage(plugin.translatebukkittext("messages.cannotscrap"));
         	}
         }
         else
         {
-        	p.sendMessage(translatebukkittext("messages.insufficientpermission"));
+        	p.sendMessage(plugin.translatebukkittext("messages.insufficientpermission"));
 			return false;
         }
 		return false;
-	}
-
-	public String translatebukkittext(String text)
-	{
-		return ChatColor.translateAlternateColorCodes('&',plugin.getConfig().getString("prefix")) + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString(text));
 	}
 	
 

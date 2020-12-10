@@ -17,29 +17,38 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class EnchantHandler {
 	
 	private FileConfiguration config;
 	private JavaPlugin plugin;
+	private FileConfiguration lang;
 	private ScriptEngineManager mgr = new ScriptEngineManager();
     private ScriptEngine engine = mgr.getEngineByName("JavaScript");
+    private Plugin pl;
 	
 	public EnchantHandler(JavaPlugin plugin)
 	{
         this.plugin = plugin;
-        File file = new File(plugin.getDataFolder().getParentFile(), "EnchantmentsPlusMinus");
-        if (file.exists())
-        {
-        	File file1 = new File(file, "config.yml");
-            config = YamlConfiguration.loadConfiguration(file1);
-        }
+        File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
+        if (file.exists()) {
+        config = YamlConfiguration.loadConfiguration(file); }
         else
         {
         	Bukkit.broadcastMessage(ChatColor.RED + "Critical error: Could not find config file for EPS!");
         	Bukkit.getPluginManager().disablePlugin(plugin);
         }
+        File file1 = new File(plugin.getDataFolder().getParentFile().getParentFile(), "lang.yml");
+        if (file1.exists()) {
+        config = YamlConfiguration.loadConfiguration(file1); }
+        else
+        {
+        	Bukkit.broadcastMessage(ChatColor.RED + "Critical error: Could not find lang file for EPS!");
+        	Bukkit.getPluginManager().disablePlugin(plugin);
+        }
+        pl = Bukkit.getPluginManager().getPlugin("EnchantmentsPlusMinus");
 	}
 	
 	public FileConfiguration getConfig()
@@ -49,16 +58,15 @@ public class EnchantHandler {
 	
 	public void setDefaultConfigMessage(String msg, String text)
 	{
-		if (config.get("packs."+plugin.getName().toLowerCase()+".messages."+msg) == null)
+		if (lang.get("packs."+plugin.getName().toLowerCase()+".messages."+msg) == null)
 		{
-			config.set("packs."+plugin.getName().toLowerCase()+".messages."+msg, text);
-			File configfile = new File(plugin.getDataFolder(), "config.yml");
-			if (configfile.exists())
+			lang.set("packs."+plugin.getName().toLowerCase()+".messages."+msg, text);
+			File langfile = new File(plugin.getDataFolder().getParentFile().getParentFile(), "lang.yml");
+			if (langfile.exists())
 			{
 				try {
-					config.save(configfile);
+					lang.save(langfile);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -67,14 +75,13 @@ public class EnchantHandler {
 	
 	public void setConfigMessage(String msg, String text)
 	{
-		config.set("packs."+plugin.getName().toLowerCase()+".messages."+msg, text);
-		File configfile = new File(plugin.getDataFolder(), "config.yml");
-		if (configfile.exists())
+		lang.set("packs."+plugin.getName().toLowerCase()+".messages."+msg, text);
+		File langfile = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
+		if (langfile.exists())
 		{
             try {
-				config.save(configfile);
+				lang.save(langfile);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -82,7 +89,7 @@ public class EnchantHandler {
 	
     public String getConfigMessage(String msg)
     {
-    	return ChatColor.translateAlternateColorCodes('&',config.getString("prefix")) + ChatColor.translateAlternateColorCodes('&', config.getString("packs."+plugin.getName().toLowerCase()+".messages."+msg));
+    	return ChatColor.translateAlternateColorCodes('&',lang.getString("prefix")) + ChatColor.translateAlternateColorCodes('&', lang.getString("packs."+plugin.getName().toLowerCase()+".messages."+msg));
     }
     
     public Integer getValueInt(Player p, Enchantment enchant)
@@ -154,16 +161,59 @@ public class EnchantHandler {
     
     public void ChangeTokens(Player p, Integer amount)
     {
-    	TokenManager.ChangeTokens(p.getName(), amount);
+    	File DataFolder = new File(pl.getDataFolder(), "data");
+		File userstore = new File(DataFolder, "usernamestore.yml");
+		FileConfiguration usconfig = YamlConfiguration.loadConfiguration(userstore);
+		String uid = usconfig.getString(p.getName());
+		File datafile = new File(DataFolder, uid+".yml");
+		if (datafile.exists()) 
+	    {
+	        FileConfiguration dataconfig = YamlConfiguration.loadConfiguration(datafile);
+	        	dataconfig.set("tokens", dataconfig.getInt("tokens") + amount);
+	        	try {
+					dataconfig.save(datafile);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			
+	    }
     }
     
     public void SetTokens(Player p, Integer amount)
     {
-    	TokenManager.SetTokens(p.getName(), amount);
+    	File DataFolder = new File(pl.getDataFolder(), "data");
+		File userstore = new File(DataFolder, "usernamestore.yml");
+		FileConfiguration usconfig = YamlConfiguration.loadConfiguration(userstore);
+		String uid = usconfig.getString(p.getName());
+		File datafile = new File(DataFolder, uid+".yml");
+		if (datafile.exists()) 
+	    {
+	        FileConfiguration dataconfig = YamlConfiguration.loadConfiguration(datafile);
+	        	dataconfig.set("tokens", amount);
+	        	try {
+					dataconfig.save(datafile);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			
+	    }
     }
     
     public Integer GetTokens(Player p)
     {
-    	return TokenManager.GetTokens(p.getName());
+    	File DataFolder = new File(pl.getDataFolder(), "data");
+		File userstore = new File(DataFolder, "usernamestore.yml");
+		FileConfiguration usconfig = YamlConfiguration.loadConfiguration(userstore);
+		String uid = usconfig.getString(p.getName());
+		File datafile = new File(DataFolder, uid+".yml");
+		if (datafile.exists()) 
+	    {
+	        FileConfiguration dataconfig = YamlConfiguration.loadConfiguration(datafile);
+	        return dataconfig.getInt("tokens");
+	    }
+	    else
+	    {
+	    	return 0;
+	    }
     }
 }

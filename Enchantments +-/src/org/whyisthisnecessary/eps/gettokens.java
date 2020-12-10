@@ -1,6 +1,5 @@
 package org.whyisthisnecessary.eps;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -22,32 +21,27 @@ public class gettokens implements CommandExecutor {
 		if (!(sender instanceof Player)) {
 			if (args.length == 0) 
 			{
-				sender.sendMessage(translatebukkittext("messages.unspecifiedplayer"));
+				sender.sendMessage(plugin.translatebukkittext("messages.unspecifiedplayer"));
 				return true;
 			}
 			else
 			{
 			    Integer tokens = TokenManager.GetTokens(args[0]);
-			    sender.sendMessage(String.format(translatebukkittext("messages.tokenbalance"), tokens.toString()));
+			    sender.sendMessage(String.format(plugin.translatebukkittext("messages.tokenbalance"), tokens.toString()));
 			    return false;
 			}
         }
 		if (args.length == 0)
 		{
 			Integer tokens = TokenManager.GetTokens(sender.getName());
-			sender.sendMessage(String.format(translatebukkittext("messages.tokenbalance"), tokens.toString()));
+			sender.sendMessage(String.format(plugin.translatebukkittext("messages.tokenbalance"), tokens.toString()));
 		    return true;
 		}
 		else
 		{
 			Integer tokens = TokenManager.GetTokens(args[0]);
-			sender.sendMessage(String.format(translatebukkittext("messages.tokenbalance"), tokens.toString()));
+			sender.sendMessage(String.format(plugin.translatebukkittext("messages.tokenbalance"), tokens.toString()));
 		    return false;
 		}
-	}
-
-	public String translatebukkittext(String text)
-	{
-		return plugin.config.getString("prefix") + ChatColor.translateAlternateColorCodes('&', plugin.config.getString(text));
 	}
 }

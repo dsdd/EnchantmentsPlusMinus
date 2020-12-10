@@ -84,14 +84,12 @@ public class EnchantGUI implements Listener, InventoryHolder {
 
         final ItemStack clickedItem = e.getCurrentItem();
 
-        // verify current item is not null
         if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
 
         final Player p = (Player) e.getWhoClicked();
-
-        // Using slots click is a best option for your inventory click's
         Map<Enchantment, Integer> enchs = clickedItem.getItemMeta().getEnchants();
         Enchantment ench = Enchantment.DURABILITY;
+        
         for (Map.Entry<Enchantment, Integer> entry : enchs.entrySet()) {
             ench = entry.getKey();
         }
@@ -100,7 +98,6 @@ public class EnchantGUI implements Listener, InventoryHolder {
         
     }
 
-    // Cancel dragging in our Inventory
     @EventHandler
     public void onpickaxeinventoryClick(final InventoryDragEvent e) {
         if (e.getInventory() == gui) {

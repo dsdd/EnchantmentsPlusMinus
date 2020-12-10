@@ -5,10 +5,11 @@ import java.io.IOException;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.Plugin;
 
 public class TokenManager {
 
-	private static Main plugin;
+	private static Plugin plugin;
 	
 	public TokenManager(Main plugin)
 	{
