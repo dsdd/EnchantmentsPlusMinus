@@ -42,7 +42,7 @@ public class EnchantHandler {
         }
         File file1 = new File(plugin.getDataFolder().getParentFile().getParentFile(), "lang.yml");
         if (file1.exists()) {
-        config = YamlConfiguration.loadConfiguration(file1); }
+        lang = YamlConfiguration.loadConfiguration(file1); }
         else
         {
         	Bukkit.broadcastMessage(ChatColor.RED + "Critical error: Could not find lang file for EPS!");
@@ -92,52 +92,31 @@ public class EnchantHandler {
     	return ChatColor.translateAlternateColorCodes('&',lang.getString("prefix")) + ChatColor.translateAlternateColorCodes('&', lang.getString("packs."+plugin.getName().toLowerCase()+".messages."+msg));
     }
     
-    public Integer getValueInt(Player p, Enchantment enchant)
+    public Double getValue(Enchantment enchant, Integer enchlvl, String custom)
     {
-    	Integer enchlvl = p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant);
+    	String value = config.getString("enchants."+enchant.getKey().getKey()+"."+custom);
+    	value = value.replaceAll("%lvl%", enchlvl.toString());
     	Object num = 0;
-	    Integer chance1 = 0;
 	    try {
-		num = engine.eval(String.format(config.getString("enchants."+enchant.getKey().getKey()+".value"),enchlvl.toString())); } 
+		num = engine.eval(value); } 
 	    catch (ScriptException e1) {e1.printStackTrace();}
 	    if (num instanceof Double)
 	    {
-	    Double num1 = (Double)num;
-	    chance1 = num1.intValue();
+	        return (Double) num;
 	    }
 	    else
 	    {
-	    	chance1 = (Integer)num;
+	    	return Double.valueOf((Integer)num);
 	    }
-	    return chance1;
     }
     
-    public Integer getEnchantChanceInt(Player p, Enchantment enchant)
+    public Double getChance(Enchantment enchant, Integer enchlvl)
     {
-    	Integer enchlvl = p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant);
     	Object num = 0;
-	    Integer chance1 = 0;
+    	String chance = config.getString("enchants."+enchant.getKey().getKey()+".chance");
+    	chance = chance.replaceAll("%lvl%", enchlvl.toString());
 	    try {
-		num = engine.eval(String.format(config.getString("enchants."+enchant.getKey().getKey()+".chance"),enchlvl.toString())); } 
-	    catch (ScriptException e1) {e1.printStackTrace();}
-	    if (num instanceof Double)
-	    {
-	    Double num1 = (Double)num;
-	    chance1 = num1.intValue();
-	    }
-	    else
-	    {
-	    	chance1 = (Integer)num;
-	    }
-	    return chance1;
-    }
-    
-    public Double getEnchantChance(Player p, Enchantment enchant)
-    {
-    	Integer enchlvl = p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant);
-    	Object num = 0;
-	    try {
-		num = engine.eval(String.format(config.getString("enchants."+enchant.getKey().getKey()+".chance"),enchlvl.toString())); } 
+		num = engine.eval(chance); } 
 	    catch (ScriptException e1) {e1.printStackTrace();}
 	    if (num instanceof Double)
 	    {

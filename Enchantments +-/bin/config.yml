@@ -69,7 +69,7 @@ enchants:
     mending:
         maxlevel: 1
         scrapvalue: 200
-        upgradeicon: PRISMARINE_SHARD
+        upgradeicon: PRISMARINE_CRYSTALS
         upgradedesc: Automatically repairs a tool or armor with XP.
         cost:
             type: exponential
@@ -84,7 +84,7 @@ enchants:
             type: exponential
             startvalue: 75
             multi: 2
-        chance: "%s*0.5"
+        chance: "%lvl%/10"
     explosive:
         maxlevel: 10
         scrapvalue: 75
@@ -94,8 +94,7 @@ enchants:
             type: exponential
             startvalue: 125
             multi: 1.5
-        chance: "%s*1.5" 
-# Sets the chance to activate explosive PER block with %s being the enchantment level
+        chance: "%lvl%"
     autosmelt:
         maxlevel: 10
         scrapvalue: 40
@@ -105,7 +104,7 @@ enchants:
             type: exponential
             startvalue: 50
             multi: 1.5
-        chance: "%s*10"
+        chance: "%lvl%*10"
     telepathy:
         maxlevel: 1
         scrapvalue: 400
@@ -125,11 +124,48 @@ enchants:
             type: exponential
             startvalue: 200
             multi: 1.2
-        chance: "%s/10"
-        value: "%s" 
-# A value needed to make this enchant work.
-# In this case, the value is for the amount of tokens gained if TokenBlocks activates.
-        
+        chance: "%lvl%/10"
+        tokens: "%lvl%"
+    jagged:
+        maxlevel: 2
+        scrapvalue: 200
+        upgradeicon: PRISMARINE_SHARD
+        upgradedesc: Increases attack damage of a weapon if its durability is low
+        cost:
+            type: manual
+            '1': 300
+            '2': 900
+        durabilitythreshold: "50"
+    retaliate:
+        maxlevel: 3
+        scrapvalue: 400
+        upgradeicon: GOLD_SWORD
+        upgradedesc: Gives a very temporary strength boost if you get hit
+        cost:
+            type: exponential
+            startvalue: 500
+            multi: 1.5
+        duration: "1"
+    lifesteal:
+        maxlevel: 2
+        scrapvalue: 600
+        upgradeicon: WITHER_SKELETON_SKULL
+        upgradedesc: Gives you health in return for attacking someone
+        cost:
+            type: linear
+            startvalue: 600
+            value: 400
+        hearts: "%lvl%/2"
+    momentum:
+        maxlevel: 2
+        scrapvalue: 300
+        upgradeicon: LEATHER_BOOTS
+        upgradedesc: Gives you a speed boost when attacking someone
+        cost:
+            type: linear
+            startvalue: 400
+            value: 200
+        duration: "%lvl%*4"
 # GUI configuration
 guis:
     examplegui:
@@ -137,9 +173,8 @@ guis:
             - depth_strider
         items:
             - BEDROCK
-    pickaxe:     
-# Enchants that can be bought in the GUI
-        enchants: 
+    pickaxe:     # Name this as anything
+        enchants:  # Enchants that can be bought in the GUI
             - efficiency
             - unbreaking
             - fortune
@@ -149,8 +184,7 @@ guis:
             - autosmelt
             - telepathy
             - tokenblocks
-# Which items can be used to show the GUI to upgrade it
-        items:       
+        items:   # Which items can be used to show the GUI to upgrade it
             - WOODEN_PICKAXE
             - STONE_PICKAXE
             - IRON_PICKAXE
@@ -162,6 +196,10 @@ guis:
             - unbreaking
             - fire_aspect
             - mending
+            - jagged
+            - retaliate
+            - lifesteal
+            - momentum
         items:
             - WOODEN_SWORD
             - STONE_SWORD
@@ -192,22 +230,3 @@ misc:
         - DIAMOND
         - EMERALD
         - QUARTZ
-        
-# Language Config
-
-prefix: ''
-
-messages:
-    insufficientpermission: "&cYou do not have permission to use this command."
-    invalidplayertype: "&cThis command can only be executed by a player."
-    invalidplayer: "&cCannot find specified player."
-    reloadconfig: "&aReloaded config!"
-    openenchantsgui: "&2Opening enchants GUI..."
-    invaliditem: "&cYou must hold a tool or armor to use this command."
-    unspecifiedplayer: "&cYou must specify a player."
-    tokenbalance: "&aTokens: %s"
-    insufficienttokens: "&cYou do not have enough tokens to buy this."
-    upgradedpickaxe: "&aUpgraded pickaxe successfully!"
-    maxedupgrade: "&cYou already have the maximum level for this enchantment."
-    cannotscrap: "&cThis item has no scrap value."
-    lockedupgrade: "&cYou may not upgrade this enchant as it is locked."

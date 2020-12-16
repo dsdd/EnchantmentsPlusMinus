@@ -23,7 +23,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -62,6 +61,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         {
             try {
 				LangFile.createNewFile();
+		        copyFile("/lang.yml", LangFile);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -95,9 +95,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     	
     	if (!PackFolder.exists()) {
             PackFolder.mkdirs();
-			File file = downloadFile(PackFolder.getPath()+"/PickaxePack.jar", "https://github.com/dsdd/EnchantmentsPlusMinus/raw/main/Packs/PickaxePack.jar"); try{        
-			Plugin plugin1 = Bukkit.getPluginManager().loadPlugin(file);
-			Bukkit.getPluginManager().enablePlugin(plugin1); } catch (Exception e) {}
+            downloadPack("SwordPack.jar", "https://github.com/dsdd/EnchantmentsPlusMinus/raw/main/Packs/SwordPack.jar");
+			downloadPack("PickaxePack.jar", "https://github.com/dsdd/EnchantmentsPlusMinus/raw/main/Packs/PickaxePack.jar");
         }
     	else
     	{
@@ -107,7 +106,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     	    	for (File file : files)
     	    	{
 					try {
-						if (!(Bukkit.getPluginManager().isPluginEnabled(FilenameUtils.removeExtension(file.getName())))) {
+						String filename = file.getName().replaceFirst("[.][^.]+$", "");
+						if (!(Bukkit.getPluginManager().isPluginEnabled(filename))) {
 						Plugin plugin1 = Bukkit.getPluginManager().loadPlugin(file);
 						Bukkit.getPluginManager().enablePlugin(plugin1); }
 					} catch (Exception e) {
@@ -281,7 +281,18 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 				return false;
 			}
 		}
-		
+		if (args[0].equalsIgnoreCase("loadpack"))
+		{
+			try {
+			    Plugin pl1 = Bukkit.getPluginManager().loadPlugin(new File(PackFolder, args[1]+".jar"));
+			    Bukkit.getPluginManager().enablePlugin(pl1);
+			    sender.sendMessage(ChatColor.GREEN + "Loaded pack!");
+			    }
+			    catch (Exception e)
+			    {
+			    	sender.sendMessage(ChatColor.RED + "Invalid pack name.");
+			    }
+		}
 		if (args[0].equalsIgnoreCase("reloadpack"))
 		{
 			try {
@@ -332,5 +343,37 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	    out.flush();
 	    
 	    return localFile;   } catch (Exception e){return null;}
+	}
+	
+	private void copyFile(String str, File dest) {
+		try {
+	    InputStream is = null;
+	    OutputStream os = null;
+	    try {
+	        is = this.getClass().getResourceAsStream(str);
+	        os = new FileOutputStream(dest);
+	        byte[] buffer = new byte[16384];
+	        int length;
+	        while ((length = is.read(buffer)) != -1) {
+	            os.write(buffer, 0, length);
+	        }
+	    }
+	    catch (Exception e)
+	    {
+	    	e.printStackTrace();
+	    }
+	    finally {
+	        is.close();
+	        os.close();
+	    }
+	}
+	catch(IOException e) {}
+	}
+	
+	private void downloadPack(String name, String url)
+	{
+		File file = downloadFile(PackFolder.getPath()+"/"+name, url); try{        
+			Plugin plugin1 = Bukkit.getPluginManager().loadPlugin(file);
+			Bukkit.getPluginManager().enablePlugin(plugin1); } catch (Exception e) {}
 	}
 }
