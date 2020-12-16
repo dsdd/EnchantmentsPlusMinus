@@ -1,27 +1,93 @@
 # +-------------------------+
-# |                         |
-# |      Enchantments+-     |
-# |                         |
+# | +---------------------+ |
+# | |    Enchantments+-   | |
+# | +---------------------+ |
 # +-------------------------+
 
 # This is the configuration file for Enchantments+-.
 # Need help? Check the GitHub wiki: https://github.com/dsdd/EnchantmentsPlusMinus
+#
+# +------------------------+
+# |                        |
+# |      Quick Start       |
+# |                        |
+# +------------------------+
+#
+# enchants:
+#    exampleenchant:
+#    -- An enchant you want to list
+#
+#        maxlevel: 40  
+#        -- The max level of the enchant that someone can upgrade to
+#
+#        scrapvalue: 100 
+#        -- The amount of tokens someone will get by scrapping this enchant
+#        -- You can just disable this function by setting permissions
+#
+#        upgradeicon: BLACK_STAINED_GLASS_PANE
+#        -- The item displayed in the GUI
+#
+#        upgradedesc: Does something
+#        -- The description displayed in the GUI for the item
+#
+#        cost:
+#            type: linear
+#            -- linear | The cost will go up at a fixed rate
+#            -- exponential | The cost will go up at an exponential rate
+#            -- manual | The cost is preset
+#
+#            startvalue: 50
+#            -- The starting cost of an enchant (or the cost of enchant lvl 1)
+#            -- Use this for linear and exponential cost rates
+#
+#            value: 50
+#            -- The amount of tokens the cost will go up by every level
+#            -- e.g. Lvl 1 = 50 tokens
+#            --      Lvl 2 = Lvl 1 + 50 = 100
+#            -- Only use this for linear cost rates
+#
+#            multi: 1.5
+#            -- The value the cost will be multiplied by every level
+#            -- e.g. Lvl 5 = 100 tokens
+#            --      Lvl 6 = Lvl 5 * 1.5 = 150 tokens
+#            -- Only use this for exponential cost rates
+#
+#            '1': 96
+#            '2': 240
+#            '3': 9392
+#            -- The preset cost for the enchant level
+#            -- e.g. If you have a sword with enchantment level 2 on it
+#            --      and you want it to be level 3, it would be 9392 tokens
+#
+# misc:
+#     applyfortuneon:
+#         - EMERALD
+#         - DIAMOND
+#     -- Applies fortune on the item drops specified
+#     -- Keep in mind (item drops) and not the blocks
+#     -- e.g. If you want to apply fortune on coal ore you would put
+#     --      - COAL 
+#     --      and not 
+#     --      - COAL_ORE
+#     -- Works with block item drops too, like emerald blocks
+#     -- Also note that this function only works with the pickaxe pack installed.    
+#
+# +------------------------+
+# |                        |
+# |     Configuration      |
+# |                        |
+# +------------------------+
 
 enchants:
     efficiency:
-        maxlevel: 10 # The maximum level a player can upgrade a tool through /enchants
-        scrapvalue: 8 # How many tokens will be given for scrapping this enchant (Multiplied with enchantment level)
-        upgradeicon: DIAMOND_PICKAXE # The item shown in /enchants for this enchant
-        upgradedesc: Increases your mining speed. # The description of the upgrade in /enchants
+        maxlevel: 10
+        scrapvalue: 8
+        upgradeicon: DIAMOND_PICKAXE
+        upgradedesc: Increases your mining speed.
         cost:
-            type: linear # Linear: The cost goes up in a fixed value
-                         # Exponential: The cost goes up in an exponential rate
-                         # Manual: The cost is preset
-            startvalue: 20 # The cost for the first level of the enchant (linear + exponential)
-            value: 10 # How much the cost will go up by (linear)
-            multi: 1.1 # How much the cost will be multiplied by per upgrade (exponential)
-            '1': 10 # The preset cost for the enchantment level
-            '2': 15
+            type: linear
+            startvalue: 20
+            value: 10
     unbreaking:
         maxlevel: 10
         scrapvalue: 3
@@ -166,15 +232,14 @@ enchants:
             startvalue: 400
             value: 200
         duration: "%lvl%*4"
-# GUI configuration
 guis:
     examplegui:
         enchants:
             - depth_strider
         items:
             - BEDROCK
-    pickaxe:     # Name this as anything
-        enchants:  # Enchants that can be bought in the GUI
+    pickaxe: 
+        enchants:  
             - efficiency
             - unbreaking
             - fortune
@@ -184,7 +249,7 @@ guis:
             - autosmelt
             - telepathy
             - tokenblocks
-        items:   # Which items can be used to show the GUI to upgrade it
+        items: 
             - WOODEN_PICKAXE
             - STONE_PICKAXE
             - IRON_PICKAXE
@@ -222,8 +287,6 @@ guis:
         
 misc:
     applyfortuneon: 
-# Applies fortune on these item drops
-# (item drops = the drops received when mining something)
         - COAL
         - LAPIS_LAZULI
         - REDSTONE

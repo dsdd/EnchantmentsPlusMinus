@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import org.bukkit.enchantments.Enchantment;
+import org.whyisthisnecessary.eps.internal.EnchantmentWrapper;
 
 public class EnchantRegisterer {
 	

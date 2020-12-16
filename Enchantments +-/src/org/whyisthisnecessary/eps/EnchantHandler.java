@@ -156,6 +156,56 @@ public class EnchantHandler {
     	return fortuneapply;
     }
     
+    public void setDefaultCostType(Enchantment enchant, String type)
+    {
+    	setConfigValue("enchants."+enchant.getKey().getKey()+".cost.type", type);
+    }
+    
+    public void setDefaultCostStartValue(Enchantment enchant, Integer value)
+    {
+    	setConfigValue("enchants."+enchant.getKey().getKey()+".cost.startvalue", value);
+    }
+    
+    public void setDefaultCostValue(Enchantment enchant, Integer value)
+    {
+    	setConfigValue("enchants."+enchant.getKey().getKey()+".cost.value", value);
+    }
+    
+    public void setDefaultCostPrice(Enchantment enchant, Integer enchlvl, Integer price)
+    {
+    	setConfigValue("enchants."+enchant.getKey().getKey()+".cost."+enchlvl.toString(), price);
+    }
+    
+    public void setDefaultCostMulti(Enchantment enchant, Integer multi)
+    {
+    	setConfigValue("enchants."+enchant.getKey().getKey()+".cost.multi", multi);
+    }
+    
+    public void setDefaultMaxLevel(Enchantment enchant, Integer level)
+    {
+    	setConfigValue("enchants."+enchant.getKey().getKey()+".maxlevel", level);
+    }
+    
+    public void setDefaultScrapValue(Enchantment enchant, Integer value)
+    {
+    	setConfigValue("enchants."+enchant.getKey().getKey()+".scrapvalue", value);
+    }
+    
+    public void setDefaultUpgradeIcon(Enchantment enchant, Material icon)
+    {
+    	setConfigValue("enchants."+enchant.getKey().getKey()+".upgradeicon", icon.getKey().getKey());
+    }
+    
+    public void setDefaultUpgradeIcon(Enchantment enchant, String material)
+    {
+    	setConfigValue("enchants."+enchant.getKey().getKey()+".upgradeicon", material);
+    }
+    
+    public void setDefaultUpgradeDesc(Enchantment enchant, String desc)
+    {
+    	setConfigValue("enchants."+enchant.getKey().getKey()+".upgradedesc", desc);
+    }
+    
     public void ChangeTokens(Player p, Integer amount)
     {
     	File DataFolder = new File(pl.getDataFolder(), "data");
@@ -212,5 +262,25 @@ public class EnchantHandler {
 	    {
 	    	return 0;
 	    }
+    }
+    
+    private void setConfigValue(String path, Object replace)
+    {
+    	File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
+        if (file.exists())
+        config = YamlConfiguration.loadConfiguration(file);
+		if (config.get(path) == null)
+		{
+			config.set(path, replace);
+			File configfile = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
+			if (configfile.exists())
+			{
+				try {
+					config.save(configfile);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
     }
 }

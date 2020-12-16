@@ -30,6 +30,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.whyisthisnecessary.eps.internal.InternalTokenManager;
+import org.whyisthisnecessary.eps.internal.ScrapCaller;
+import org.whyisthisnecessary.eps.internal.GetTokensCaller;
+import org.whyisthisnecessary.eps.internal.EnchantGUICaller;
 
 public class Main extends JavaPlugin implements Listener, CommandExecutor {
     
@@ -83,11 +87,11 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	    config = plugin.getConfig();
 	    
 	    plugin.getCommand("eps").setExecutor(this);
-	    plugin.getCommand("tokens").setExecutor(new gettokens(this));
-    	plugin.getCommand("enchants").setExecutor(new enchants(this));
-    	plugin.getCommand("scrap").setExecutor(new scrap(this));
+	    plugin.getCommand("tokens").setExecutor(new GetTokensCaller(this));
+    	plugin.getCommand("enchants").setExecutor(new EnchantGUICaller(this));
+    	plugin.getCommand("scrap").setExecutor(new ScrapCaller(this));
     	
-    	new TokenManager(this);
+    	new InternalTokenManager(this);
     	
     	list =  config.getStringList("misc.applyfortuneon");
     	for (int i=0;i<list.size();i++)
@@ -208,7 +212,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 			}
 			try
 			{
-			TokenManager.SetTokens(args[1],Integer.parseInt(args[2]));
+			InternalTokenManager.SetTokens(args[1],Integer.parseInt(args[2]));
 			sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aSet "+args[1]+"'s tokens to "+Integer.parseInt(args[2])));
 			}
 			catch(NullPointerException e)
@@ -234,7 +238,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 			}
 			try
 			{
-			TokenManager.ChangeTokens(args[1],Integer.parseInt(args[2]));
+			InternalTokenManager.ChangeTokens(args[1],Integer.parseInt(args[2]));
 			sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aChanged "+args[1]+"'s tokens by "+Integer.parseInt(args[2])));
 			}
 			catch(NullPointerException e)
