@@ -135,7 +135,7 @@ enchants:
             type: manual
             '1': 300
             '2': 900
-        durabilitythreshold: "50"
+        durabilitythresholdpercent: "30"
     retaliate:
         maxlevel: 3
         scrapvalue: 400

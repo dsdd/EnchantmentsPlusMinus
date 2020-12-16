@@ -56,8 +56,11 @@ public class EnchantHandler {
 		return config;
 	}
 	
-	public void setDefaultConfigMessage(String msg, String text)
+	public void setDefaultLangMessage(String msg, String text)
 	{
+		File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "lang.yml");
+        if (file.exists())
+        lang = YamlConfiguration.loadConfiguration(file);
 		if (lang.get("packs."+plugin.getName().toLowerCase()+".messages."+msg) == null)
 		{
 			lang.set("packs."+plugin.getName().toLowerCase()+".messages."+msg, text);
@@ -73,8 +76,11 @@ public class EnchantHandler {
 		}
 	}
 	
-	public void setConfigMessage(String msg, String text)
+	public void setLangMessage(String msg, String text)
 	{
+		File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "lang.yml");
+        if (file.exists())
+        lang = YamlConfiguration.loadConfiguration(file);
 		lang.set("packs."+plugin.getName().toLowerCase()+".messages."+msg, text);
 		File langfile = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
 		if (langfile.exists())
@@ -87,13 +93,19 @@ public class EnchantHandler {
 		}
 	}
 	
-    public String getConfigMessage(String msg)
+    public String getLangMessage(String msg)
     {
+    	File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "lang.yml");
+        if (file.exists())
+        lang = YamlConfiguration.loadConfiguration(file);
     	return ChatColor.translateAlternateColorCodes('&',lang.getString("prefix")) + ChatColor.translateAlternateColorCodes('&', lang.getString("packs."+plugin.getName().toLowerCase()+".messages."+msg));
     }
     
     public Double getValue(Enchantment enchant, Integer enchlvl, String custom)
     {
+    	File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
+        if (file.exists())
+        config = YamlConfiguration.loadConfiguration(file);
     	String value = config.getString("enchants."+enchant.getKey().getKey()+"."+custom);
     	value = value.replaceAll("%lvl%", enchlvl.toString());
     	Object num = 0;
@@ -112,6 +124,9 @@ public class EnchantHandler {
     
     public Double getChance(Enchantment enchant, Integer enchlvl)
     {
+    	File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
+        if (file.exists())
+        config = YamlConfiguration.loadConfiguration(file);
     	Object num = 0;
     	String chance = config.getString("enchants."+enchant.getKey().getKey()+".chance");
     	chance = chance.replaceAll("%lvl%", enchlvl.toString());
@@ -130,6 +145,9 @@ public class EnchantHandler {
     
     public List<Material> getFortuneDrops()
     {
+    	File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
+        if (file.exists())
+        config = YamlConfiguration.loadConfiguration(file);
     	List<Material> fortuneapply = new ArrayList<Material>(Arrays.asList());
     	List<String> list;
     	list = config.getStringList("misc.applyfortuneon");
