@@ -1,0 +1,22 @@
+# Language Config
+
+prefix: ''
+messages:
+    insufficientpermission: "&cYou do not have permission to use this command."
+    invalidplayertype: "&cThis command can only be executed by a player."
+    invalidplayer: "&cCannot find specified player."
+    reloadconfig: "&aReloaded config!"
+    openenchantsgui: "&2Opening enchants GUI..."
+    invaliditem: "&cYou must hold a tool or armor to use this command."
+    unspecifiedplayer: "&cYou must specify a player."
+    unspecifiedtokenspay: "&cYou must specify the amount of tokens to give."
+    invalidtokenamountpay: "&cYou must write a proper amount of tokens to give."
+    tokenbalance: "&aTokens: %tokens%"
+    insufficienttokens: "&cYou do not have enough tokens to buy this."
+    upgradedpickaxe: "&aUpgraded pickaxe successfully!"
+    maxedupgrade: "&cYou already have the maximum level for this enchantment."
+    exceedmaxlvl: "&cYou can't exceed the maximum level for this enchantment."
+    cannotscrap: "&cThis item has no scrap value."
+    scrapsuccess: "&aYou scrapped this item for %tokens% tokens!"
+    lockedupgrade: "&cYou may not upgrade this enchant as it is locked."
+    

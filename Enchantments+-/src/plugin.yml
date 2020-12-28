@@ -1,0 +1,21 @@
+name: EnchantmentsPlusMinus
+version: 1.80b
+author: whyisthisnecessary
+main: org.whyisthisnecessary.eps.Main
+description: Provides a unique way of obtaining custom enchantments for tools and armor
+api-version: 1.13
+softdepend: [PlaceholderAPI, Vault]
+
+commands:
+    eps:
+        description: EPS admin commnads
+    enchants:
+        aliases: [enchantments]
+        description: Opens the enchantment GUI to apply enchants to tools and armor
+    tokens:
+        aliases: [token]
+        description: Tells you how many tokens you have
+    scrap:
+        description: Scraps your current tool for tokens.
+    paytokens:
+        description: Pays the specified player a specified amount of tokens
