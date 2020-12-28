@@ -19,8 +19,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.whyisthisnecessary.eps.EnchantMetaWriter;
 import org.whyisthisnecessary.eps.Main;
 
 public class EnchantGUI implements Listener, InventoryHolder {
@@ -28,7 +28,6 @@ public class EnchantGUI implements Listener, InventoryHolder {
 	Inventory gui = Bukkit.createInventory(null, 36, "Enchantments");
 	private Main plugin;
 	private Player p;
-	private PlayerInventory pgui;
 	private String currentgui = "";
 	
 	public EnchantGUI(Main main){
@@ -40,7 +39,6 @@ public class EnchantGUI implements Listener, InventoryHolder {
 	public void OpenInventory(Player p, String gui1)
 	{
 		this.p = p;
-        pgui = p.getInventory();
         p.openInventory(gui);
         LoadInventory(p, gui1);
 	}
@@ -57,6 +55,12 @@ public class EnchantGUI implements Listener, InventoryHolder {
         	add(i);
         }
         currentgui = gui;
+        ItemStack i = new ItemStack(Material.GOLD_INGOT, 1);
+        ItemMeta meta = i.getItemMeta();
+        meta.setDisplayName(ChatColor.GREEN+"Your Tokens » "+ChatColor.YELLOW+Integer.toString(InternalTokenManager.GetTokens(p.getName())));
+        i.setItemMeta(meta);
+        this.gui.setItem(4, i);
+        this.gui.setItem(31, i);
 	}
 	
 	public void clearInventory()
@@ -80,7 +84,7 @@ public class EnchantGUI implements Listener, InventoryHolder {
 	@EventHandler
     public void onpickaxeinventoryClick(final InventoryClickEvent e) {
         if (e.getInventory().getHolder() != null) return;
-
+        if (e.getInventory() != gui) return;
         e.setCancelled(true);
 
         final ItemStack clickedItem = e.getCurrentItem();
@@ -129,7 +133,7 @@ public class EnchantGUI implements Listener, InventoryHolder {
     	Material material = Material.getMaterial(plugin.config.getString("enchants."+name+".upgradeicon"));
     	String desc = plugin.config.getString("enchants."+name+".upgradedesc");
     	Integer maxlevel = (Integer) plugin.config.get("enchants."+enchant.getKey().getKey()+".maxlevel");
-        if (!(pgui.getItemInMainHand().getEnchantmentLevel(enchant) >= maxlevel))
+        if (!(p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant) >= maxlevel))
         {
         	String method = plugin.config.getString("enchants."+name+".cost.type");
         	cost = Integer.toString(getCost(method, enchant));
@@ -139,7 +143,11 @@ public class EnchantGUI implements Listener, InventoryHolder {
         {
             cost = "Maxed!";
         }
-        ItemStack slot = new ItemStack(material, 1);
+        ItemStack slot = new ItemStack(Material.BOOK, 1);;
+        if (material != null)
+        slot = new ItemStack(material, 1);
+        else
+        Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid material type for enchantment "+name.toUpperCase()+". Setting to default BOOK.");
         ItemMeta meta = slot.getItemMeta();
         meta.setDisplayName(ChatColor.AQUA+displayname);
         meta.setLore(Arrays.asList(new String[] { "", 
@@ -177,7 +185,7 @@ public class EnchantGUI implements Listener, InventoryHolder {
     
     public Integer getCost(String type, Enchantment enchant)
     {
-    	Integer enchlvl = pgui.getItemInMainHand().getEnchantmentLevel(enchant);
+    	Integer enchlvl = p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant);
     	if (type.equalsIgnoreCase("manual"))
     	{
     		return plugin.config.getInt("enchants."+enchant.getKey().getKey()+".cost."+(enchlvl+1));
@@ -202,7 +210,7 @@ public class EnchantGUI implements Listener, InventoryHolder {
     
     public Integer getCost(String type, Enchantment enchant, Integer multi)
     {
-    	Integer enchlvl = pgui.getItemInMainHand().getEnchantmentLevel(enchant);
+    	Integer enchlvl = p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant);
     	if (type.equalsIgnoreCase("manual"))
     	{
     		Integer val = plugin.config.getInt("enchants."+enchant.getKey().getKey()+".cost."+(enchlvl+1));
@@ -234,14 +242,16 @@ public class EnchantGUI implements Listener, InventoryHolder {
     {
     	String method = plugin.config.getString("enchants."+enchant.getKey().getKey()+".cost.type");
     	Integer cost = (getCost(method, enchant, multi));
-    	if (!(pgui.getItemInMainHand().getEnchantmentLevel(enchant)+multi-1 >= plugin.config.getInt("enchants."+enchant.getKey().getKey()+".maxlevel")))
+    	if (!(p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant)+multi-1 >= plugin.config.getInt("enchants."+enchant.getKey().getKey()+".maxlevel")))
     	{
     		if (InternalTokenManager.GetTokens(p.getName()) >= cost)
             {
 	        	p.sendMessage(plugin.translatebukkittext("messages.upgradedpickaxe"));
 	        	Integer newvalue = InternalTokenManager.GetTokens(p.getName()) - cost;
 	        	InternalTokenManager.SetTokens(p.getName(), newvalue);
-	        	p.getInventory().getItemInMainHand().addUnsafeEnchantment(enchant, pgui.getItemInMainHand().getEnchantmentLevel(enchant)+multi);
+	        	p.getInventory().getItemInMainHand().addUnsafeEnchantment(enchant, p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant)+multi);
+	        	ItemMeta meta = EnchantMetaWriter.getWrittenEnchantLore(p.getInventory().getItemInMainHand());
+	        	p.getInventory().getItemInMainHand().setItemMeta(meta);
 	        	clearInventory();
 	        	LoadInventory(p, currentgui);
             }
@@ -250,7 +260,7 @@ public class EnchantGUI implements Listener, InventoryHolder {
 	        	p.sendMessage(plugin.translatebukkittext("messages.insufficienttokens"));
 	        }
     	}
-    	else if ((pgui.getItemInMainHand().getEnchantmentLevel(enchant) >= plugin.config.getInt("enchants."+enchant.getKey().getKey()+".maxlevel")))
+    	else if ((p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant) >= plugin.config.getInt("enchants."+enchant.getKey().getKey()+".maxlevel")))
     	{
     		p.sendMessage(plugin.translatebukkittext("messages.exceedmaxlvl"));
     	}

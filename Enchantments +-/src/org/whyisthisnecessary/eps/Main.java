@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -28,9 +30,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.whyisthisnecessary.eps.internal.InternalTokenManager;
+import org.whyisthisnecessary.eps.internal.Metrics;
+import org.whyisthisnecessary.eps.internal.PayTokensCaller;
 import org.whyisthisnecessary.eps.internal.PlaceholderAPIHook;
 import org.whyisthisnecessary.eps.internal.ScrapCaller;
 import org.whyisthisnecessary.eps.internal.GetTokensCaller;
@@ -48,6 +53,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	private FileConfiguration lang;
 	private List<String> list;
 	public List<Material> fortuneapply = new ArrayList<Material>(Arrays.asList());
+	private List<Plugin> packs = new ArrayList<Plugin>(Arrays.asList());
 	
 	@Override
 	public void onEnable() 
@@ -86,16 +92,24 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	     }
 	    usconfig = YamlConfiguration.loadConfiguration(userstore);
 	    config = plugin.getConfig();
+	    EnchantHandler.config = config;
+	    EnchantHandler.lang = lang;
+	    EnchantHandler.configFile = new File(getDataFolder(), "config.yml");
+	    EnchantHandler.langFile = new File(getDataFolder(), "lang.yml");
 	    
 	    plugin.getCommand("eps").setExecutor(this);
 	    plugin.getCommand("tokens").setExecutor(new GetTokensCaller(this));
     	plugin.getCommand("enchants").setExecutor(new EnchantGUICaller(this));
     	plugin.getCommand("scrap").setExecutor(new ScrapCaller(this));
+    	plugin.getCommand("paytokens").setExecutor(new PayTokensCaller(this));
     	
     	new InternalTokenManager(this);
     	
     	if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
     	new PlaceholderAPIHook();
+    	
+    	int pluginId = 9735;
+        new Metrics(this, pluginId);
     	
     	list = config.getStringList("misc.applyfortuneon");
     	for (String i : list)
@@ -103,8 +117,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     	
     	if (!PackFolder.exists()) {
             PackFolder.mkdirs();
-            downloadPack("PVPPack.jar", "https://github.com/dsdd/EnchantmentsPlusMinus/raw/main/Packs/PVPPack.jar");
-			downloadPack("PickaxePack.jar", "https://github.com/dsdd/EnchantmentsPlusMinus/raw/main/Packs/PickaxePack.jar");
+			downloadPack("AutoUpdater", "https://github.com/dsdd/EnchantmentsPlusMinus/raw/main/Packs/AutoUpdater.jar");
+			downloadPack("TokenRewards", "https://github.com/dsdd/EnchantmentsPlusMinus/raw/main/Packs/TokenRewards.jar");
         }
     	else
     	{
@@ -113,18 +127,32 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     	    {
     	    	for (File file : files)
     	    	{
+    	    		if (file.getName().equalsIgnoreCase("PickaxePack.jar") || file.getName().equalsIgnoreCase("PVPPack.jar"))
+    	    		{
+    	    			file.delete();
+    	    		}
+    	    		else {
 					try {
-						String filename = file.getName().replaceFirst("[.][^.]+$", "");
-						if (!(Bukkit.getPluginManager().isPluginEnabled(filename))) {
 						Plugin plugin1 = Bukkit.getPluginManager().loadPlugin(file);
-						Bukkit.getPluginManager().enablePlugin(plugin1); }
+						Bukkit.getPluginManager().enablePlugin(plugin1);
+						packs.add(plugin1);
 					} catch (Exception e) {
-						e.printStackTrace();
 					}
+    	    	}
     	    	}
 
     	    }
     	}
+    	new BuiltInPackParser(this);
+	}
+	
+	@Override
+	public void onDisable()
+	{
+		for (Plugin pl : packs)
+		{
+			Bukkit.getPluginManager().disablePlugin(pl);
+		}
 	}
     
     @EventHandler
@@ -147,9 +175,9 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	        
 	    FileConfiguration dfconfig = YamlConfiguration.loadConfiguration(datafile);
 	        
-		dfSetDefault(dfconfig, "uuid", stringuuid);
-		dfSetDefault(dfconfig, "player-name", p.getName());
-		dfSetDefault(dfconfig, "tokens", 0);
+		addDefault(dfconfig, "uuid", stringuuid);
+		addDefault(dfconfig, "player-name", p.getName());
+		addDefault(dfconfig, "tokens", 0);
 		usconfig.set(p.getName(), stringuuid);
 		
 		try {
@@ -158,13 +186,18 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
+		
+		if (p.isOp())
+		{
+			p.sendMessage(ChatColor.YELLOW + "Check for new updates here: https://www.spigotmc.org/resources/enchantments.86901/");
+		}
 	}
 	
-	private void dfSetDefault(FileConfiguration dfconfig, String s1, Object s2)
+	private void addDefault(FileConfiguration config, String key, Object value)
 	{
-		if (dfconfig.get(s1) == null)
+		if (config.get(key) == null)
 		{
-			dfconfig.set(s1, s2);
+			config.set(key, value);
 		} 
 	}
 	
@@ -194,10 +227,29 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 			config = plugin.getConfig();
 			usconfig = YamlConfiguration.loadConfiguration(userstore);
 			lang = YamlConfiguration.loadConfiguration(LangFile);
-			sender.sendMessage(translatebukkittext("messages.reloadconfig"));
+			EnchantHandler.config = config;
+		    EnchantHandler.lang = lang;
+		    EnchantHandler.configFile = new File(getDataFolder(), "config.yml");
+		    EnchantHandler.langFile = new File(getDataFolder(), "lang.yml");
+			File[] files = PackFolder.listFiles();
+    	    if (files != null)
+    	    {
+    	    	for (File file : files)
+    	    	{
+					try {
+						String filename = file.getName().replaceFirst("[.][^.]+$", "");
+						Plugin plugin1 = getPluginByName(filename);
+						Bukkit.getPluginManager().disablePlugin(plugin1);
+						Bukkit.getPluginManager().enablePlugin(plugin1);
+					} catch (Exception e) {
+					}
+    	    	}
+
+    	    }
 			list = config.getStringList("misc.applyfortuneon");
 			for (String i : list)
 	    	fortuneapply.add(Material.getMaterial(i));
+			sender.sendMessage(translatebukkittext("messages.reloadconfig"));
 			return false;
 		}
 		
@@ -275,6 +327,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 				if (p.getInventory().getItemInMainHand().getAmount() > 0)
 				{
 					p.getInventory().getItemInMainHand().addUnsafeEnchantment(Enchantment.getByKey(NamespacedKey.minecraft(args[1])), Integer.parseInt(args[2]));
+					ItemMeta meta = EnchantMetaWriter.getWrittenEnchantLore(p.getInventory().getItemInMainHand());
+		        	p.getInventory().getItemInMainHand().setItemMeta(meta);
 					return true;
 				}
 				else
@@ -291,29 +345,46 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 		}
 		if (args[0].equalsIgnoreCase("loadpack"))
 		{
+			if (sender.hasPermission("eps.admin.loadpack"))
+			{
 			try {
 			    Plugin pl1 = Bukkit.getPluginManager().loadPlugin(new File(PackFolder, args[1]+".jar"));
 			    Bukkit.getPluginManager().enablePlugin(pl1);
+			    packs.add(pl1);
 			    sender.sendMessage(ChatColor.GREEN + "Loaded pack!");
 			    }
 			    catch (Exception e)
 			    {
-			    	sender.sendMessage(ChatColor.RED + "Invalid pack name.");
+			    	e.printStackTrace();
 			    }
+			}
+			else
+			{
+				sender.sendMessage(translatebukkittext("messages.insufficientpermission"));
+				return false;
+			}
 		}
 		if (args[0].equalsIgnoreCase("reloadpack"))
 		{
+			if (sender.hasPermission("eps.admin.reloadpack"))
+			{
 			try {
 		    Plugin pl = Bukkit.getPluginManager().getPlugin(args[1]);	
 		    Bukkit.getPluginManager().disablePlugin(pl);
-		    Plugin pl1 = Bukkit.getPluginManager().loadPlugin(new File(PackFolder, args[1]+".jar"));
+		    Plugin pl1 = Bukkit.getPluginManager().loadPlugin(getJarFile(pl));
 		    Bukkit.getPluginManager().enablePlugin(pl1);
 		    sender.sendMessage(ChatColor.GREEN + "Reloaded pack!");
 		    }
 		    catch (Exception e)
 		    {
-		    	sender.sendMessage(ChatColor.RED + "Invalid pack name.");
+		    	e.printStackTrace();
 		    }
+		    }
+			else
+			{
+				sender.sendMessage(translatebukkittext("messages.insufficientpermission"));
+				return false;
+			}
 		}
 		
 		return false;
@@ -378,10 +449,27 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	catch(IOException e) {}
 	}
 	
+	private static Plugin getPluginByName(String name) {
+	    for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
+	      if (name.equalsIgnoreCase(plugin.getName()))
+	        return plugin; 
+	    } 
+	    return null;
+	  }
+	
 	private void downloadPack(String name, String url)
 	{
-		File file = downloadFile(PackFolder.getPath()+"/"+name, url); try{        
+		File file = downloadFile(PackFolder.getPath()+"/"+name+".jar", url); try{        
 			Plugin plugin1 = Bukkit.getPluginManager().loadPlugin(file);
 			Bukkit.getPluginManager().enablePlugin(plugin1); } catch (Exception e) {}
+	}
+	
+	private File getJarFile(Plugin pl) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	{
+		JavaPlugin plugin = (JavaPlugin) getServer().getPluginManager().getPlugin(pl.getName());
+		Method getFileMethod = JavaPlugin.class.getDeclaredMethod("getFile");
+		getFileMethod.setAccessible(true);
+		File file = (File) getFileMethod.invoke(plugin);
+		return file;
 	}
 }

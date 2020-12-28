@@ -17,6 +17,19 @@ public class InternalTokenManager {
 		InternalTokenManager.plugin = plugin;
 	}
 	
+	public static boolean PlayerExists(String p)
+	{
+		File DataFolder = new File(plugin.getDataFolder(), "data");
+		File userstore = new File(DataFolder, "usernamestore.yml");
+		FileConfiguration usconfig = YamlConfiguration.loadConfiguration(userstore);
+		String uid = usconfig.getString(p);
+		File datafile = new File(DataFolder, uid+".yml");
+		if (datafile.exists()) 
+		    return true;
+		else
+			return false;
+	}
+	
 	public static void SetTokens(String p, Integer amount)
 	{
 		File DataFolder = new File(plugin.getDataFolder(), "data");

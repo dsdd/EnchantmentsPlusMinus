@@ -76,201 +76,236 @@
 # |     Configuration      |
 # |                        |
 # +------------------------+
-#                                                                                     -#-
+#        
+#                                                                             -#-
 enchants:
-    efficiency:
-        maxlevel: 10
-        scrapvalue: 8
-        upgradeicon: DIAMOND_PICKAXE
-        upgradedesc: Increases your mining speed.
-        cost:
-            type: linear
-            startvalue: 20
-            value: 10
-    unbreaking:
-        maxlevel: 10
-        scrapvalue: 3
-        upgradeicon: BEDROCK
-        upgradedesc: Increases the durability of items.
-        cost:
-            type: manual
-            '1': 5
-            '2': 8
-            '3': 12
-            '4': 18
-            '5': 32
-            '6': 60
-            '7': 90
-            '8': 130
-            '9': 200
-            '10': 500
-    fortune:
-        maxlevel: 10
-        scrapvalue: 24
-        upgradeicon: DIAMOND
-        upgradedesc: Increases the amount of item drops when mining.
-        cost:
-            type: exponential
-            startvalue: 30
-            multi: 1.2
-    sharpness:
-        maxlevel: 10
-        scrapvalue: 16
-        upgradeicon: DIAMOND_SWORD
-        upgradedesc: Increases the attack damage of a weapon.
-        cost:
-            type: exponential
-            startvalue: 24
-            multi: 1.2
-    fire_aspect:
-        maxlevel: 4
-        scrapvalue: 65
-        upgradeicon: FIRE_CHARGE
-        upgradedesc: Burns anyone who gets hit by a weapon.
-        cost:
-            type: exponential
-            startvalue: 90
-            multi: 1.35
-    mending:
-        maxlevel: 1
-        scrapvalue: 200
-        upgradeicon: PRISMARINE_CRYSTALS
-        upgradedesc: Automatically repairs a tool or armor with XP.
-        cost:
-            type: exponential
-            startvalue: 300
-            multi: 1
-    haste:
-        maxlevel: 2
-        scrapvalue: 50
-        upgradeicon: GOLDEN_PICKAXE
-        upgradedesc: Gives a random chance to apply Haste while mining
-        cost:
-            type: exponential
-            startvalue: 75
-            multi: 2
-        chance: "%lvl%/10"
-    explosive:
-        maxlevel: 10
-        scrapvalue: 75
-        upgradeicon: TNT
-        upgradedesc: "Has a chance to blow up blocks. Works with fortune!"
-        cost:
-            type: exponential
-            startvalue: 125
-            multi: 1.5
-        chance: "%lvl%"
-    autosmelt:
-        maxlevel: 10
-        scrapvalue: 40
-        upgradeicon: COAL
-        upgradedesc: "Has a chance to automatically smelt items. Works with fortune!"
-        cost:
-            type: exponential
-            startvalue: 50
-            multi: 1.5
-        chance: "%lvl%*10"
-    telepathy:
-        maxlevel: 1
-        scrapvalue: 400
-        upgradeicon: ENDER_PEARL
-        upgradedesc: "Automatically transfers items to your inventory."
-        cost:
-            type: exponential
-            startvalue: 500
-            multi: 1
-        chance: "100"
-    tokenblocks:
-        maxlevel: 20
-        scrapvalue: 100
-        upgradeicon: GOLD_BLOCK
-        upgradedesc: Has a chance to give tokens while mining.
-        cost:
-            type: exponential
-            startvalue: 200
-            multi: 1.2
-        chance: "%lvl%/10"
-        tokens: "%lvl%"
-    jagged:
-        maxlevel: 2
-        scrapvalue: 200
-        upgradeicon: PRISMARINE_SHARD
-        upgradedesc: Increases attack damage of a weapon if its durability is low
-        cost:
-            type: manual
-            '1': 300
-            '2': 900
-        durabilitythresholdpercent: "30"
-    retaliate:
-        maxlevel: 3
-        scrapvalue: 400
-        upgradeicon: GOLD_SWORD
-        upgradedesc: Gives a very temporary strength boost if you get hit
-        cost:
-            type: exponential
-            startvalue: 500
-            multi: 1.5
-        duration: "1"
-    lifesteal:
-        maxlevel: 2
-        scrapvalue: 600
-        upgradeicon: WITHER_SKELETON_SKULL
-        upgradedesc: Gives you health in return for attacking someone
-        cost:
-            type: linear
-            startvalue: 600
-            value: 400
-        hearts: "%lvl%/2"
-    momentum:
-        maxlevel: 2
-        scrapvalue: 300
-        upgradeicon: LEATHER_BOOTS
-        upgradedesc: Gives you a speed boost when attacking someone
-        cost:
-            type: linear
-            startvalue: 400
-            value: 200
-        duration: "%lvl%*4"
-    poisonous:
-        maxlevel: 10
-        scrapvalue: 75
-        upgradeicon: book
-        upgradedesc: "Poisons anyone who touches you!"
-        cost:
-            type: linear
-            startvalue: 150
-            value: 150
-        ticks: "40*%lvl%"
-    volcanic:
-        maxlevel: 10
-        scrapvalue: 100
-        upgradeicon: book
-        upgradedesc: "Hot! Sets anyone who touches you on fire."
-        cost:
-            type: linear
-            startvalue: 200
-            value: 200
-        ticks: "30*%lvl%"
-    saturated:
-        maxlevel: 10
-        scrapvalue: 75
-        upgradeicon: book
-        upgradedesc: "Gives you saturation when hit!"
-        cost:
-            type: linear
-            startvalue: 150
-            value: 150
-        ticks: "30*%lvl%"
-    insatiable:
-        maxlevel: 10
-        scrapvalue: 150
-        upgradeicon: book
-        upgradedesc: Deals more damage the less health you have.
-        cost:
-            type: linear
-            startvalue: 300
-            value: 300
-        extradamage: '%lvl%'
+  efficiency:
+    maxlevel: 10
+    scrapvalue: 8
+    upgradeicon: DIAMOND_PICKAXE
+    upgradedesc: Increases your mining speed.
+    cost:
+      type: linear
+      startvalue: 20
+      value: 10
+  unbreaking:
+    maxlevel: 10
+    scrapvalue: 3
+    upgradeicon: BEDROCK
+    upgradedesc: Increases the durability of items.
+    cost:
+      type: manual
+      '1': 5
+      '2': 8
+      '3': 12
+      '4': 18
+      '5': 32
+      '6': 60
+      '7': 90
+      '8': 130
+      '9': 200
+      '10': 500
+  fortune:
+    maxlevel: 10
+    scrapvalue: 24
+    upgradeicon: DIAMOND
+    upgradedesc: Increases the amount of item drops when mining.
+    cost:
+      type: exponential
+      startvalue: 30
+      multi: 1.2
+  sharpness:
+    maxlevel: 10
+    scrapvalue: 16
+    upgradeicon: DIAMOND_SWORD
+    upgradedesc: Increases the attack damage of a weapon.
+    cost:
+      type: exponential
+      startvalue: 24
+      multi: 1.2
+  fire_aspect:
+    maxlevel: 4
+    scrapvalue: 65
+    upgradeicon: FIRE_CHARGE
+    upgradedesc: Burns anyone who gets hit by a weapon.
+    cost:
+      type: exponential
+      startvalue: 90
+      multi: 1.35
+  mending:
+    maxlevel: 1
+    scrapvalue: 200
+    upgradeicon: PRISMARINE_CRYSTALS
+    upgradedesc: Automatically repairs a tool or armor with XP.
+    cost:
+      type: exponential
+      startvalue: 300
+      multi: 1
+  haste:
+    maxlevel: 2
+    scrapvalue: 50
+    upgradeicon: GOLDEN_PICKAXE
+    upgradedesc: Gives a random chance to apply Haste while mining
+    cost:
+      type: exponential
+      startvalue: 75
+      multi: 2
+    chance: '%lvl%/10'
+  explosive:
+    maxlevel: 10
+    scrapvalue: 75
+    upgradeicon: TNT
+    upgradedesc: "Has a chance to blow up blocks. Works with fortune!"
+    cost:
+      type: exponential
+      startvalue: 125
+      multi: 1.5
+    chance: '%lvl%'
+  autosmelt:
+    maxlevel: 10
+    scrapvalue: 40
+    upgradeicon: COAL
+    upgradedesc: "Has a chance to automatically smelt items. Works with fortune!"
+    cost:
+      type: exponential
+      startvalue: 50
+      multi: 1.5
+    chance: '%lvl%*10'
+  telepathy:
+    maxlevel: 1
+    scrapvalue: 400
+    upgradeicon: ENDER_PEARL
+    upgradedesc: Automatically transfers items to your inventory.
+    cost:
+      type: exponential
+      startvalue: 500
+      multi: 1
+    chance: '100'
+  tokenblocks:
+    maxlevel: 20
+    scrapvalue: 100
+    upgradeicon: GOLD_BLOCK
+    upgradedesc: Has a chance to give tokens while mining.
+    cost:
+      type: exponential
+      startvalue: 200
+      multi: 1.2
+    chance: '%lvl%/10'
+    tokens: '%lvl%'
+  jagged:
+    maxlevel: 2
+    scrapvalue: 200
+    upgradeicon: PRISMARINE_SHARD
+    upgradedesc: Increases attack damage of a weapon if its durability is low
+    cost:
+      type: manual
+      '1': 300
+      '2': 900
+    durabilitythresholdpercent: '30'
+  retaliate:
+    maxlevel: 3
+    scrapvalue: 400
+    upgradeicon: IRON_AXE
+    upgradedesc: Gives a very temporary strength boost if you get hit
+    cost:
+      type: exponential
+      startvalue: 500
+      multi: 1.5
+    duration: '1'
+  lifesteal:
+    maxlevel: 2
+    scrapvalue: 600
+    upgradeicon: WITHER_SKELETON_SKULL
+    upgradedesc: Gives you health in return for attacking someone
+    cost:
+      type: linear
+      startvalue: 600
+      value: 400
+    hearts: '%lvl%/2'
+  momentum:
+    maxlevel: 2
+    scrapvalue: 300
+    upgradeicon: LEATHER_BOOTS
+    upgradedesc: Gives you a speed boost when attacking someone
+    cost:
+      type: linear
+      startvalue: 400
+      value: 200
+    duration: '%lvl%*4'
+  poisonous:
+    maxlevel: 10
+    scrapvalue: 75
+    upgradeicon: BOOK
+    upgradedesc: "Poisons anyone who touches you!"
+    cost:
+      type: linear
+      startvalue: 150
+      value: 150
+    ticks: '40*%lvl%'
+  volcanic:
+    maxlevel: 10
+    scrapvalue: 100
+    upgradeicon: LAVA_BUCKET
+    upgradedesc: "Hot! Sets anyone who touches you on fire."
+    cost:
+      type: linear
+      startvalue: 200
+      value: 200
+    ticks: '30*%lvl%'
+  saturated:
+    maxlevel: 10
+    scrapvalue: 75
+    upgradeicon: COOKED_BEEF
+    upgradedesc: "Gives you saturation when hit!"
+    cost:
+      type: linear
+      startvalue: 150
+      value: 150
+    ticks: '30*%lvl%'
+  insatiable:
+    maxlevel: 10
+    scrapvalue: 150
+    upgradeicon: REDSTONE
+    upgradedesc: Deals more damage the less health you have.
+    cost:
+      type: linear
+      startvalue: 300
+      value: 300
+    extradamage: '%lvl%'
+  moneyblocks:
+    maxlevel: 10
+    scrapvalue: 100
+    upgradeicon: book
+    upgradedesc: Has a chance to give money while mining.
+    cost:
+      type: linear
+      startvalue: 200
+      value: 200
+    chance: '%lvl%/10'
+    money: '%lvl%*350'
+  charity:
+    maxlevel: 10
+    scrapvalue: 100
+    upgradeicon: book
+    upgradedesc: Has a chance to give everyone money while mining.
+    cost:
+      type: linear
+      startvalue: 200
+      value: 200
+    chance: '%lvl%/20'
+    money: '%lvl%*150'
+  tokencharity:
+    maxlevel: 10
+    scrapvalue: 100
+    upgradeicon: book
+    upgradedesc: Has a chance to give everyone tokens while mining.
+    cost:
+      type: linear
+      startvalue: 200
+      value: 200
+    chance: '%lvl%/20'
+    tokens: '%lvl%*20'
+    
 guis:
     examplegui:
         enchants:
@@ -288,6 +323,7 @@ guis:
             - autosmelt
             - telepathy
             - tokenblocks
+            - tokencharity
         items: 
             - WOODEN_PICKAXE
             - STONE_PICKAXE

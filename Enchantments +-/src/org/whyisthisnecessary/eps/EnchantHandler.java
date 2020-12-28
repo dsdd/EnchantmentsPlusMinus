@@ -22,9 +22,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class EnchantHandler {
 	
-	private FileConfiguration config;
+	public static FileConfiguration config;
+	public static FileConfiguration lang;
+	public static File configFile;
+	public static File langFile;
 	private JavaPlugin plugin;
-	private FileConfiguration lang;
 	private ScriptEngineManager mgr = new ScriptEngineManager();
     private ScriptEngine engine = mgr.getEngineByName("JavaScript");
     private Plugin pl;
@@ -32,22 +34,6 @@ public class EnchantHandler {
 	public EnchantHandler(JavaPlugin plugin)
 	{
         this.plugin = plugin;
-        File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
-        if (file.exists()) {
-        config = YamlConfiguration.loadConfiguration(file); }
-        else
-        {
-        	Bukkit.broadcastMessage(ChatColor.RED + "Critical error: Could not find config file for EPS!");
-        	Bukkit.getPluginManager().disablePlugin(plugin);
-        }
-        File file1 = new File(plugin.getDataFolder().getParentFile().getParentFile(), "lang.yml");
-        if (file1.exists()) {
-        lang = YamlConfiguration.loadConfiguration(file1); }
-        else
-        {
-        	Bukkit.broadcastMessage(ChatColor.RED + "Critical error: Could not find lang file for EPS!");
-        	Bukkit.getPluginManager().disablePlugin(plugin);
-        }
         pl = Bukkit.getPluginManager().getPlugin("EnchantmentsPlusMinus");
 	}
 	
@@ -55,20 +41,16 @@ public class EnchantHandler {
 	{
 		return config;
 	}
-	
+		
 	public void setDefaultLangMessage(String msg, String text)
 	{
-		File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "lang.yml");
-        if (file.exists())
-        lang = YamlConfiguration.loadConfiguration(file);
 		if (lang.get("packs."+plugin.getName().toLowerCase()+".messages."+msg) == null)
 		{
 			lang.set("packs."+plugin.getName().toLowerCase()+".messages."+msg, text);
-			File langfile = new File(plugin.getDataFolder().getParentFile().getParentFile(), "lang.yml");
-			if (langfile.exists())
+			if (langFile.exists())
 			{
 				try {
-					lang.save(langfile);
+					lang.save(langFile);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -78,15 +60,11 @@ public class EnchantHandler {
 	
 	public void setLangMessage(String msg, String text)
 	{
-		File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "lang.yml");
-        if (file.exists())
-        lang = YamlConfiguration.loadConfiguration(file);
 		lang.set("packs."+plugin.getName().toLowerCase()+".messages."+msg, text);
-		File langfile = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
-		if (langfile.exists())
+		if (langFile.exists())
 		{
             try {
-				lang.save(langfile);
+				lang.save(langFile);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -95,17 +73,11 @@ public class EnchantHandler {
 	
     public String getLangMessage(String msg)
     {
-    	File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "lang.yml");
-        if (file.exists())
-        lang = YamlConfiguration.loadConfiguration(file);
     	return ChatColor.translateAlternateColorCodes('&',lang.getString("prefix")) + ChatColor.translateAlternateColorCodes('&', lang.getString("packs."+plugin.getName().toLowerCase()+".messages."+msg));
     }
     
     public Double getValue(Enchantment enchant, Integer enchlvl, String custom)
     {
-    	File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
-        if (file.exists())
-        config = YamlConfiguration.loadConfiguration(file);
     	String value = config.getString("enchants."+enchant.getKey().getKey()+"."+custom);
     	value = value.replaceAll("%lvl%", enchlvl.toString());
     	Object num = 0;
@@ -124,27 +96,18 @@ public class EnchantHandler {
     
     public Object get(Enchantment enchant, String toget)
     {
-    	File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
-        if (file.exists())
-        config = YamlConfiguration.loadConfiguration(file);
     	Object value = config.get("enchants."+enchant.getKey().getKey()+"."+toget);
         return value;
     }
     
     public Object getMiscValue(String path)
     {
-    	File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
-        if (file.exists())
-        config = YamlConfiguration.loadConfiguration(file);
     	Object value = config.get("misc."+path);
         return value;
     }
     
     public Double getChance(Enchantment enchant, Integer enchlvl)
     {
-    	File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
-        if (file.exists())
-        config = YamlConfiguration.loadConfiguration(file);
     	Object num = 0;
     	String chance = config.getString("enchants."+enchant.getKey().getKey()+".chance");
     	chance = chance.replaceAll("%lvl%", enchlvl.toString());
@@ -163,9 +126,6 @@ public class EnchantHandler {
     
     public List<Material> getFortuneDrops()
     {
-    	File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
-        if (file.exists())
-        config = YamlConfiguration.loadConfiguration(file);
     	List<Material> fortuneapply = new ArrayList<Material>(Arrays.asList());
     	List<String> list;
     	list = config.getStringList("misc.applyfortuneon");
@@ -310,17 +270,13 @@ public class EnchantHandler {
     
     private void setConfigValue(String path, Object replace)
     {
-    	File file = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
-        if (file.exists())
-        config = YamlConfiguration.loadConfiguration(file);
 		if (config.get(path) == null)
 		{
 			config.set(path, replace);
-			File configfile = new File(plugin.getDataFolder().getParentFile().getParentFile(), "config.yml");
-			if (configfile.exists())
+			if (configFile.exists())
 			{
 				try {
-					config.save(configfile);
+					config.save(configFile);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
