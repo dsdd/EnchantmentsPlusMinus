@@ -1,0 +1,375 @@
+# +-------------------------+
+# | +---------------------+ |
+# | |    Enchantments+-   | |
+# | +---------------------+ |
+# +-------------------------+
+#                                                                                     -#-
+# This is the configuration file for Enchantments+-.
+# Need help? Check the GitHub wiki: https://github.com/dsdd/EnchantmentsPlusMinus
+#                                                                                     -#-
+# +------------------------+
+# |                        |
+# |      Quick Start       |
+# |                        |
+# +------------------------+
+#                                                                                     -#-
+# enchants:
+#    exampleenchant:
+#    -- An enchant you want to list
+#                                                                                     -#-
+#        maxlevel: 40  
+#        -- The max level of the enchant that someone can upgrade to
+#                                                                                     -#-
+#        scrapvalue: 100 
+#        -- The amount of tokens someone will get by scrapping this enchant
+#        -- You can just disable this function by setting permissions
+#                                                                                     -#-
+#        upgradeicon: BLACK_STAINED_GLASS_PANE
+#        -- The item displayed in the GUI
+#                                                                                     -#-
+#        upgradedesc: Does something
+#        -- The description displayed in the GUI for the item
+#                                                                                     -#-
+#        cost:
+#            type: linear
+#            -- linear | The cost will go up at a fixed rate
+#            -- exponential | The cost will go up at an exponential rate
+#            -- manual | The cost is preset
+#                                                                                     -#-
+#            startvalue: 50
+#            -- The starting cost of an enchant (or the cost of enchant lvl 1)
+#            -- Use this for linear and exponential cost rates
+#                                                                                     -#-
+#            value: 50
+#            -- The amount of tokens the cost will go up by every level
+#            -- e.g. Lvl 1 = 50 tokens
+#            --      Lvl 2 = Lvl 1 + 50 = 100
+#            -- Only use this for linear cost rates
+#                                                                                     -#-
+#            multi: 1.5
+#            -- The value the cost will be multiplied by every level
+#            -- e.g. Lvl 5 = 100 tokens
+#            --      Lvl 6 = Lvl 5 * 1.5 = 150 tokens
+#            -- Only use this for exponential cost rates
+#                                                                                     -#-
+#            '1': 96
+#            '2': 240
+#            '3': 9392
+#            -- The preset cost for the enchant level
+#            -- e.g. If you have a sword with enchantment level 2 on it
+#            --      and you want it to be level 3, it would be 9392 tokens
+# misc:
+#     applyfortuneon:
+#         - EMERALD
+#         - DIAMOND
+#     -- Applies fortune on the item drops specified
+#     -- Keep in mind (item drops) and not the blocks
+#     -- e.g. If you want to apply fortune on coal ore you would put
+#     --      - COAL 
+#     --      and not 
+#     --      - COAL_ORE
+#     -- Works with block item drops too, like emerald blocks
+#     -- Also note that this function only works with PickaxePack installed.    
+#                                                                                     -#-
+# +------------------------+
+# |                        |
+# |     Configuration      |
+# |                        |
+# +------------------------+
+#        
+#                                                                             -#-
+enchants:
+  efficiency:
+    maxlevel: 10
+    scrapvalue: 8
+    upgradeicon: DIAMOND_PICKAXE
+    upgradedesc: Increases your mining speed.
+    cost:
+      type: linear
+      startvalue: 20
+      value: 10
+  unbreaking:
+    maxlevel: 10
+    scrapvalue: 3
+    upgradeicon: BEDROCK
+    upgradedesc: Increases the durability of items.
+    cost:
+      type: manual
+      '1': 5
+      '2': 8
+      '3': 12
+      '4': 18
+      '5': 32
+      '6': 60
+      '7': 90
+      '8': 130
+      '9': 200
+      '10': 500
+  fortune:
+    maxlevel: 10
+    scrapvalue: 24
+    upgradeicon: DIAMOND
+    upgradedesc: Increases the amount of item drops when mining.
+    cost:
+      type: exponential
+      startvalue: 30
+      multi: 1.2
+  sharpness:
+    maxlevel: 10
+    scrapvalue: 16
+    upgradeicon: DIAMOND_SWORD
+    upgradedesc: Increases the attack damage of a weapon.
+    cost:
+      type: exponential
+      startvalue: 24
+      multi: 1.2
+  fire_aspect:
+    maxlevel: 4
+    scrapvalue: 65
+    upgradeicon: FIRE_CHARGE
+    upgradedesc: Burns anyone who gets hit by a weapon.
+    cost:
+      type: exponential
+      startvalue: 90
+      multi: 1.35
+  mending:
+    maxlevel: 1
+    scrapvalue: 200
+    upgradeicon: PRISMARINE_CRYSTALS
+    upgradedesc: Automatically repairs a tool or armor with XP.
+    cost:
+      type: exponential
+      startvalue: 300
+      multi: 1
+  haste:
+    maxlevel: 2
+    scrapvalue: 50
+    upgradeicon: GOLDEN_PICKAXE
+    upgradedesc: Gives a random chance to apply Haste while mining
+    cost:
+      type: exponential
+      startvalue: 75
+      multi: 2
+    chance: '%lvl%/10'
+  explosive:
+    maxlevel: 10
+    scrapvalue: 75
+    upgradeicon: TNT
+    upgradedesc: "Has a chance to blow up blocks. Works with fortune!"
+    cost:
+      type: exponential
+      startvalue: 125
+      multi: 1.5
+    chance: '%lvl%'
+  autosmelt:
+    maxlevel: 10
+    scrapvalue: 40
+    upgradeicon: COAL
+    upgradedesc: "Has a chance to automatically smelt items. Works with fortune!"
+    cost:
+      type: exponential
+      startvalue: 50
+      multi: 1.5
+    chance: '%lvl%*10'
+  telepathy:
+    maxlevel: 1
+    scrapvalue: 400
+    upgradeicon: ENDER_PEARL
+    upgradedesc: Automatically transfers items to your inventory.
+    cost:
+      type: exponential
+      startvalue: 500
+      multi: 1
+    chance: '100'
+  tokenblocks:
+    maxlevel: 20
+    scrapvalue: 100
+    upgradeicon: GOLD_BLOCK
+    upgradedesc: Has a chance to give tokens while mining.
+    cost:
+      type: exponential
+      startvalue: 200
+      multi: 1.2
+    chance: '%lvl%/10'
+    tokens: '%lvl%'
+  jagged:
+    maxlevel: 2
+    scrapvalue: 200
+    upgradeicon: PRISMARINE_SHARD
+    upgradedesc: Increases attack damage of a weapon if its durability is low
+    cost:
+      type: manual
+      '1': 300
+      '2': 900
+    durabilitythresholdpercent: '30'
+  retaliate:
+    maxlevel: 3
+    scrapvalue: 400
+    upgradeicon: IRON_AXE
+    upgradedesc: Gives a very temporary strength boost if you get hit
+    cost:
+      type: exponential
+      startvalue: 500
+      multi: 1.5
+    duration: '1'
+  lifesteal:
+    maxlevel: 2
+    scrapvalue: 600
+    upgradeicon: WITHER_SKELETON_SKULL
+    upgradedesc: Gives you health in return for attacking someone
+    cost:
+      type: linear
+      startvalue: 600
+      value: 400
+    hearts: '%lvl%/2'
+  momentum:
+    maxlevel: 2
+    scrapvalue: 300
+    upgradeicon: LEATHER_BOOTS
+    upgradedesc: Gives you a speed boost when attacking someone
+    cost:
+      type: linear
+      startvalue: 400
+      value: 200
+    duration: '%lvl%*4'
+  poisonous:
+    maxlevel: 10
+    scrapvalue: 75
+    upgradeicon: BOOK
+    upgradedesc: "Poisons anyone who touches you!"
+    cost:
+      type: linear
+      startvalue: 150
+      value: 150
+    ticks: '40*%lvl%'
+  volcanic:
+    maxlevel: 10
+    scrapvalue: 100
+    upgradeicon: LAVA_BUCKET
+    upgradedesc: "Hot! Sets anyone who touches you on fire."
+    cost:
+      type: linear
+      startvalue: 200
+      value: 200
+    ticks: '30*%lvl%'
+  saturated:
+    maxlevel: 10
+    scrapvalue: 75
+    upgradeicon: COOKED_BEEF
+    upgradedesc: "Gives you saturation when hit!"
+    cost:
+      type: linear
+      startvalue: 150
+      value: 150
+    ticks: '30*%lvl%'
+  insatiable:
+    maxlevel: 10
+    scrapvalue: 150
+    upgradeicon: REDSTONE
+    upgradedesc: Deals more damage the less health you have.
+    cost:
+      type: linear
+      startvalue: 300
+      value: 300
+    extradamage: '%lvl%'
+  moneyblocks:
+    maxlevel: 10
+    scrapvalue: 100
+    upgradeicon: book
+    upgradedesc: Has a chance to give money while mining.
+    cost:
+      type: linear
+      startvalue: 200
+      value: 200
+    chance: '%lvl%/10'
+    money: '%lvl%*350'
+  charity:
+    maxlevel: 10
+    scrapvalue: 100
+    upgradeicon: book
+    upgradedesc: Has a chance to give everyone money while mining.
+    cost:
+      type: linear
+      startvalue: 200
+      value: 200
+    chance: '%lvl%/20'
+    money: '%lvl%*150'
+  tokencharity:
+    maxlevel: 10
+    scrapvalue: 100
+    upgradeicon: book
+    upgradedesc: Has a chance to give everyone tokens while mining.
+    cost:
+      type: linear
+      startvalue: 200
+      value: 200
+    chance: '%lvl%/20'
+    tokens: '%lvl%*20'
+    
+guis:
+    examplegui:
+        enchants:
+            - depth_strider
+        items:
+            - BEDROCK
+    pickaxe: 
+        enchants:  
+            - efficiency
+            - unbreaking
+            - fortune
+            - mending
+            - haste
+            - explosive
+            - autosmelt
+            - telepathy
+            - tokenblocks
+            - tokencharity
+        items: 
+            - WOODEN_PICKAXE
+            - STONE_PICKAXE
+            - IRON_PICKAXE
+            - DIAMOND_PICKAXE
+    sword:
+        enchants:
+            - sharpness
+            - unbreaking
+            - fire_aspect
+            - mending
+            - jagged
+            - retaliate
+            - lifesteal
+            - momentum
+        items:
+            - WOODEN_SWORD
+            - STONE_SWORD
+            - IRON_SWORD
+            - DIAMOND_SWORD
+    axe:
+        enchants:
+            - sharpness
+            - unbreaking
+            - mending
+            - efficiency
+        items:
+            - WOODEN_AXE
+            - STONE_AXE
+            - IRON_AXE
+            - DIAMOND_AXE
+    armor:
+        enchants:
+            - protection
+            - unbreaking
+            - poisonous
+            - volcanic
+            - saturated
+            - insatiable
+    
+        
+misc:
+    applyfortuneon: 
+        - COAL
+        - LAPIS_LAZULI
+        - REDSTONE
+        - DIAMOND
+        - EMERALD
+        - QUARTZ
