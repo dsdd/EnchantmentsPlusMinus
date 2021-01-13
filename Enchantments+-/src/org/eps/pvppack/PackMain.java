@@ -4,9 +4,8 @@ import org.whyisthisnecessary.eps.Main;
 
 public class PackMain {
 	
-	public PackMain(Main plugin)
-	{
+	public void onEnable() {
 		CustomEnchants.register();
-		new EnchantProcessor(plugin);
+		new EnchantProcessor(Main.plugin);		
 	}
 }

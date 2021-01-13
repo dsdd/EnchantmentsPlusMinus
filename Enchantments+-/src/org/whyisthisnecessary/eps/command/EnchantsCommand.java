@@ -31,6 +31,7 @@ public class EnchantsCommand implements CommandExecutor {
 			List<Material> tlist = new ArrayList<Material>(Arrays.asList());
 			for (String i1 : slist)
 			{
+				if (Material.getMaterial(i1) != null)
 				tlist.add(Material.getMaterial(i1));
 			}
 			if (!(tlist.isEmpty()))

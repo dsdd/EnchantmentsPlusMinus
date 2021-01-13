@@ -6,15 +6,14 @@ import org.whyisthisnecessary.eps.Main;
 public class PackMain {
 
 	public static boolean VaultEnabled = false;
-	
-	public PackMain(Main plugin) 
+
+	public void onEnable() 
 	{
 		CustomEnchants.register();
-		new EnchantProcessor(plugin);
+		new EnchantProcessor(Main.plugin);
 		if (Bukkit.getPluginManager().isPluginEnabled("Vault"))
 		{
 			VaultEnabled = true;
-			Vault.setupEconomy();
 		}
 	}
 }

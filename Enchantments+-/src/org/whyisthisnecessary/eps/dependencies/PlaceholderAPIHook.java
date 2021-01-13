@@ -3,6 +3,7 @@ package org.whyisthisnecessary.eps.dependencies;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.whyisthisnecessary.eps.Main;
 import org.whyisthisnecessary.eps.util.TokenUtil;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
@@ -36,7 +37,7 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
     
     @Override
     public String getVersion() {
-        return "1.0.0";
+        return Main.plugin.getDescription().getVersion();
     }
    
    

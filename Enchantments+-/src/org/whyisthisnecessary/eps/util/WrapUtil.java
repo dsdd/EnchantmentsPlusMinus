@@ -10,7 +10,8 @@ public class WrapUtil extends Enchantment {
 	private final String name;
 	private final int maxLvl;
 	
-	public WrapUtil(String namespace, String name, int lvl) {
+	public WrapUtil(String namespace, String name, int lvl) 
+	{
 		super(NamespacedKey.minecraft(namespace));
 		this.name = name;
 		this.maxLvl = lvl;
@@ -19,19 +20,19 @@ public class WrapUtil extends Enchantment {
 	@Override
 	public boolean canEnchantItem(ItemStack arg0) {
 		// TODO Auto-generated method stub
-		return false;
+		return canEnchantItem(arg0);
 	}
 
 	@Override
 	public boolean conflictsWith(Enchantment arg0) {
 		// TODO Auto-generated method stub
-		return false;
+		return conflictsWith(arg0);
 	}
 
 	@Override
 	public EnchantmentTarget getItemTarget() {
 		// TODO Auto-generated method stub
-		return null;
+		return getItemTarget();
 	}
 
 	@Override

@@ -1,28 +1,32 @@
 package org.eps.pickaxepack;
 
 import org.bukkit.enchantments.Enchantment;
-import org.whyisthisnecessary.eps.api.EnchantTools;
+import org.whyisthisnecessary.eps.api.CustomEnchant;
 
 public class CustomEnchants {
 
-	public static final Enchantment HASTE = EnchantTools.wrapEnchant("haste", "Haste", 32767);
-	public static final Enchantment EXPLOSIVE = EnchantTools.wrapEnchant("explosive", "Explosive", 32767);
-	public static final Enchantment AUTOSMELT = EnchantTools.wrapEnchant("autosmelt", "AutoSmelt", 32767);
-	public static final Enchantment TELEPATHY = EnchantTools.wrapEnchant("telepathy", "Telepathy", 32767);
-	public static final Enchantment TOKENBLOCKS = EnchantTools.wrapEnchant("tokenblocks", "TokenBlocks", 32767);
-	public static final Enchantment MONEYBLOCKS = EnchantTools.wrapEnchant("moneyblocks", "MoneyBlocks", 32767);
-	public static final Enchantment TOKENCHARITY = EnchantTools.wrapEnchant("tokencharity", "TokenCharity", 32767);
-	public static final Enchantment CHARITY = EnchantTools.wrapEnchant("charity", "Charity", 32767);
+	public static final Enchantment HASTE = CustomEnchant.newEnchant("haste", "Haste");
+	public static final Enchantment EXPLOSIVE = CustomEnchant.newEnchant("explosive", "Explosive");
+	public static final Enchantment AUTOSMELT = CustomEnchant.newEnchant("autosmelt", "AutoSmelt");
+	public static final Enchantment TELEPATHY = CustomEnchant.newEnchant("telepathy", "Telepathy");
+	public static final Enchantment TOKENBLOCKS = CustomEnchant.newEnchant("tokenblocks", "TokenBlocks");
+	public static final Enchantment MONEYBLOCKS = CustomEnchant.newEnchant("moneyblocks", "MoneyBlocks");
+	public static final Enchantment TOKENCHARITY = CustomEnchant.newEnchant("tokencharity", "TokenCharity");
+	public static final Enchantment CHARITY = CustomEnchant.newEnchant("charity", "Charity");
+	public static final Enchantment EXCAVATE = CustomEnchant.newEnchant("excavate", "Excavate");
+	public static final Enchantment DIAMOND = CustomEnchant.newEnchant("diamond", "Diamond");
 	
 	public static void register()
 	{
-		EnchantTools.registerEnchant(HASTE);
-		EnchantTools.registerEnchant(EXPLOSIVE);
-		EnchantTools.registerEnchant(AUTOSMELT);
-		EnchantTools.registerEnchant(TELEPATHY);
-		EnchantTools.registerEnchant(TOKENBLOCKS);
-		EnchantTools.registerEnchant(TOKENCHARITY);
-		EnchantTools.registerEnchant(MONEYBLOCKS);
-		EnchantTools.registerEnchant(CHARITY);
+		CustomEnchant.registerEnchant(HASTE);
+		CustomEnchant.registerEnchant(EXPLOSIVE);
+		CustomEnchant.registerEnchant(AUTOSMELT);
+		CustomEnchant.registerEnchant(TELEPATHY);
+		CustomEnchant.registerEnchant(TOKENBLOCKS);
+		CustomEnchant.registerEnchant(MONEYBLOCKS);
+		CustomEnchant.registerEnchant(TOKENCHARITY);
+		CustomEnchant.registerEnchant(CHARITY);
+		CustomEnchant.registerEnchant(EXCAVATE);
+		CustomEnchant.registerEnchant(DIAMOND);
 	}
 }

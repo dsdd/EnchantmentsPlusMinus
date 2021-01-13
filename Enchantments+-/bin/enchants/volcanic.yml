@@ -1,0 +1,58 @@
+# +------------------------+
+# |                        |
+# |      Quick Start       |
+# |                        |
+# +------------------------+
+#                                                                                     -#-
+#        maxlevel: 40
+#        -- The max level of the enchant that someone can upgrade to
+#                                                                                     -#-
+#        scrapvalue: 100 
+#        -- The amount of tokens someone will get by scrapping this enchant
+#        -- You can just disable this function by setting permissions
+#                                                                                     -#-
+#        upgradeicon: BLACK_STAINED_GLASS_PANE
+#        -- The item displayed in the GUI
+#                                                                                     -#-
+#        upgradedesc: Does something
+#        -- The description displayed in the GUI for the item
+#                                                                                     -#-
+#        cost:
+#            type: linear
+#            -- linear | The cost will go up at a fixed rate
+#            -- exponential | The cost will go up at an exponential rate
+#            -- manual | The cost is preset
+#                                                                                     -#-
+#            startvalue: 50
+#            -- The starting cost of an enchant (or the cost of enchant lvl 1)
+#            -- Use this for linear and exponential cost rates
+#                                                                                     -#-
+#            value: 50
+#            -- The amount of tokens the cost will go up by every level
+#            -- e.g. Lvl 1 = 50 tokens
+#            --      Lvl 2 = Lvl 1 + 50 = 100
+#            -- Only use this for linear cost rates
+#                                                                                     -#-
+#            multi: 1.5
+#            -- The value the cost will be multiplied by every level
+#            -- e.g. Lvl 5 = 100 tokens
+#            --      Lvl 6 = Lvl 5 * 1.5 = 150 tokens
+#            -- Only use this for exponential cost rates
+#                                                                                     -#-
+#            '1': 96
+#            '2': 240
+#            '3': 9392
+#            -- The preset cost for the enchant level
+#            -- Only use this for manual cost rates
+#            -- e.g. If you have a sword with enchantment level 2 on it
+#            --      and you want it to be level 3, it would be 9392 tokens
+
+maxlevel: 10
+scrapvalue: 100
+upgradeicon: LAVA_BUCKET
+upgradedesc: Hot! Sets anyone who touches you on fire.
+cost:
+  type: linear
+  startvalue: 200
+  value: 200
+ticks: 30*%lvl%

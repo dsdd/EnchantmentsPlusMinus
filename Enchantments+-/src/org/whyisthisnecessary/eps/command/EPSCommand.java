@@ -1,10 +1,9 @@
 package org.whyisthisnecessary.eps.command;
 
-import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -12,12 +11,12 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.Plugin;
 import org.whyisthisnecessary.eps.Main;
+import org.whyisthisnecessary.eps.legacy.NameUtil;
 import org.whyisthisnecessary.eps.util.LangUtil;
-import org.whyisthisnecessary.eps.util.PlugmanUtil;
 import org.whyisthisnecessary.eps.util.TokenUtil;
 import org.whyisthisnecessary.eps.visual.EnchantMetaWriter;
+import org.whyisthisnecessary.eps.workbench.CustomEnchantedBook;
 
 public class EPSCommand implements CommandExecutor {
 	
@@ -47,22 +46,6 @@ public class EPSCommand implements CommandExecutor {
 			Main.Config = Main.plugin.getConfig();
 			Main.UUIDDataStoreConfig = YamlConfiguration.loadConfiguration(Main.UUIDDataStore);
 			Main.LangConfig = YamlConfiguration.loadConfiguration(Main.LangFile);
-			File[] files = Main.PackFolder.listFiles();
-    	    if (files != null)
-    	    {
-    	    	for (File file : files)
-    	    	{
-					try {
-						Plugin plugin1 = PlugmanUtil.getPluginFromFile(file);
-						Bukkit.getPluginManager().disablePlugin(plugin1);
-						PlugmanUtil.unload(plugin1);
-						Plugin plugin2 = Bukkit.getPluginManager().loadPlugin(file);
-						Bukkit.getPluginManager().enablePlugin(plugin2);
-					} catch (Exception e) {
-					}
-    	    	}
-
-    	    }
 			sender.sendMessage(LangUtil.getLangMessage("reloadconfig"));
 			return false;
 		}
@@ -140,8 +123,8 @@ public class EPSCommand implements CommandExecutor {
 				}
 				if (p.getInventory().getItemInMainHand().getAmount() > 0)
 				{
-					p.getInventory().getItemInMainHand().addUnsafeEnchantment(Enchantment.getByKey(NamespacedKey.minecraft(args[1])), Integer.parseInt(args[2]));
-					ItemMeta meta = EnchantMetaWriter.getWrittenEnchantLore(p.getInventory().getItemInMainHand());
+					p.getInventory().getItemInMainHand().addUnsafeEnchantment(NameUtil.getByName(args[1]), Integer.parseInt(args[2]));
+					ItemMeta meta = EnchantMetaWriter.getWrittenMeta(p.getInventory().getItemInMainHand());
 		        	p.getInventory().getItemInMainHand().setItemMeta(meta);
 					return true;
 				}
@@ -157,49 +140,60 @@ public class EPSCommand implements CommandExecutor {
 				return false;
 			}
 		}
-		if (args[0].equalsIgnoreCase("loadpack"))
+		if (args[0].equalsIgnoreCase("book"))
 		{
-			if (sender.hasPermission("eps.admin.loadpack"))
-			{
-			try {
-			    Plugin pl1 = Bukkit.getPluginManager().loadPlugin(new File(Main.PackFolder, args[1]+".jar"));
-			    Bukkit.getPluginManager().enablePlugin(pl1);
-			    Main.EnabledPacks.add(pl1);
-			    sender.sendMessage(ChatColor.GREEN + "Loaded pack!");
-			    }
-			    catch (Exception e)
-			    {
-			    	e.printStackTrace();
-			    }
-			}
-			else
+			if (!sender.hasPermission("eps.admin.reloadpack"))
 			{
 				sender.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
 				return false;
 			}
-		}
-		if (args[0].equalsIgnoreCase("reloadpack"))
-		{
-			if (sender.hasPermission("eps.admin.reloadpack"))
+			if (!(sender instanceof Player))
 			{
-			try {
-		    Plugin pl = Bukkit.getPluginManager().getPlugin(args[1]);	
-		    Bukkit.getPluginManager().disablePlugin(pl);
-		    PlugmanUtil.unload(pl);
-		    Plugin pl1 = Bukkit.getPluginManager().loadPlugin(Main.getJarFile(pl));
-		    Bukkit.getPluginManager().enablePlugin(pl1);
-		    sender.sendMessage(ChatColor.GREEN + "Reloaded pack!");
-		    }
-		    catch (Exception e)
-		    {
-		    	e.printStackTrace();
-		    }
-		    }
-			else
-			{
-				sender.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
+				sender.sendMessage(LangUtil.getLangMessage("invalidplayertype"));
 				return false;
 			}
+			if (args.length == 0)
+			{
+				sender.sendMessage(ChatColor.RED+"Usage: /eps book [enchant:lvl] [additionalenchs]");
+			}
+			
+			Player p = (Player)sender;
+			if (p.getInventory().firstEmpty() == -1)
+			{
+				sender.sendMessage(LangUtil.getLangMessage("inventoryfull"));
+				return false;
+			}
+			
+			Map<Enchantment, Integer> map = new HashMap<Enchantment, Integer>();
+			
+			for (int i=0;i<args.length;i++)
+			{
+				if (i == 0) continue;
+				String[] parts = args[1].split(":");
+				
+				if (parts.length == 0)
+					continue;
+				
+				Enchantment enchant = NameUtil.getByName(parts[0]);
+				if (parts.length == 1)
+				{
+					map.put(enchant, 1);
+					continue;
+				}
+				
+				
+				Integer lvl = Integer.parseInt(parts[1]);
+				if (enchant == null)
+				{
+					sender.sendMessage(LangUtil.getLangMessage(ChatColor.RED+"Invalid enchant "+NameUtil.getName(enchant).toUpperCase()+"!"));
+					sender.sendMessage(LangUtil.getLangMessage(ChatColor.RED+"Invalid enchant level "+parts[1]+"!"));
+					return false;
+				}
+				map.put(enchant, lvl);
+			}
+			
+			CustomEnchantedBook book = new CustomEnchantedBook(map);
+			p.getInventory().addItem(book);
 		}
 		
 		return false;

@@ -11,8 +11,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
@@ -21,6 +23,9 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.whyisthisnecessary.eps.Main;
+import org.whyisthisnecessary.eps.api.ConfigUtil;
+import org.whyisthisnecessary.eps.legacy.LegacyUtil;
+import org.whyisthisnecessary.eps.legacy.NameUtil;
 import org.whyisthisnecessary.eps.util.LangUtil;
 import org.whyisthisnecessary.eps.util.TokenUtil;
 
@@ -31,7 +36,7 @@ public class EnchantGUI implements Listener {
 	
 	public static void setupGUI(Player player)
 	{
-		Inventory inv = Bukkit.createInventory(null, 36, "Enchantments");
+		Inventory inv = Bukkit.createInventory(player, 36, "Enchantments");
 		createPanes(inv);
 		GUIs.put(player, inv);
 		guiNames.put(player, "null");
@@ -66,9 +71,16 @@ public class EnchantGUI implements Listener {
         inv.setItem(31, i);
 	}
 	
+	@SuppressWarnings("deprecation")
 	public static void createPanes(Inventory gui)
     {
-    	ItemStack slot = new ItemStack(Material.BLACK_STAINED_GLASS_PANE, 1);
+		ItemStack slot = new ItemStack(Material.AIR, 1);
+		if (LegacyUtil.isLegacy())
+		{
+			slot = new ItemStack(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short)15);
+		}
+		else
+			slot = new ItemStack(Material.matchMaterial("BLACK_STAINED_GLASS_PANE"), 1);
     	ItemMeta meta = slot.getItemMeta();
     	meta.setDisplayName("");
     	slot.setItemMeta(meta);
@@ -85,17 +97,26 @@ public class EnchantGUI implements Listener {
 	public static void add(Player p, Inventory inv, String name)
     {
     	String cost;
-    	Enchantment enchant = Enchantment.getByKey(NamespacedKey.minecraft(name));
-    	if (enchant == null) Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid enchantment name "+name+"!");
+    	Enchantment enchant = NameUtil.getByName(NamespacedKey.minecraft(name));
+    	if (enchant == null) {
+    		Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid enchantment name "+name+"!");
+    		return;
+    	}
     	String displayname = name.substring(0,1).toUpperCase() + name.substring(1);
     	displayname = displayname.replaceAll("_", " ");
     	displayname = WordUtils.capitalizeFully(displayname);
-    	Material material = Material.getMaterial(Main.Config.getString("enchants."+name+".upgradeicon"));
-    	String desc = Main.Config.getString("enchants."+name+".upgradedesc");
-    	Integer maxlevel = (Integer) Main.Config.get("enchants."+enchant.getKey().getKey()+".maxlevel");
+    	String upgradeicon = ConfigUtil.getString(enchant, "upgradeicon");
+    	if (upgradeicon == null)
+    	{
+    		Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"No upgrade icon written in enchant config "+NameUtil.getName(enchant)+"! Setting to default BOOK.");
+    	    upgradeicon = Material.BOOK.name();
+    	}
+    	Material material = Material.matchMaterial(upgradeicon);
+    	String desc = ConfigUtil.getString(enchant, "upgradedesc");
+    	Integer maxlevel = ConfigUtil.getInt(enchant, "maxlevel");
         if (!(p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant) >= maxlevel))
         {
-        	String method = Main.Config.getString("enchants."+name+".cost.type");
+        	String method = ConfigUtil.getString(enchant, "cost.type");
         	cost = Integer.toString(getCost(method, enchant, p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant), 1));
         
         }
@@ -127,18 +148,35 @@ public class EnchantGUI implements Listener {
         inv.setItem(inv.firstEmpty(), slot);
     }
 	
-	@EventHandler
-    public void onpickaxeinventoryClick(final InventoryDragEvent e) {
-        if (e.getInventory() == GUIs.get(e.getWhoClicked())) {
-          e.setCancelled(true);
-        }
+	@EventHandler(priority = EventPriority.HIGH)
+    public void onpickaxeinventoryDrag(final InventoryDragEvent e) {
+		if (LegacyUtil.isLegacy())
+		{
+			if (!isSimilarInventory(e.getInventory(), GUIs.get(e.getWhoClicked()))) return;
+	        if (!compareInvs(e.getInventory(), GUIs.get(e.getWhoClicked()))) return;
+	          e.setCancelled(true);
+		}
+		else
+		{
+			if (e.getInventory() == GUIs.get(e.getWhoClicked()))
+				e.setCancelled(true);
+		}
     }
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGH)
     public void onpickaxeinventoryClick(final InventoryClickEvent e) {
-        if (e.getInventory().getHolder() != null) return;
-        if (e.getInventory() != GUIs.get(e.getWhoClicked())) return;
-        e.setCancelled(true);
+        if (e.getInventory().getHolder() != e.getWhoClicked()) return;
+        if (LegacyUtil.isLegacy())
+		{
+			if (!isSimilarInventory(e.getInventory(), GUIs.get(e.getWhoClicked()))) return;
+	        if (!compareInvs(e.getInventory(), GUIs.get(e.getWhoClicked()))) return;
+	          e.setCancelled(true);
+		}
+		else
+		{
+			if (e.getInventory() != GUIs.get(e.getWhoClicked())) return;
+				e.setCancelled(true);
+		}
 
         final ItemStack clickedItem = e.getCurrentItem();
 
@@ -148,24 +186,19 @@ public class EnchantGUI implements Listener {
         Map<Enchantment, Integer> enchs = clickedItem.getItemMeta().getEnchants();
         Enchantment ench = null;
         
-        for (Map.Entry<Enchantment, Integer> entry : enchs.entrySet()) {
+        for (Map.Entry<Enchantment, Integer> entry : enchs.entrySet())
             ench = entry.getKey();
-        }
         
         if (ench == null) return;
         
         if (e.isLeftClick())
-        {
             UpgradeItem(ench, p, 1);
-        }
+        
         else if (e.isRightClick())
-        {
         	UpgradeItem(ench, p, 5);
-        }
+        
         else if (e.isShiftClick())
-        {
         	UpgradeItem(ench, p, 50);
-        }
         
     }
 	
@@ -181,23 +214,23 @@ public class EnchantGUI implements Listener {
     {
     	if (type.equalsIgnoreCase("manual"))
     	{
-    		Integer val = Main.Config.getInt("enchants."+enchant.getKey().getKey()+".cost."+(enchlvl+1));
+    		Integer val = ConfigUtil.getInt(enchant, "cost."+(enchlvl+1));
     		for (int i=1;i<multi;i++)
     		{
-    			val = val + Main.Config.getInt("enchants."+enchant.getKey().getKey()+".cost."+(enchlvl+1+i));
+    			val = val + ConfigUtil.getInt(enchant, "cost."+(enchlvl+1+i));
     		}
     		return val;
     	}
     	else if (type.equalsIgnoreCase("linear"))
     	{
-    		Integer startvalue = Main.Config.getInt("enchants."+enchant.getKey().getKey()+".cost.startvalue");
-    		Integer value = Main.Config.getInt("enchants."+enchant.getKey().getKey()+".cost.value");
+    		Integer startvalue = ConfigUtil.getInt(enchant, "cost.startvalue");
+    		Integer value = ConfigUtil.getInt(enchant, "cost.value");
     		return (startvalue+(value*enchlvl-value)*multi);
     	}
     	else if (type.equalsIgnoreCase("exponential"))
     	{
-    		Double multi1 = Main.Config.getDouble("enchants."+enchant.getKey().getKey()+".cost.multi");
-    		Integer startvalue = Main.Config.getInt("enchants."+enchant.getKey().getKey()+".cost.startvalue");
+    		Double multi1 = ConfigUtil.getDouble(enchant, "cost.multi");
+    		Integer startvalue = ConfigUtil.getInt(enchant, "cost.startvalue");
     		return (int)(startvalue*Math.pow((Math.pow(multi1, enchlvl)), multi));
     	}
     	else
@@ -208,9 +241,9 @@ public class EnchantGUI implements Listener {
 	
 	public void UpgradeItem(Enchantment enchant, Player p, Integer multi)
     {
-    	String method = Main.Config.getString("enchants."+enchant.getKey().getKey()+".cost.type");
+    	String method = ConfigUtil.getString(enchant, "cost.type");
     	Integer cost = (getCost(method, enchant, p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant), multi));
-    	if (!(p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant)+multi-1 >= Main.Config.getInt("enchants."+enchant.getKey().getKey()+".maxlevel")))
+    	if (!(p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant)+multi-1 >= ConfigUtil.getInt(enchant, "maxlevel")))
     	{
     		if (TokenUtil.getTokens(p.getName()) >= cost)
             {
@@ -218,7 +251,7 @@ public class EnchantGUI implements Listener {
 	        	Integer newvalue = TokenUtil.getTokens(p.getName()) - cost;
 	        	TokenUtil.setTokens(p.getName(), newvalue);
 	        	p.getInventory().getItemInMainHand().addUnsafeEnchantment(enchant, p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant)+multi);
-	        	ItemMeta meta = EnchantMetaWriter.getWrittenEnchantLore(p.getInventory().getItemInMainHand());
+	        	ItemMeta meta = EnchantMetaWriter.getWrittenMeta(p.getInventory().getItemInMainHand());
 	        	p.getInventory().getItemInMainHand().setItemMeta(meta);
 	        	loadInventory(p, guiNames.get(p));
             }
@@ -227,7 +260,7 @@ public class EnchantGUI implements Listener {
 	        	p.sendMessage(LangUtil.getLangMessage("insufficienttokens"));
 	        }
     	}
-    	else if ((p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant) >= Main.Config.getInt("enchants."+enchant.getKey().getKey()+".maxlevel")))
+    	else if ((p.getInventory().getItemInMainHand().getEnchantmentLevel(enchant) >= ConfigUtil.getInt(enchant, "maxlevel")))
     	{
     		p.sendMessage(LangUtil.getLangMessage("exceedmaxlvl"));
     	}
@@ -237,4 +270,42 @@ public class EnchantGUI implements Listener {
     	}
 
     }
+	
+	public static boolean isSimilarInventory(Inventory first, Inventory second)
+	{
+	    if(first == null && second == null) return true;
+	    if((first == null && second != null) || (first != null && second == null)) return false;
+	    if(first.getType() != second.getType()) return false;
+	    ItemStack[] firstContents = first.getContents();
+	    ItemStack[] secondContents = second.getContents();
+	    if(firstContents.length != secondContents.length) return false;
+	    for(int i = 0; i < firstContents.length; i++)
+	    {
+	        if(firstContents[i] == null && secondContents[i] == null) continue;
+	        else if(firstContents[i] == null && secondContents[i] != null) return false;
+	        else if(secondContents[i] == null && firstContents[i] != null) return false;
+	        else if(!firstContents[i].isSimilar(secondContents[i])) return false;
+	    }
+	    return true;
+	}
+	
+	public static boolean compareInvs(Inventory inv0, Inventory inv1){
+		if (!inv0.getHolder().equals(inv1.getHolder())) return false;
+		if (inv0.getSize() != inv1.getSize()) return false;
+		if (!inv0.getType().equals(inv1.getType())) return false;
+		if (inv0.getSize() != inv1.getSize()) return false;
+		if (inv0.getViewers().size() != inv1.getViewers().size()) return false;
+		for (int index = 0; index < inv0.getSize(); index++){
+		ItemStack a = inv0.getItem(index);
+		ItemStack b = inv1.getItem(index);
+		if (!((a == null && b == null) || a.equals(b))) return false;
+		}
+		for (int index = 0; index < inv0.getViewers().size(); index++){
+		HumanEntity a = inv0.getViewers().get(index);
+		HumanEntity b = inv1.getViewers().get(index);
+		if (!a.getOpenInventory().getTitle().equals(b.getOpenInventory().getTitle())) return false;
+		if (!((a == null && b == null) || a.equals(b))) return false;
+		}
+		return true;
+		}
 }

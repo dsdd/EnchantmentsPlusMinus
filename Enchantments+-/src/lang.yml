@@ -19,4 +19,9 @@ messages:
     cannotscrap: "&cThis item has no scrap value."
     scrapsuccess: "&aYou scrapped this item for %tokens% tokens!"
     lockedupgrade: "&cYou may not upgrade this enchant as it is locked."
-    
+    inventoryfull: "&cYour inventory is full!"
+    hasteactivate: "&aHaste has been activated!"
+    tokenblocksactivate: "&aYou received %tokens% tokens from TokenBlocks!"
+    moneyblocksactivate: "&aYou received $%money% from MoneyBlocks!"
+    tokencharityactivate: "&aYou received %tokens% tokens from a token charity run by %player%&a!"
+    charityactivate: "&aYou received $%money% from a charity by %player%&a!"
