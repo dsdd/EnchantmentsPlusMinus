@@ -11,6 +11,5 @@ An easy-to-use API to make your own custom enchants
 
 # Misc
 The plugin is in a beta stage, which means there will be many bugs.  
-Enchantments+- only works on versions 1.13+ due to the different enchantment system in 1.12 and below. Maybe after the beta stage I work on making Enchantments+- 1.12 compatible.  
 Enchantments+- doesn't really mean anything. Really, it just sounds cool.  
 Enjoy the plugin!  
