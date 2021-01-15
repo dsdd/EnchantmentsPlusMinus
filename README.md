@@ -10,6 +10,6 @@ A special currency called Tokens that can be easily integrated with voting syste
 An easy-to-use API to make your own custom enchants  
 
 # Misc
-The plugin is in a beta stage, which means there will be many bugs.  
-Enchantments+- doesn't really mean anything. Really, it just sounds cool.  
+The plugin is in an early release stage.  
+You can report bugs or crashes at https://github.com/dsdd/EnchantmentsPlusMinus/issues.  
 Enjoy the plugin!  
