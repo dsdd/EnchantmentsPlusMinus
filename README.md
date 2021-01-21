@@ -65,53 +65,10 @@ eps.admin.changetokens - Gives access to /eps changetokens.
 eps.admin.enchant - Gives access to /eps enchant.
 eps.admin.bypassmaxlevel - Allows bypassing of max level in the enchant GUI
 eps.admin.bypassincompatibilities - Allows bypassing of incompatibilities of enchants in the enchant GUI
+
 # Misc
 The plugin is in an early release stage.
 You can report bugs or crashes at https://github.com/dsdd/EnchantmentsPlusMinus/issues or in the Discord server listed below.
-Configuration File
-[code=YAML]# +-------------------------+
-# | +---------------------+ |
-# | |    Enchantments+-   | |
-# | +---------------------+ |
-# +-------------------------+
-#                                                                                     -#-
-# This is the configuration file for Enchantments+-.
-# Need help? Check the GitHub wiki: https://github.com/dsdd/EnchantmentsPlusMinus
-#
-# +------------------------+
-# |                        |
-# |     Configuration      |
-# |                        |
-# +------------------------+
-#     
-# Enchant configuration has been moved to the /enchants/ folder!
-#                                                                             -#-
-
-auto-update: true
-show-enchant-lore: true
-use-roman-numerals: false
-open-enchant-gui-on-right-click: true
-applyfortuneon:
-  - COAL
-  - LAPIS_LAZULI
-  - REDSTONE
-  - DIAMOND
-  - EMERALD
-  - QUARTZ
-playerkilltokens:
-  enabled: true
-  min: 25
-  max: 50
-mobkilltokens:
-  enabled: true
-  min: 5
-  max: 10
-miningtokens:
-  enabled: true
-  min: 25
-  max: 50
-  blockstobreak: 1000
-[/code]
 
 # Discord
 It's getting harder to manage issues now, so there's a Discord server now! (please note this server is just a ticket system for me to personally respond asap)
