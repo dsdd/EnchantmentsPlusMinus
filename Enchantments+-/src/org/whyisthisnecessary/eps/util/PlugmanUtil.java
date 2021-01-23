@@ -30,6 +30,13 @@ import org.whyisthisnecessary.eps.Main;
 
 public class PlugmanUtil {
 	
+	private PlugmanUtil() {}
+	
+	/** Gets a Plugin from a file.
+	 * 
+	 * @param file The file to get the Plugin from.
+	 * @return The Plugin
+	 */
 	public static Plugin getPluginFromFile(File file)
 	{
 		File tempfolder = new File(Main.DataFolder, "Temp");

@@ -1,0 +1,20 @@
+# If you need to restrict someone from getting an enchant if they have another, just modify this
+# To list an incompatibility, all you need to do is to list it in the enchant you do not want paired with.
+
+fortune:
+- silk_touch
+
+silk_touch:
+- fortune
+
+explosive:
+- excavate
+- diamond
+
+excavate:
+- explosive
+- diamond
+
+diamond:
+- explosive
+- excavate

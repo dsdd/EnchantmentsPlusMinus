@@ -27,10 +27,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.InvalidDescriptionException;
-import org.bukkit.plugin.InvalidPluginException;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.UnknownDependencyException;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.eps.BuiltInPackParser;
 import org.eps.autoupdater.AutoUpdate;
@@ -56,12 +53,15 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	public static File EnchantsFolder;
 	public static File ConfigFile;
 	public static File LangFile;
+	public static File InCPTFile;
+	public static File GuisFile;
 	public static File UUIDDataStore;
 	public static FileConfiguration Config;
 	public static FileConfiguration LangConfig;
 	public static FileConfiguration UUIDDataStoreConfig;
-	public static List<Plugin> EnabledPacks = new ArrayList<Plugin>(Arrays.asList());
-	
+	public static FileConfiguration InCPTConfig;	
+	public static FileConfiguration GuisConfig;
+	public static EnchantsCommand EnchantsCMD;
 	
 	@Override
 	public void onEnable()
@@ -87,6 +87,16 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 		saveDefaultFile("/lang.yml", LangFile);
 		LangConfig = YamlConfiguration.loadConfiguration(LangFile);
 		
+		// Create GUIs File
+		GuisFile = new File(getDataFolder(), "guis.yml");
+		saveDefaultFile("/guis.yml", GuisFile);
+		GuisConfig = YamlConfiguration.loadConfiguration(GuisFile);
+		
+		// Create Incompatibilities File
+		InCPTFile = new File(getDataFolder(), "incompatibilities.yml");
+		saveDefaultFile("/incompatibilities.yml", InCPTFile);
+		InCPTConfig = YamlConfiguration.loadConfiguration(InCPTFile);
+		
 		// Create Data Files
 		UUIDDataStore = new File(DataFolder, "usernamestore.yml");
 	    if (!UUIDDataStore.exists())
@@ -105,17 +115,19 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 			}
 	    }
 	    
-	    // Load metrics for bStats
-	    new Metrics(plugin, 9735);
+	    // Load Updater
+	    Updater.makeCompatible();
 	    
 	    // Load dependencies
+	    new Metrics(plugin, 9735);
 	    if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
 	    new PlaceholderAPIHook();
 		VaultHook.setupEconomy();
 		
 		// Load commands
+		EnchantsCMD = new EnchantsCommand();
 		Bukkit.getPluginCommand("eps").setExecutor(new EPSCommand());
-		Bukkit.getPluginCommand("enchants").setExecutor(new EnchantsCommand());
+		Bukkit.getPluginCommand("enchants").setExecutor(EnchantsCMD);
 		Bukkit.getPluginCommand("paytokens").setExecutor(new PayTokensCommand());
 		Bukkit.getPluginCommand("scrap").setExecutor(new ScrapCommand());
 		Bukkit.getPluginCommand("tokens").setExecutor(new TokensCommand());
@@ -136,18 +148,6 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 			Plugin plugin1 = Bukkit.getPluginManager().loadPlugin(lw);
 			Bukkit.getPluginManager().enablePlugin(plugin1); } catch (Exception e) {}
 		}
-		if (LegacyUtil.isLegacy())
-	    {
-	    	try {
-				Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(file));
-			} catch (UnknownDependencyException e) {
-				e.printStackTrace();
-			} catch (InvalidPluginException e) {
-				e.printStackTrace();
-			} catch (InvalidDescriptionException e) {
-				e.printStackTrace();
-			}
-	    }
 		LegacyUtil.initialize(this);
 		
 		// Finalize loading
@@ -156,18 +156,19 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 		{
 			EnchantGUI.setupGUI(p);
 		}
-		new AutoUpdate().onEnable();
 		if (new File(getDataFolder(), "packs").exists())
+		{
 			new File(getDataFolder(), "packs").delete();
+		}
+	
+		EnchantMetaWriter.registerEnchantNames();
+		DataUtil.saveConfig(Main.Config, Main.ConfigFile);
 	}
 	
 	@Override
 	public void onDisable()
 	{
-		for (Plugin pl : EnabledPacks)
-		{
-			Bukkit.getPluginManager().disablePlugin(pl);
-		}
+		new AutoUpdate().onEnable();
 	}
 	
 	@EventHandler
@@ -190,7 +191,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	/** Saves a file to the specified destination
 	 * if it does not exist
 	 * 
-	 * @param path The path to copy from
+	 * @param resource The path to copy from
 	 * @param dest The file you want to copy to
 	 */
 	public static void saveDefaultFile(String resource, File dest)
@@ -206,14 +207,27 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         }
 	}
 	
-	private void addDefault(FileConfiguration config, String key, Object value)
+	/**Adds a value into the specified path from the specified configuration
+	 * if one does not already exist
+	 * 
+	 * @param config The FileConfiguration to use
+	 * @param path The path to set
+	 * @param value The value
+	 */
+	private void addDefault(FileConfiguration config, String path, Object value)
 	{
-		if (config.get(key) == null)
+		if (config.get(path) == null)
 		{
-			config.set(key, value);
+			config.set(path, value);
 		} 
 	}
 	
+	/** Copies a file from the specified file path
+	 * to the specified file
+	 * 
+	 * @param str The file path to copy from
+	 * @param dest The file to paste into
+	 */
 	private static void copyFile(String str, File dest) {
 		try {
 	    InputStream is = null;
@@ -256,6 +270,12 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 		}
 	}
 	
+	/** Downloads a file from the specified URL.
+	 * 
+	 * @param localFileName The name of the file
+	 * @param fromUrl The URL to download from
+	 * @return The file
+	 */
 	protected static File downloadFile(String localFileName, String fromUrl) { try {
 	    File localFile = new File(localFileName);
 	    if (!localFile.exists()) {
@@ -285,15 +305,32 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	    return localFile;   } catch (Exception e){return null;}
 	}
 	
+	/** Gets the JAR file of a plugin
+	 * 
+	 * @param pl The plugin
+	 * @return The file
+	 */
 	public static File getJarFile(Plugin pl)
-	{ try {
-		JavaPlugin plugin1 = (JavaPlugin) plugin.getServer().getPluginManager().getPlugin(pl.getName());
-		Method getFileMethod = JavaPlugin.class.getDeclaredMethod("getFile");
-		getFileMethod.setAccessible(true);
-		File file = (File) getFileMethod.invoke(plugin1);
-		return file; } catch (Exception e) { e.printStackTrace();  return null; }
+	{ 
+		try 
+		{
+			Method getFileMethod = JavaPlugin.class.getDeclaredMethod("getFile");
+			getFileMethod.setAccessible(true);
+			File file = (File) getFileMethod.invoke((JavaPlugin) pl);
+			return file; 
+		} 
+		catch (Exception e) 
+		{ 
+			e.printStackTrace();  
+			return null; 
+		}
 	}
 	
+	/** Gets files from a folder
+	 * 
+	 * @param path The folder path
+	 * @return The files inside the folder
+	 */
 	private List<File> getFiles(String path)
 	{
 		try {
@@ -321,34 +358,49 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	    }
 	}
 	
+	/** Creates a new file from the specified ZipEntry
+	 * 
+	 * @param file The ZipFile to look into
+	 * @param entry The ZipEntry to copy from
+	 * @param name The name to give the file
+	 * @return The file
+	 */
 	private File getTempFile(ZipFile file, ZipEntry entry, String name)
 	{
 		File tempfolder = new File(Main.DataFolder, "Temp");
 		File temp = new File(tempfolder, name);
-	    if (!tempfolder.exists()) tempfolder.mkdirs();
-	    if (!temp.exists()) Main.createNewFile(temp);
-		try {
+	    if (!tempfolder.exists()) 
+	    	tempfolder.mkdirs();
+	    if (!temp.exists()) 
+	    	Main.createNewFile(temp);
+	    
+		try 
+		{
 		    InputStream is = file.getInputStream(entry);
 		    OutputStream os = null;
 		    
-		    try {
+		    try 
+		    {
 		        os = new FileOutputStream(tempfolder+"/"+name);
 		        byte[] buffer = new byte[1024];
 		        int length;
-		        while ((length = is.read(buffer)) != -1) {
+		        while ((length = is.read(buffer)) != -1)
 		            os.write(buffer, 0, length);
-		        }
 		    }
 		    catch (Exception e)
 		    {
 		    	e.printStackTrace();
 		    }
-		    finally {
+		    finally 
+		    {
 		        is.close();
 		        os.close();
 		    }
 		}
-		catch (Exception e) { e.printStackTrace();}
+		catch (Exception e) 
+		{ 
+		    e.printStackTrace();
+		}
 		return (temp);
 	}
 }

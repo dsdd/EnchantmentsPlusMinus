@@ -12,6 +12,8 @@ public class LegacyUtil {
 	private static Material legacyMaterial;
 	private static boolean legacy;
 	
+	/** Checks if the MC version is 1.12 or lower.
+	 */
 	public static void checkLegacy()
 	{
 		legacyMaterial = Material.getMaterial("BLACK_STAINED_GLASS_PANE");
@@ -21,6 +23,11 @@ public class LegacyUtil {
 			legacy = false;
 	}
 	
+	/** Initializes legacy support.
+	 * For internal legacy support only, should never be used by plugins!
+	 * 
+	 * @param plugin The plugin to disable in case LegacyWrapper is not installed.
+	 */
 	public static void initialize(Main plugin)
 	{
 		boolean check = Bukkit.getPluginManager().isPluginEnabled("LegacyWrapper");
@@ -32,16 +39,30 @@ public class LegacyUtil {
 		}
 	}
 	
+	/** Returns if the MC server is 1.12 or below.
+	 * 
+	 * @return Returns if the MC server is 1.12 or below.
+	 */
 	public static boolean isLegacy()
 	{
 		return legacy;
 	}
 	
+	/** Gets an enchant by its name.
+	 * 
+	 * @param name The name of the enchant
+	 * @return The enchant
+	 */
 	public static Enchantment getByName(String name)
 	{
 		return (NameUtil.getByName(name));
 	}
 	
+	/** Gets the name of an enchant.
+	 * 
+	 * @param enchant The enchant
+	 * @return The name of the enchant
+	 */
 	public static String getName(Enchantment enchant)
 	{
 		return (NameUtil.getName(enchant));

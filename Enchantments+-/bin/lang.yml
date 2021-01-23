@@ -13,7 +13,7 @@ messages:
     invalidtokenamountpay: "&cYou must write a proper amount of tokens to give."
     tokenbalance: "&aTokens: %tokens%"
     insufficienttokens: "&cYou do not have enough tokens to buy this."
-    upgradedpickaxe: "&aUpgraded pickaxe successfully!"
+    upgradedpickaxe: "&aUpgraded successfully!"
     maxedupgrade: "&cYou already have the maximum level for this enchantment."
     exceedmaxlvl: "&cYou can't exceed the maximum level for this enchantment."
     cannotscrap: "&cThis item has no scrap value."

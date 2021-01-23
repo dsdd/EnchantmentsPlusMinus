@@ -7,7 +7,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import net.milkbowl.vault.economy.Economy;
 
 public class VaultHook {
-	public static Economy Economy;
+	private static Economy Economy;
 	
 	/**Sets up the Economy class for Vault.
 	 * Does not do anything if Vault is not installed.

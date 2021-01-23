@@ -21,6 +21,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -53,9 +54,10 @@ public class EnchantProcessor implements Listener {
 	{
 		if (!allowenchantmods)
 			return;
-		if (e.getPlayer().getInventory().getItemInMainHand() == null)
+		ItemStack mainhand = e.getPlayer().getInventory().getItemInMainHand();
+		if (mainhand == null)
             return;
-		if (!e.getPlayer().getInventory().getItemInMainHand().hasItemMeta())
+		if (!mainhand.hasItemMeta())
 		    return;
 		if (e.getPlayer().getGameMode() == GameMode.CREATIVE || e.getPlayer().getGameMode() == GameMode.SPECTATOR)
 			return;
@@ -64,137 +66,139 @@ public class EnchantProcessor implements Listener {
             return; }
 		if (e.getBlock().getState() instanceof Container)
             return;
+		if (e.isCancelled())
+			return;
 		enchantprocessed = false;
 		Collection<ItemStack> drops = getDrops(e, e.getBlock());
+		ItemMeta mainmeta = mainhand.getItemMeta();
 		
 		
 		afterBlockBreak(e, 1);
-        if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().hasEnchant(Enchantment.LOOT_BONUS_BLOCKS))
+        if (mainmeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS))
         	enchantprocessed = true;
 		
-		if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().hasEnchant(CustomEnchants.EXPLOSIVE))
+		if (mainmeta.hasEnchant(CustomEnchants.EXPLOSIVE))
 		{
 			if (e.isCancelled()) return;
 			allowenchantmods = false;
 			enchantprocessed = true;
-			Integer enchlvl = e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.EXPLOSIVE);
+			Integer enchlvl = mainmeta.getEnchantLevel(CustomEnchants.EXPLOSIVE);
 		    
-		    
-			int count = 0;
-			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.EXPLOSIVE, e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.EXPLOSIVE), "chance"))
+		    if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.EXPLOSIVE, mainmeta.getEnchantLevel(CustomEnchants.EXPLOSIVE), "chance"))
 			{
 					Location loc = e.getBlock().getLocation();
-					int radius = ((int)Math.cbrt(enchlvl))/2+1;
-					Block[] area = sphere(loc, radius);
-					count = 0;
+					int radius = enchlvl/2;
+					List<Block> area = sphere(loc, radius);
 					loc.getWorld().createExplosion(loc, 0F);
-					for (Block block : area) {
-					    if (!(block.getType() == Material.BEDROCK || block.getType() == endframe))
-					    {
-					        if (count > enchlvl*2) break;
-					        ++count;
-					        BlockBreakEvent newevent = new BlockBreakEvent(block, e.getPlayer());
-					        Bukkit.getServer().getPluginManager().callEvent(newevent);
-					        if (!newevent.isCancelled()) {
-					        Collection<ItemStack> exdrops = getDrops(e, block);
-					        e.getPlayer().giveExp(getExp(block));
-					        block.setType(Material.AIR);
-					        ItemStack[] exdropsfinal = new ItemStack[exdrops.size()];
-							exdropsfinal = exdrops.toArray(exdropsfinal);
-							for (int i2=0;i2<exdropsfinal.length;i2++)
-							{
-					            drops.add(exdropsfinal[i2]);
-							}
-					        }
-					    }
+					
+					int count = 0;
+					for (Block block : area) 
+					{
+					    if (block.getType() == Material.BEDROCK || block.getType() == endframe)
+					    	continue;
 					    
+					    if (block.getType() == Material.AIR)
+				        	continue;
+					    
+					    BlockBreakEvent newevent = new BlockBreakEvent(block, e.getPlayer());
+					    Bukkit.getServer().getPluginManager().callEvent(newevent);
+					    if (newevent.isCancelled())
+					    	continue;
+					    
+					    ++count;
+					    
+					    Collection<ItemStack> exdrops = getDrops(e, block);
+					    e.getPlayer().giveExp(getExp(block));
+					    block.setType(Material.AIR);
+					    
+						for (ItemStack i : exdrops)
+					        drops.add(i);
 					}
 					afterBlockBreak(e, count);
 			}
 			allowenchantmods = true;
 		}
 		
-		if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().hasEnchant(CustomEnchants.EXCAVATE))
+		if (mainmeta.hasEnchant(CustomEnchants.EXCAVATE))
 		{
 			if (e.isCancelled()) return;
 			allowenchantmods = false;
 			enchantprocessed = true;
-			Integer enchlvl = e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.EXCAVATE);
+			Integer enchlvl = mainmeta.getEnchantLevel(CustomEnchants.EXCAVATE);
 		    
 		    
-			int count = 0;
-			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.EXCAVATE, e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.EXCAVATE), "chance"))
+			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.EXCAVATE, mainmeta.getEnchantLevel(CustomEnchants.EXCAVATE), "chance"))
 			{
 					Location loc = e.getBlock().getLocation();
-					int radius = ((int)Math.cbrt(enchlvl))/2+1;
+					int radius = enchlvl/2;
 					List<Block> area = new ArrayList<Block>(Arrays.asList());
 					World world = e.getBlock().getWorld();
-					for (int x=-radius;x<radius+1;x++)
-						for (int y=-radius;y<radius+1;y++)
-								for (int z=-radius;z<radius+1;z++)
+					for (int x=-radius;x<radius;x++)
+						for (int y=-radius;y<radius;y++)
+								for (int z=-radius;z<radius;z++)
 									area.add(world.getBlockAt(new Location(world,x+loc.getBlockX(),y+loc.getBlockY(),z+loc.getBlockZ())));
-							count = 0;
-					for (Block block : area) {
-					    if (!(block.getType() == Material.BEDROCK || block.getType() == endframe))
-					    {
-					        if (count > enchlvl*2) break;
-					        ++count;
-					        BlockBreakEvent newevent = new BlockBreakEvent(block, e.getPlayer());
-					        Bukkit.getServer().getPluginManager().callEvent(newevent);
-					        if (!newevent.isCancelled()) {
-					        Collection<ItemStack> exdrops = getDrops(e, block);
-					        e.getPlayer().giveExp(getExp(block));
-					        block.setType(Material.AIR);
-					        ItemStack[] exdropsfinal = new ItemStack[exdrops.size()];
-							exdropsfinal = exdrops.toArray(exdropsfinal);
-							for (int i2=0;i2<exdropsfinal.length;i2++)
-							{
-					            drops.add(exdropsfinal[i2]);
-							}
-					        }
-					    }
-					    
+					int count = 0;
+					for (Block block : area) 
+					{
+				        if (block.getType() == Material.BEDROCK || block.getType() == endframe)
+				        	continue;
+				        
+				        if (block.getType() == Material.AIR)
+				        	continue;
+							    
+						BlockBreakEvent newevent = new BlockBreakEvent(block, e.getPlayer());
+						Bukkit.getServer().getPluginManager().callEvent(newevent);
+						if (newevent.isCancelled())
+							continue;
+						
+						count++;
+							    
+						Collection<ItemStack> exdrops = getDrops(e, block);
+						e.getPlayer().giveExp(getExp(block));
+						block.setType(Material.AIR);
+						
+						for (ItemStack i : exdrops)
+							drops.add(i);
 					}
 					afterBlockBreak(e, count);
 			}
 			allowenchantmods = true;
 		}
 		
-		if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().hasEnchant(CustomEnchants.DIAMOND))
+		if (mainmeta.hasEnchant(CustomEnchants.DIAMOND))
 		{
 			if (e.isCancelled()) return;
 			allowenchantmods = false;
 			enchantprocessed = true;
-			Integer enchlvl = e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.DIAMOND);
+			Integer enchlvl = mainmeta.getEnchantLevel(CustomEnchants.DIAMOND);
 		    
 		    
-			int count = 0;
-			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.DIAMOND, e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.DIAMOND), "chance"))
+			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.DIAMOND, mainmeta.getEnchantLevel(CustomEnchants.DIAMOND), "chance"))
 			{
 					Location loc = e.getBlock().getLocation();
-					int radius = ((int)Math.cbrt(enchlvl))/2+1;
+					int radius = enchlvl/2;
 					Block[] area = diamond(loc, radius);
-					count = 0;
-					for (Block block : area) {
-					    if (!(block.getType() == Material.BEDROCK || block.getType() == endframe))
-					    {
-					        if (count > enchlvl*2) break;
-					        ++count;
-					        BlockBreakEvent newevent = new BlockBreakEvent(block, e.getPlayer());
-					        Bukkit.getServer().getPluginManager().callEvent(newevent);
-					        if (!newevent.isCancelled()) {
-					        Collection<ItemStack> exdrops = getDrops(e, block);
-					        e.getPlayer().giveExp(getExp(block));
-					        block.setType(Material.AIR);
-					        ItemStack[] exdropsfinal = new ItemStack[exdrops.size()];
-							exdropsfinal = exdrops.toArray(exdropsfinal);
-							for (int i2=0;i2<exdropsfinal.length;i2++)
-							{
-					            drops.add(exdropsfinal[i2]);
-							}
-					        }
-					    }
+					int count = 0;
+					for (Block block : area) 
+					{
+					    if (block.getType() == Material.BEDROCK || block.getType() == endframe)
+					    	continue;
+
+					    if (block.getType() == Material.AIR)
+				        	continue;
 					    
+					    BlockBreakEvent newevent = new BlockBreakEvent(block, e.getPlayer());
+					    Bukkit.getServer().getPluginManager().callEvent(newevent);
+					    if (newevent.isCancelled())
+					    	continue;
+					    
+					    ++count;
+					    
+					    Collection<ItemStack> exdrops = getDrops(e, block);
+					    e.getPlayer().giveExp(getExp(block));
+					    block.setType(Material.AIR); 
+						for (ItemStack i : exdrops)
+					        drops.add(i);
 					}
 					afterBlockBreak(e, count);
 			}
@@ -203,11 +207,11 @@ public class EnchantProcessor implements Listener {
 		
 		ItemStack[] dropsfinal = new ItemStack[drops.size()];
 		dropsfinal = drops.toArray(dropsfinal);
-		if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().hasEnchant(CustomEnchants.TELEPATHY))
+		if (mainmeta.hasEnchant(CustomEnchants.TELEPATHY))
 		{
-			Integer lvl1 = e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.TELEPATHY);
+			Integer lvl1 = mainmeta.getEnchantLevel(CustomEnchants.TELEPATHY);
 			if (lvl1 > 0) {
-		        if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.TELEPATHY, e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.TELEPATHY), "chance"))
+		        if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.TELEPATHY, mainmeta.getEnchantLevel(CustomEnchants.TELEPATHY), "chance"))
 		        {
 		        	e.setDropItems(false);
 		        	for (ItemStack drop : dropsfinal) {
@@ -219,21 +223,24 @@ public class EnchantProcessor implements Listener {
 		}
 		if (enchantprocessed == true)
 		{
-		e.setDropItems(false);
-		for (ItemStack drop : dropsfinal)
-			e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), drop);
-		}
+			e.setDropItems(false);
+			for (ItemStack drop : dropsfinal)
+				e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), drop);
+			}
 		enchantprocessed = false;
 	}
 	
 	public Collection<ItemStack> getDrops(BlockBreakEvent e, Block block)
 	{
-		ItemStack pitem = e.getPlayer().getInventory().getItemInMainHand();
-		ItemStack[] drops = new ItemStack[block.getDrops(pitem).size()];
-		drops = block.getDrops(pitem).toArray(drops);
+		ItemStack mainhand = e.getPlayer().getInventory().getItemInMainHand();
+		ItemMeta mainmeta = mainhand.getItemMeta();
+		Collection<ItemStack> drops = block.getDrops(mainhand);
 		Collection<ItemStack> dropfinal = new ArrayList<ItemStack>(Arrays.asList());
-		Integer lvl = e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_BLOCKS);
-		Integer lvl1 = e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.AUTOSMELT);
+		Integer lvl = mainmeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS);
+		Integer lvl1 = mainmeta.getEnchantLevel(CustomEnchants.AUTOSMELT);
+		
+		if (drops.isEmpty() || drops == null)
+			return (new ArrayList<ItemStack>(Arrays.asList()));
 		
 		for (ItemStack drop : drops)
         {
@@ -241,20 +248,25 @@ public class EnchantProcessor implements Listener {
 		    if (getFortuneDrops().contains(m) && !(saves.contains(block.getLocation()))) {
 		    	enchantprocessed = true;
 		    	drop.setAmount(getDropCount(lvl, new Random())); }
-		    if (lvl1 > 0 && getNext() < ConfigUtil.getAutofilledDouble(CustomEnchants.AUTOSMELT, e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.AUTOSMELT), "chance"))
+		    if (lvl1 > 0 && getNext() < ConfigUtil.getAutofilledDouble(CustomEnchants.AUTOSMELT, mainmeta.getEnchantLevel(CustomEnchants.AUTOSMELT), "chance"))
 		    {
 		    	enchantprocessed = true;
-                if (m == Material.IRON_ORE)
-                drop.setType(Material.IRON_INGOT);
+                switch (m)
+                {
+                	case IRON_ORE:
+                	drop.setType(Material.IRON_INGOT);
                     
-                if (m == Material.GOLD_ORE)
-                drop.setType(Material.GOLD_INGOT);
+                	case GOLD_ORE:
+                	drop.setType(Material.GOLD_INGOT);
                     
-                if (m == Material.matchMaterial("ANCIENT_DEBRIS"))
-                drop.setType(Material.matchMaterial("NETHERITE_SCRAP"));
-                    
-                if (m == Material.COBBLESTONE)
-                drop.setType(Material.STONE);
+                	case COBBLESTONE:
+                	drop.setType(Material.STONE);
+                		
+                	default:
+                		break;
+                }
+               if (m == Material.matchMaterial("ANCIENT_DEBRIS"))
+            	   drop.setType(Material.matchMaterial("NETHERITE_SCRAP"));
 		    }
 		    dropfinal.add(drop);
         }
@@ -263,32 +275,33 @@ public class EnchantProcessor implements Listener {
 	
 	public void afterBlockBreak(BlockBreakEvent e, Integer multi)
 	{
-		ItemStack a = e.getPlayer().getInventory().getItemInMainHand();
-		if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().hasEnchant(CustomEnchants.HASTE))
+		ItemStack mainhand = e.getPlayer().getInventory().getItemInMainHand();
+		ItemMeta mainmeta = mainhand.getItemMeta();
+		if (mainmeta.hasEnchant(CustomEnchants.HASTE))
 		{
-			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.HASTE, e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.HASTE), "chance"))
+			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.HASTE, mainmeta.getEnchantLevel(CustomEnchants.HASTE), "chance"))
 			{
 				e.getPlayer().sendMessage(LangUtil.getLangMessage("hasteactivate"));
-				e.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 60, e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.HASTE)-1));
+				e.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 60, mainmeta.getEnchantLevel(CustomEnchants.HASTE)-1));
 			}
 		}
-		if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().hasEnchant(CustomEnchants.TOKENBLOCKS))
+		if (mainmeta.hasEnchant(CustomEnchants.TOKENBLOCKS))
 		{
-			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.TOKENBLOCKS, e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.TOKENBLOCKS), "chance"))
+			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.TOKENBLOCKS, mainmeta.getEnchantLevel(CustomEnchants.TOKENBLOCKS), "chance"))
 			{
-				double explicit = ConfigUtil.getAutofilledDouble(CustomEnchants.TOKENBLOCKS,a.getEnchantmentLevel(CustomEnchants.TOKENBLOCKS), "tokens");
+				double explicit = ConfigUtil.getAutofilledDouble(CustomEnchants.TOKENBLOCKS, mainmeta.getEnchantLevel(CustomEnchants.TOKENBLOCKS), "tokens");
 				int val = (int) explicit;
 				e.getPlayer().sendMessage(LangUtil.getLangMessage("tokenblocksactivate").replaceAll("%tokens%", Integer.toString(val)));
 				TokenUtil.changeTokens(e.getPlayer(), val);
 			}
 		}
-		if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().hasEnchant(CustomEnchants.MONEYBLOCKS))
+		if (mainmeta.hasEnchant(CustomEnchants.MONEYBLOCKS))
 		{
-			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.MONEYBLOCKS, e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.TOKENBLOCKS), "chance"))
+			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.MONEYBLOCKS, mainmeta.getEnchantLevel(CustomEnchants.TOKENBLOCKS), "chance"))
 			{
 				if (PackMain.VaultEnabled)
 				{
-					double explicit = ConfigUtil.getAutofilledDouble(CustomEnchants.MONEYBLOCKS,a.getEnchantmentLevel(CustomEnchants.MONEYBLOCKS), "money");
+					double explicit = ConfigUtil.getAutofilledDouble(CustomEnchants.MONEYBLOCKS, mainmeta.getEnchantLevel(CustomEnchants.MONEYBLOCKS), "money");
 					int val = (int) explicit;
 					e.getPlayer().sendMessage(LangUtil.getLangMessage("moneyblocksactivate").replaceAll("%money%", Integer.toString(val)));
 					VaultHook.getEconomy().depositPlayer(e.getPlayer(), val);
@@ -299,13 +312,13 @@ public class EnchantProcessor implements Listener {
 				}
 			}
 		}
-		if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().hasEnchant(CustomEnchants.CHARITY))
+		if (mainmeta.hasEnchant(CustomEnchants.CHARITY))
 		{
 			if (PackMain.VaultEnabled)
 			{
-				if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.CHARITY, e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.CHARITY), "chance"))
+				if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.CHARITY, mainmeta.getEnchantLevel(CustomEnchants.CHARITY), "chance"))
 				{
-				double explicit = ConfigUtil.getAutofilledDouble(CustomEnchants.CHARITY,a.getEnchantmentLevel(CustomEnchants.CHARITY), "money");
+				double explicit = ConfigUtil.getAutofilledDouble(CustomEnchants.CHARITY, mainmeta.getEnchantLevel(CustomEnchants.CHARITY), "money");
 				int val = (int) explicit;
 				Bukkit.broadcastMessage(LangUtil.getLangMessage("charityactivate").replaceAll("%money%", Integer.toString(val)).replaceAll("%player%", e.getPlayer().getDisplayName()));
 				for (Player p : Bukkit.getOnlinePlayers())
@@ -317,11 +330,11 @@ public class EnchantProcessor implements Listener {
 				Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"You must have Vault to use money enchants!");
 			}
 		}
-		if (e.getPlayer().getInventory().getItemInMainHand().getItemMeta().hasEnchant(CustomEnchants.TOKENCHARITY))
+		if (mainmeta.hasEnchant(CustomEnchants.TOKENCHARITY))
 		{
-			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.TOKENCHARITY, e.getPlayer().getInventory().getItemInMainHand().getEnchantmentLevel(CustomEnchants.TOKENCHARITY), "chance"))
+			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.TOKENCHARITY, mainmeta.getEnchantLevel(CustomEnchants.TOKENCHARITY), "chance"))
 			{
-			double explicit = ConfigUtil.getAutofilledDouble(CustomEnchants.TOKENCHARITY,a.getEnchantmentLevel(CustomEnchants.TOKENCHARITY), "tokens");
+			double explicit = ConfigUtil.getAutofilledDouble(CustomEnchants.TOKENCHARITY, mainmeta.getEnchantLevel(CustomEnchants.TOKENCHARITY), "tokens");
 			int val = (int) explicit;
 			Bukkit.broadcastMessage(LangUtil.getLangMessage("tokencharityactivate").replaceAll("%tokens%", Integer.toString(val)).replaceAll("%player%", e.getPlayer().getDisplayName()));
 			for (Player p : Bukkit.getOnlinePlayers())
@@ -330,9 +343,8 @@ public class EnchantProcessor implements Listener {
 		}
 	}
 	
-	public Block[] sphere(final Location center, int radius) {
-		radius = radius + 1;
-	    ArrayList<Block> sphere = new ArrayList<Block>();
+	public List<Block> sphere(final Location center, int radius) {
+	    ArrayList<Block> sphere = new ArrayList<Block>(Arrays.asList());
 	    for (int Y = -radius; Y < radius; Y++) {
 	      for (int X = -radius; X < radius; X++) {
 	         for (int Z = -radius; Z < radius; Z++) {
@@ -343,12 +355,12 @@ public class EnchantProcessor implements Listener {
 	         }
 	      }
 	    }
-	return sphere.toArray(new Block[sphere.size()]);
+	return sphere;
 	}
 	
 	public Block[] diamond(final Location center, int radius)
 	{
-		ArrayList<Block> diamond = new ArrayList<Block>();
+		ArrayList<Block> diamond = new ArrayList<Block>(Arrays.asList());
 		for (int Y = -radius; Y < radius+1; Y++)
 		{
 			int r = radius - Math.abs(Y);
@@ -380,12 +392,11 @@ public class EnchantProcessor implements Listener {
         return (j + 1);
     }
 	
-	@SuppressWarnings("unchecked")
 	public List<Material> getFortuneDrops()
     {
     	List<Material> fortuneapply = new ArrayList<Material>(Arrays.asList());
     	List<String> list;
-    	list = (List<String>) ConfigUtil.getMiscKey("applyfortuneon");
+    	list = ConfigUtil.getConfig().getStringList("applyfortuneon");
     	for (String i : list)
     	fortuneapply.add(Material.getMaterial(i));
     	return fortuneapply;

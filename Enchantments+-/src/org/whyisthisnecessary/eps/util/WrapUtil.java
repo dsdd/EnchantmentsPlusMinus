@@ -6,7 +6,7 @@ import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.inventory.ItemStack;
 
 public class WrapUtil extends Enchantment {
-
+	
 	private final String name;
 	private final int maxLvl;
 	

@@ -46,6 +46,8 @@ public class EPSCommand implements CommandExecutor {
 			Main.Config = Main.plugin.getConfig();
 			Main.UUIDDataStoreConfig = YamlConfiguration.loadConfiguration(Main.UUIDDataStore);
 			Main.LangConfig = YamlConfiguration.loadConfiguration(Main.LangFile);
+			Main.InCPTConfig = YamlConfiguration.loadConfiguration(Main.InCPTFile);
+			Main.GuisConfig = YamlConfiguration.loadConfiguration(Main.GuisFile);
 			sender.sendMessage(LangUtil.getLangMessage("reloadconfig"));
 			return false;
 		}
@@ -123,7 +125,12 @@ public class EPSCommand implements CommandExecutor {
 				}
 				if (p.getInventory().getItemInMainHand().getAmount() > 0)
 				{
-					p.getInventory().getItemInMainHand().addUnsafeEnchantment(NameUtil.getByName(args[1]), Integer.parseInt(args[2]));
+					Integer num = Integer.parseInt(args[2]);
+					Enchantment enchant = NameUtil.getByName(args[1]);
+					if (num != 0)
+						p.getInventory().getItemInMainHand().addUnsafeEnchantment(enchant, num);
+					else
+						p.getInventory().getItemInMainHand().removeEnchantment(enchant);
 					ItemMeta meta = EnchantMetaWriter.getWrittenMeta(p.getInventory().getItemInMainHand());
 		        	p.getInventory().getItemInMainHand().setItemMeta(meta);
 					return true;

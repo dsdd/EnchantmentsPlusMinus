@@ -2,10 +2,13 @@ package org.whyisthisnecessary.eps.util;
 
 import java.io.IOException;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.whyisthisnecessary.eps.Main;
 
 public class LangUtil {
+	
+	private LangUtil() {}
 	
 	/**Returns the language message defined in lang.yml
 	 * 
@@ -14,7 +17,21 @@ public class LangUtil {
 	 */
 	public static String getLangMessage(String langkey)
 	{
-		return ChatColor.translateAlternateColorCodes('&',Main.LangConfig.getString("prefix")) + ChatColor.translateAlternateColorCodes('&', Main.LangConfig.getString("messages."+langkey));
+		String prefix = Main.LangConfig.getString("prefix");
+		String message =  Main.LangConfig.getString("messages."+langkey);
+		
+		if (prefix == null)
+		{
+			Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid prefix text! Please change your prefix in lang.yml.");
+			prefix = "";
+		}
+		if (message == null)
+		{
+			Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid message text! Please change "+langkey+" in lang.yml.");
+			message = "&cAn unexpected error occured while attempting to perform this command";
+		}
+		
+		return ChatColor.translateAlternateColorCodes('&',prefix + message);
 	}
 	
 	/**Sets the language message defined in lang.yml

@@ -9,6 +9,13 @@ import org.whyisthisnecessary.eps.Main;
 
 public class DataUtil {
 
+	private DataUtil() {}
+	
+	/** Gets the data file of the specified user.
+	 * 
+	 * @param playername The user in question
+	 * @return The data file of the user
+	 */
 	public static File getUserDataFile(String playername)
 	{
 		String UUID = Main.UUIDDataStoreConfig.getString(playername);
@@ -16,6 +23,11 @@ public class DataUtil {
 		return DataFile;
 	}
 	
+	/** Gets the data file of the specified player.
+	 * 
+	 * @param player The player in question
+	 * @return The data file of the player
+	 */
 	public static File getUserDataFile(Player player)
 	{
 		String UUID = Main.UUIDDataStoreConfig.getString(player.getName());
@@ -23,11 +35,23 @@ public class DataUtil {
 		return DataFile;
 	}
 	
+	/** Gets the UUID of the specified player.
+	 * Will return null if the player has never joined.
+	 * 
+	 * @param playername The player
+	 * @return The UUID of the player
+	 */
 	public static String getUUID(String playername)
 	{
 		return Main.UUIDDataStoreConfig.getString(playername);
 	}
 	
+	/** Gets the UUID of the specified player.
+	 * Will return null if the player has never joined.
+	 * 
+	 * @param player The player
+	 * @return The UUID of the player
+	 */
 	public static String getUUID(Player player)
 	{
 		return Main.UUIDDataStoreConfig.getString(player.getName());
@@ -47,6 +71,11 @@ public class DataUtil {
 		}
 	}
 	
+	/** Checks if the specified player has ever joined before.
+	 * 
+	 * @param playername The player
+	 * @return The player's existence on the server.
+	 */
 	public static boolean playerExists(String playername)
 	{
 		File file = getUserDataFile(playername);

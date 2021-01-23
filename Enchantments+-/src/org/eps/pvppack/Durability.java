@@ -14,6 +14,14 @@ public class Durability {
 	public Durability(ItemStack item)
 	{
 		this.item = item;
+		if (item == null)
+			return;
+		if (item.getType() == null)
+			return;
+		if (item.getItemMeta() == null)
+			return;
+		if (!(item.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable))
+			return;
 		if (LegacyUtil.isLegacy())
 		durability = item.getDurability();
 		else
@@ -31,6 +39,8 @@ public class Durability {
 	
 	public void setDamage(Integer dmg)
 	{
+		if (item == null)
+			return;
 		if (LegacyUtil.isLegacy())
 			item.setDurability((short) (maxdurability-dmg));
 		else

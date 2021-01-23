@@ -8,6 +8,7 @@ public class BuiltInPackParser {
 	{
 		new org.eps.pickaxepack.PackMain().onEnable();
 		new org.eps.pvppack.PackMain().onEnable();
+		new org.eps.bowadditions.PackMain().onEnable();
 		new org.eps.tokenrewards.EnchantProcessor(plugin);
 	}
 }

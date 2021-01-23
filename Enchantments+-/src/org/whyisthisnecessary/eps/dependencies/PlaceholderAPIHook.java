@@ -10,6 +10,8 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 
 public class PlaceholderAPIHook extends PlaceholderExpansion {
        
+	/** Creates a new hook for use.
+	 */
     public PlaceholderAPIHook() {
     	this.register();
     	Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN+"Successfully hooked into PlaceholderAPI!");

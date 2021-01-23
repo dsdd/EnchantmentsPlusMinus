@@ -17,37 +17,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.whyisthisnecessary.eps.Main;
 
 public class AutoUpdate {
 
 	public void onEnable()
 	{
-
-		File file = downloadFile(Main.DataFolder.getPath()+"/tags.json", "https://api.github.com/repos/dsdd/EnchantmentsPlusMinus/tags");
-		JSONParser parser = new JSONParser();
-		String str = readFile(file);
-		JSONArray arr = null;
-		try {
-			arr = (JSONArray) parser.parse(str);
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		String ver = "null";
-		int i=0;
-		for (Object o : arr)
-		{
-			if (i == 0)
-			{
-			    JSONObject obj = (JSONObject) o;
-			    ver = (String) obj.get("name");
-			}
-			i=1;
-		}
+        if (Main.Config.getBoolean("auto-update") == false) return;
+		File file = downloadFile(Main.DataFolder.getPath()+"/version.txt", "https://raw.githubusercontent.com/dsdd/EnchantmentsPlusMinus/main/VERSION");
+		String ver = readFile(file).substring(0, ((int)file.length())-1);
 		Plugin pl = Main.plugin;
 		JavaPlugin plugin = (JavaPlugin) Main.plugin;
 		Method getFileMethod = null;
@@ -70,7 +48,7 @@ public class AutoUpdate {
 		if (!pl.getDescription().getVersion().equalsIgnoreCase(ver))
 		{
 			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GREEN + "Downloading updated plugin JAR... ("+ver+")");
-			downloadFile(file1.getPath(), "https://github.com/dsdd/EnchantmentsPlusMinus/releases/latest/download/Enchantments+-.Beta.Build.jar");
+			downloadFile(file1.getPath(), "https://github.com/dsdd/EnchantmentsPlusMinus/releases/latest/download/Enchantments+-.jar");
 			Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GREEN + "Finished downloading!");
 		}
 		file.delete();

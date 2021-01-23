@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.Particle.DustOptions;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -44,20 +43,19 @@ public class EnchantProcessor implements Listener {
 		ItemStack item = d.getInventory().getItemInMainHand();
 		ItemMeta meta = item.getItemMeta();
 		Durability dmg = new Durability(item);
-		ItemStack a = d.getInventory().getItemInMainHand();
 		if (item == null || meta == null) { return; }
 		ItemMeta meta1 = EnchantMetaWriter.getWrittenMeta(d.getInventory().getItemInMainHand());
     	d.getInventory().getItemInMainHand().setItemMeta(meta1);
 		if (meta.hasEnchant(CustomEnchants.JAGGED))
 		{
-			Double dtp = ConfigUtil.getAutofilledDouble(CustomEnchants.JAGGED, a.getEnchantmentLevel(CustomEnchants.JAGGED), "durabilitythresholdpercent");
+			Double dtp = ConfigUtil.getAutofilledDouble(CustomEnchants.JAGGED, meta.getEnchantLevel(CustomEnchants.JAGGED), "durabilitythresholdpercent");
 			Short maxdur = item.getType().getMaxDurability();
 			Integer durtaken = dmg.getDamage();
 			Double dp =  ((double)maxdur-(double)durtaken) / ((double)maxdur) * 100;
 			if (dp < dtp) {
 		    e.setDamage(e.getDamage() + meta.getEnchantLevel(CustomEnchants.JAGGED));
 		    if (!LegacyUtil.isLegacy())
-		    	world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1, new DustOptions(Color.RED, 5));
+		    	world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1, new org.bukkit.Particle.DustOptions(Color.RED, 5));
 		    else
 		    	world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1);
 			}
@@ -65,7 +63,7 @@ public class EnchantProcessor implements Listener {
 		
 		if (meta.hasEnchant(CustomEnchants.LIFESTEAL))
 		{
-			double hp = d.getHealth() + (ConfigUtil.getAutofilledDouble(CustomEnchants.LIFESTEAL, a.getEnchantmentLevel(CustomEnchants.LIFESTEAL), "hearts") * (e.getDamage() / 10));
+			double hp = d.getHealth() + (ConfigUtil.getAutofilledDouble(CustomEnchants.LIFESTEAL, meta.getEnchantLevel(CustomEnchants.LIFESTEAL), "hearts") * (e.getDamage() / 10));
 			if (hp > 20) hp = 20.0;
 			d.setHealth(hp);
 			world.spawnParticle(Particle.HEART, e.getEntity().getLocation(), 1);
@@ -73,7 +71,7 @@ public class EnchantProcessor implements Listener {
 		
 		if (meta.hasEnchant(CustomEnchants.MOMENTUM))
 		{
-			double duration = ConfigUtil.getAutofilledDouble(CustomEnchants.MOMENTUM, a.getEnchantmentLevel(CustomEnchants.MOMENTUM), "duration")*20;
+			double duration = ConfigUtil.getAutofilledDouble(CustomEnchants.MOMENTUM, meta.getEnchantLevel(CustomEnchants.MOMENTUM), "duration")*20;
 			int durationint = (int) duration;
 			d.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationint, meta.getEnchantLevel(CustomEnchants.MOMENTUM)-1));
 			world.spawnParticle(Particle.CLOUD, e.getEntity().getLocation(), 1);
@@ -96,7 +94,7 @@ public class EnchantProcessor implements Listener {
 				double damage = ConfigUtil.getAutofilledDouble(CustomEnchants.INSATIABLE, piece.getEnchantmentLevel(CustomEnchants.INSATIABLE), "extradamage");
 				e.setDamage(e.getDamage() + (damage - (damage*(d.getHealth()/20))));
 				if (!LegacyUtil.isLegacy())
-					world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1, new DustOptions(Color.RED, 5));
+					world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1, new org.bukkit.Particle.DustOptions(Color.RED, 5));
 				else
 			    	world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1);
 			}
@@ -114,7 +112,7 @@ public class EnchantProcessor implements Listener {
 			if (item == null || meta == null) { return; }
 			if (meta.hasEnchant(CustomEnchants.RETALIATE))
 			{
-				double duration = ConfigUtil.getAutofilledDouble(CustomEnchants.RETALIATE, item.getEnchantmentLevel(CustomEnchants.RETALIATE), "duration")*20;
+				double duration = ConfigUtil.getAutofilledDouble(CustomEnchants.RETALIATE, meta.getEnchantLevel(CustomEnchants.RETALIATE), "duration")*20;
 				int durationint = (int) duration;
 				p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, durationint, meta.getEnchantLevel(CustomEnchants.RETALIATE)-1));
 			}
@@ -161,9 +159,10 @@ public class EnchantProcessor implements Listener {
 	{
 		if (e.getEntity().getKiller() == null) return;
 		ItemStack item = e.getEntity().getKiller().getInventory().getItemInMainHand();
+		ItemMeta meta = item.getItemMeta();
 		if (item.containsEnchantment(CustomEnchants.BEHEADING))
 		{
-			Integer lvl = item.getEnchantmentLevel(CustomEnchants.BEHEADING);
+			Integer lvl = meta.getEnchantLevel(CustomEnchants.BEHEADING);
 			double chance = ConfigUtil.getAutofilledDouble(CustomEnchants.BEHEADING, lvl, "chance");
 			if (getNext() <= chance)
 			{
@@ -178,9 +177,10 @@ public class EnchantProcessor implements Listener {
 	{
 		if (e.getEntity().getKiller() == null) return;
 		ItemStack item = e.getEntity().getKiller().getInventory().getItemInMainHand();
+		ItemMeta meta = item.getItemMeta();
 		if (item.containsEnchantment(CustomEnchants.BEHEADING))
 		{
-			Integer lvl = item.getEnchantmentLevel(CustomEnchants.BEHEADING);
+			Integer lvl = meta.getEnchantLevel(CustomEnchants.BEHEADING);
 			double chance = ConfigUtil.getAutofilledDouble(CustomEnchants.BEHEADING, lvl, "chance");
 			if (getNext() <= chance)
 			{

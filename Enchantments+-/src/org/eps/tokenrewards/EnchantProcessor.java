@@ -24,19 +24,20 @@ public class EnchantProcessor implements Listener {
 	
 	public EnchantProcessor(Main plugin) {
 		Bukkit.getPluginManager().registerEvents(this, plugin);
-		ConfigUtil.setDefaultMisc("playerkilltokens.enabled", true);
-		ConfigUtil.setDefaultMisc("playerkilltokens.min", 25);
-		ConfigUtil.setDefaultMisc("playerkilltokens.max", 50);
-		ConfigUtil.setDefaultMisc("mobkilltokens.enabled", true);
-		ConfigUtil.setDefaultMisc("mobkilltokens.min", 5);
-		ConfigUtil.setDefaultMisc("mobkilltokens.max", 10);
+
+		ConfigUtil.setDefault("playerkilltokens.enabled", true);
+		ConfigUtil.setDefault("playerkilltokens.min", 25);
+		ConfigUtil.setDefault("playerkilltokens.max", 50);
+		ConfigUtil.setDefault("mobkilltokens.enabled", true);
+		ConfigUtil.setDefault("mobkilltokens.min", 5);
+		ConfigUtil.setDefault("mobkilltokens.max", 10);
 		LangUtil.setDefaultLangMessage("playerkill", "&aYou received %tokens% tokens for killing %victim%!");
 		LangUtil.setDefaultLangMessage("mobkill", "&aYou received %tokens% tokens for killing %mob%!");
 		
-		ConfigUtil.setDefaultMisc("miningtokens.enabled", true);
-		ConfigUtil.setDefaultMisc("miningtokens.min", 25);
-		ConfigUtil.setDefaultMisc("miningtokens.max", 50);
-		ConfigUtil.setDefaultMisc("miningtokens.blockstobreak", 1000);
+		ConfigUtil.setDefault("miningtokens.enabled", true);
+		ConfigUtil.setDefault("miningtokens.min", 25);
+		ConfigUtil.setDefault("miningtokens.max", 50);
+		ConfigUtil.setDefault("miningtokens.blockstobreak", 1000);
 		LangUtil.setDefaultLangMessage("miningtokensget", "&aYou received %tokens% tokens for mining!");
 	}	
 	
@@ -48,9 +49,9 @@ public class EnchantProcessor implements Listener {
 		 Player killer = e.getEntity().getKiller();
 		 if (killer instanceof Player)
 		 {
-		     if ((boolean)ConfigUtil.getMiscKey("mobkilltokens.enabled")==false) return;
-			 Integer tokenmin = (int)ConfigUtil.getMiscKey("mobkilltokens.min");
-			 Integer tokenmax = (int)ConfigUtil.getMiscKey("mobkilltokens.max");
+		     if ((boolean)ConfigUtil.getConfig().get("mobkilltokens.enabled")==false) return;
+			 Integer tokenmin = ConfigUtil.getConfig().getInt("mobkilltokens.min");
+			 Integer tokenmax = ConfigUtil.getConfig().getInt("mobkilltokens.max");
 			 Integer tokens = new Random().nextInt(tokenmax-tokenmin)+tokenmin;
 			 String name = "";
 			 if (LegacyUtil.isLegacy())
@@ -69,9 +70,9 @@ public class EnchantProcessor implements Listener {
 		 Player killer = e.getEntity().getKiller();
 		 if (killer instanceof Player)
 		 {
-			 if ((boolean)ConfigUtil.getMiscKey("playerkilltokens.enabled")==false) return;
-			 Integer tokenmin = (int)ConfigUtil.getMiscKey("playerkilltokens.min");
-			 Integer tokenmax = (int)ConfigUtil.getMiscKey("playerkilltokens.max");
+			 if (ConfigUtil.getConfig().getBoolean("playerkilltokens.enabled")==false) return;
+			 Integer tokenmin = ConfigUtil.getConfig().getInt("playerkilltokens.min");
+			 Integer tokenmax = ConfigUtil.getConfig().getInt("playerkilltokens.max");
 		     Player killed = (Player) e.getEntity();
 		     Integer tokens = new Random().nextInt(tokenmax-tokenmin)+tokenmin;
 		     killer.sendMessage(LangUtil.getLangMessage("playerkill").replaceAll("%tokens%", tokens.toString()).replaceAll("%victim%", killed.getName()));
@@ -94,14 +95,24 @@ public class EnchantProcessor implements Listener {
 		if (blocklog.containsKey(e.getPlayer()))
 		{
 			blocklog.put(e.getPlayer(), blocklog.get(e.getPlayer())+1);
-			if (blocklog.get(e.getPlayer()) > (int)ConfigUtil.getMiscKey("miningtokens.blockstobreak"))
+			if (blocklog.get(e.getPlayer()) > ConfigUtil.getConfig().getInt("miningtokens.blockstobreak"))
 			{
 				blocklog.put(e.getPlayer(), 0);
-				Integer tokens = new Random().nextInt((int)ConfigUtil.getMiscKey("miningtokens.max")-(int)ConfigUtil.getMiscKey("miningtokens.min"))+(int)ConfigUtil.getMiscKey("miningtokens.min");
+				int min = ConfigUtil.getConfig().getInt("miningtokens.min");
+				Integer tokens = new Random().nextInt(ConfigUtil.getConfig().getInt("miningtokens.max")-min)+min;
 				TokenUtil.changeTokens(e.getPlayer(), tokens);
 				e.getPlayer().sendMessage(LangUtil.getLangMessage("miningtokensget").replaceAll("%tokens%", tokens.toString()));
 			}
 		}
+	 }
+	 
+	 public static void setMiscToDef(String key)
+	 {
+		 if (Main.Config.isSet("misc."+key))
+	    	{
+	    		Main.Config.set(key, Main.Config.get("misc."+key));
+	    		Main.Config.set("misc."+key, null);
+	    	}
 	 }
 	
 }

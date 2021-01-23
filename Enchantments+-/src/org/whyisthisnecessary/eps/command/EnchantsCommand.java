@@ -20,14 +20,17 @@ public class EnchantsCommand implements CommandExecutor {
 	private static List<List<Material>> list;
 	private static List<String> listnames;
 	
+	/** Sets up enchant GUIs for use.
+	 * Should never be used by plugins, for internal use only!
+	 */
 	public static void setupGUIs()
 	{
 		list = new ArrayList<List<Material>>(Arrays.asList());
 		listnames = new ArrayList<String>(Arrays.asList());
-		guis = Main.Config.getConfigurationSection("guis").getKeys(false);
+		guis = Main.GuisConfig.getConfigurationSection("guis").getKeys(false);
 		for (String i : guis) {
 			listnames.add(i);
-			List<String> slist = Main.Config.getStringList("guis."+i+".items");
+			List<String> slist = Main.GuisConfig.getStringList("guis."+i+".items");
 			List<Material> tlist = new ArrayList<Material>(Arrays.asList());
 			for (String i1 : slist)
 			{
@@ -59,12 +62,26 @@ public class EnchantsCommand implements CommandExecutor {
             	    return true;
                 }
         	}
-        	sender.sendMessage(LangUtil.getLangMessage("invaliditem"));
+        	if (args.length > 0)
+        	{
+        	if (args[0] != "dontshow")
+        		sender.sendMessage(LangUtil.getLangMessage("invaliditem"));
+        	}
+        	else
+        	{
+        		sender.sendMessage(LangUtil.getLangMessage("invaliditem"));
+        	}
         	return false;
         }
         else
         {
-        	sender.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
+        	if (args.length > 0)
+        	{
+        	if (args[0] != "dontshow")
+        		sender.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
+        	}
+        	else
+        		sender.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
         }
 		return false;
 	}

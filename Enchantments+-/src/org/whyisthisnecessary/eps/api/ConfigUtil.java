@@ -18,11 +18,20 @@ public class ConfigUtil {
 	private static ScriptEngineManager mgr = new ScriptEngineManager();
     private static ScriptEngine engine = mgr.getEngineByName("JavaScript");
     
-	public static FileConfiguration getConfig()
+	/** Gets the main config file.
+	 * 
+	 * @return The config.yml file's FileConfiguration
+	 */
+    public static FileConfiguration getConfig()
 	{
 		return Main.Config;
 	}
 	
+	/** Gets the config of the specified enchant.
+	 * 
+	 * @param enchant The enchant in question
+	 * @return The config
+	 */
 	public static FileConfiguration getEnchantConfig(Enchantment enchant)
 	{
 		return YamlConfiguration.loadConfiguration(getEnchantFile(enchant));
@@ -154,85 +163,80 @@ public class ConfigUtil {
 	 * @param path The path you want to search for.
 	 * @return Returns the value of the specified path of the main config's misc section.
 	 */
+	@Deprecated
 	public static Object getMiscKey(String path)
     {
         return Main.Config.get("misc."+path);
     }
-
-	public static void setDefaultCostType(Enchantment enchant, String type)
-    {
-    	setConfigValue(enchant, "cost.type", type);
-    }
     
-    public static void setDefaultCostStartValue(Enchantment enchant, Integer value)
-    {
-    	setConfigValue(enchant, "cost.startvalue", value);
-    }
-    
-    public static void setDefaultCostValue(Enchantment enchant, Integer value)
-    {
-    	setConfigValue(enchant, "cost.value", value);
-    }
-    
-    public static void setDefaultCostPrice(Enchantment enchant, Integer enchlvl, Integer price)
-    {
-    	setConfigValue(enchant, "cost."+enchlvl.toString(), price);
-    }
-    
-    public static void setDefaultCostMulti(Enchantment enchant, Double multi)
-    {
-    	setConfigValue(enchant, "cost.multi", multi);
-    }
-    
-    public static void setDefaultMaxLevel(Enchantment enchant, Integer level)
-    {
-    	setConfigValue(enchant, "maxlevel", level);
-    }
-    
-    public static void setDefaultScrapValue(Enchantment enchant, Integer value)
-    {
-    	setConfigValue(enchant, "scrapvalue", value);
-    }
-    
-    public static void setDefaultUpgradeIcon(Enchantment enchant, Material icon)
-    {
-    	setConfigValue(enchant, "upgradeicon", NameUtil.getMaterialName(icon));
-    }
-    
-    public static void setDefaultUpgradeIcon(Enchantment enchant, String material)
-    {
-    	setConfigValue(enchant, "upgradeicon", material);
-    }
-    
-    public static void setDefaultUpgradeDesc(Enchantment enchant, String desc)
-    {
-    	setConfigValue(enchant, "upgradedesc", desc);
-    }
-    
+    /** Sets the path of the specified enchant to the specified value.
+     * Automatically saves.
+     * 
+     * @param enchant The enchant to find its config for
+     * @param path The path to be set to
+     * @param value The value to set to the path
+     */
     public static void setDefault(Enchantment enchant, String path, Object value)
     {
     	setConfigValue(enchant, path, value);
     }
     
+    /** Sets the specified path in the main config file's misc section to the specified value.
+     * 
+     * e.g. If you want to set "misc.yourfirstthing.anotherthing" to 2, you would write
+     *  setDefaultMisc("yourfirstthing.anotherthing", 2);
+     * 
+     * @param path The path to be set to
+     * @param value The value to set to the path
+     */
+    @Deprecated
     public static void setDefaultMisc(String path, Object value)
     {
     	setMiscValue("misc."+path, value);
     }
     
+    /** Automatically fills the max level, scrap value, upgrade material, upgrade description,
+     *  cost type, cost start value and value of the specified enchant for easier value setting.
+     *  
+     *  Max level is set to 10, scrap value is set to half cost, upgrade icon is set to BOOK,
+     *  upgrade description is set to the specified description (so people can understand what the
+     *  enchant does), the cost type is set to linear and the start value and value is set to the 
+     *  specified cost.
+     * 
+     * @param enchant The enchant to fill
+     * @param desc The description to fill
+     * @param cost The cost you want to set
+     */
     public static void autoFillEnchantConfig(Enchantment enchant, String desc, Integer cost)
     {
-    	setDefaultMaxLevel(enchant, 10);
-    	setDefaultScrapValue(enchant, cost/2);
-    	setDefaultUpgradeIcon(enchant, Material.BOOK);
-    	setDefaultUpgradeDesc(enchant, desc);
-    	setDefaultCostType(enchant, "linear");
-    	setDefaultCostStartValue(enchant, cost);
-    	setDefaultCostValue(enchant, cost);
+    	setDefault(enchant, "maxlevel", 10);
+    	setDefault(enchant, "scrapvalue", cost/2);
+    	setDefault(enchant, "upgradeicon", Material.BOOK);
+    	setDefault(enchant, "upgradedesc", desc);
+    	setDefault(enchant, "cost.type", "linear");
+    	setDefault(enchant, "cost.startvalue", cost);
+    	setDefault(enchant, "cost.value", cost);
     }
     
+    /** Deprecated. Use setDefault() instead.
+     * 
+     * @param path The path to replace
+     * @param replace The replacement
+     */
+    @Deprecated
     private static void setMiscValue(String path, Object replace)
     {
-		if (Main.Config.get(path) == null)
+		setDefault(path, replace);
+    }
+    
+    /** Sets the path to the specified replacement if it doesn't exist in the main config file
+     * 
+     * @param path The path to replace
+     * @param replace The replacement
+     */
+    public static void setDefault(String path, Object replace)
+    {
+    	if (!Main.Config.isSet(path))
 		{
 			Main.Config.set(path, replace);
 			if (Main.ConfigFile.exists())
@@ -275,13 +279,123 @@ public class ConfigUtil {
     {
     	FileConfiguration config = getEnchantConfig(enchant);
     	File file = getEnchantFile(enchant);
-		if (config.get(path) == null)
+		if (!config.isSet(path))
 		{
 			config.set(path, replace);
 			if (file.exists())
-			{
 				DataUtil.saveConfig(config, file);
-			}
 		}
+    }
+    
+    /** Deprecated. Use setDefault() instead.
+     * 
+     * @param enchant
+     * @param type
+     */
+    @Deprecated
+    public static void setDefaultCostType(Enchantment enchant, String type)
+    {
+    	setConfigValue(enchant, "cost.type", type);
+    }
+    
+    /** Deprecated. Use setDefault() instead.
+     * 
+     * @param enchant
+     * @param value
+     */
+    @Deprecated
+    public static void setDefaultCostStartValue(Enchantment enchant, Integer value)
+    {
+    	setConfigValue(enchant, "cost.startvalue", value);
+    }
+    
+    /** Deprecated. Use setDefault() instead.
+     * 
+     * @param enchant
+     * @param value
+     */
+    @Deprecated
+    public static void setDefaultCostValue(Enchantment enchant, Integer value)
+    {
+    	setConfigValue(enchant, "cost.value", value);
+    }
+    
+    /** Deprecated. Use setDefault() instead.
+     * 
+     * @param enchant
+     * @param enchlvl
+     * @param price
+     */
+    @Deprecated
+    public static void setDefaultCostPrice(Enchantment enchant, Integer enchlvl, Integer price)
+    {
+    	setConfigValue(enchant, "cost."+enchlvl.toString(), price);
+    }
+    
+    /** Deprecated. Use setDefault() instead.
+     * 
+     * @param enchant
+     * @param multi
+     */
+    @Deprecated
+    public static void setDefaultCostMulti(Enchantment enchant, Double multi)
+    {
+    	setConfigValue(enchant, "cost.multi", multi);
+    }
+    
+    /** Deprecated. Use setDefault() instead.
+     * 
+     * @param enchant
+     * @param level
+     */
+    @Deprecated
+    public static void setDefaultMaxLevel(Enchantment enchant, Integer level)
+    {
+    	setConfigValue(enchant, "maxlevel", level);
+    }
+    
+    /** Deprecated. Use setDefault() instead.
+     * 
+     * @param enchant
+     * @param value
+     */
+    @Deprecated
+    public static void setDefaultScrapValue(Enchantment enchant, Integer value)
+    {
+    	setConfigValue(enchant, "scrapvalue", value);
+    }
+    
+    /** Deprecated. Use setDefault() instead.
+     * 
+     * @param enchant
+     * @param icon
+     */
+    @Deprecated
+    public static void setDefaultUpgradeIcon(Enchantment enchant, Material icon)
+    {
+    	setConfigValue(enchant, "upgradeicon", NameUtil.getMaterialName(icon));
+    }
+    
+    /** Deprecated. Use setDefault() instead.
+     * 
+     * @param enchant
+     * @param material
+     */
+    @Deprecated
+    public static void setDefaultUpgradeIcon(Enchantment enchant, String material)
+    {
+    	setConfigValue(enchant, "upgradeicon", material);
+    }
+    
+    
+    /** Deprecated. Use setDefault() instead.
+     * 
+     * @param enchant
+     * @param desc
+     */
+    @Deprecated
+    public static void setDefaultUpgradeDesc(Enchantment enchant, String desc)
+    {
+    	setConfigValue(enchant, "upgradedesc", desc);
     }
 }

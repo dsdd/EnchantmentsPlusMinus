@@ -9,9 +9,11 @@ import org.bukkit.entity.Player;
 
 public class TokenUtil {
 
+	private TokenUtil() {}
+	
 	/**Changes the amount of tokens a specified player has.
 	 * 
-	 * @param player The player affected
+	 * @param playername The player affected
 	 * @param amount The amount of tokens changed. Can be negative.
 	 * @return Returns the amount of tokens the player has after.
 	 */
