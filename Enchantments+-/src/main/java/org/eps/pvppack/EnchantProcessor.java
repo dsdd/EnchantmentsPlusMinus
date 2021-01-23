@@ -167,6 +167,7 @@ public class EnchantProcessor implements Listener {
 			if (getNext() <= chance)
 			{
 				ItemStack head = getHead(e.getEntity());
+				if (head != null)
 				e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), head);
 			}
 		}
@@ -184,11 +185,7 @@ public class EnchantProcessor implements Listener {
 			double chance = ConfigUtil.getAutofilledDouble(CustomEnchants.BEHEADING, lvl, "chance");
 			if (getNext() <= chance)
 			{
-				ItemStack head = null;
-				if (!LegacyUtil.isLegacy())
-					head = new ItemStack(Material.PLAYER_HEAD, 1);
-				else
-					head = new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1);
+				ItemStack head = LegacyUtil.isLegacy() ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
 				SkullMeta skull = (SkullMeta) head.getItemMeta();
 				skull.setOwningPlayer(e.getEntity());
 				head.setItemMeta(skull);
