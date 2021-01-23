@@ -54,7 +54,7 @@ public class EnchantProcessor implements Listener {
 			 Integer tokenmax = ConfigUtil.getConfig().getInt("mobkilltokens.max");
 			 Integer tokens = new Random().nextInt(tokenmax-tokenmin)+tokenmin;
 			 String name = "";
-			 if (LegacyUtil.isLegacy())
+			 if (LegacyUtil.isLegacy() || !((Object) e.getEntityType() instanceof Keyed))
 				 name = e.getEntity().getType().getName();
 			 else
 				 name = e.getEntity().getType().getKey().getKey();
