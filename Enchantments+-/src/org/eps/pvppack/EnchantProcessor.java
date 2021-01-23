@@ -169,7 +169,7 @@ public class EnchantProcessor implements Listener {
 			{
 				ItemStack head = getHead(e.getEntity());
 				if (head != null)
-					e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), head);
+					e.getDrops().add(head);
 			}
 		}
 	}
@@ -193,7 +193,7 @@ public class EnchantProcessor implements Listener {
 				SkullMeta skull = (SkullMeta) head.getItemMeta();
 				skull.setOwningPlayer(e.getEntity());
 				head.setItemMeta(skull);
-				e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), head);
+				e.getDrops().add(head);
 			}
 		}
 	}
