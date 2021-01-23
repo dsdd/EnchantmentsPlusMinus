@@ -168,7 +168,8 @@ public class EnchantProcessor implements Listener {
 			if (getNext() <= chance)
 			{
 				ItemStack head = getHead(e.getEntity());
-				e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), head);
+				if (head != null)
+					e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), head);
 			}
 		}
 	}
