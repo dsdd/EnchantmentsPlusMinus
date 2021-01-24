@@ -25,9 +25,10 @@ Anything below is broken.
 
 # Known bugs:  
 NoClassDefFoundError (This can be fixed with a simple /reload or if you have Plugman, /plugman reload EnchantmentsPlusMinus)  
-Registered built-in enchants:  
 
-      Prison enchantments  
+# Registered built-in enchants:  
+
+#### Prison enchantments
 Haste: Gives a random chance to apply Haste while mining  
 Explosive: Has a chance to blow up blocks. Works with fortune!  
 Excavate: Has a chance to blow a cube of blocks. Works with fortune!  
@@ -38,7 +39,8 @@ TokenBlocks: Has a chance to give tokens while mining.
 TokenCharity: Has a chance to give everyone tokens while mining.  
 MoneyBlocks: Has a chance to give money while mining. (Vault needed)  
 Charity: Has a chance to give everyone money while mining. (Vault needed)  
-      PVP enchantments  
+
+#### PVP enchantments
 Jagged: Increases attack damage of a weapon if its durability is low  
 Retaliate: Gives a very temporary strength boost if you get hit  
 Lifesteal: Gives you health in return for attacking someone  
