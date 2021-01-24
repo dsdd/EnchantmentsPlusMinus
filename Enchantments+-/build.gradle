@@ -12,6 +12,10 @@ repositories {
     maven { url 'https://hub.spigotmc.org/nexus/content/groups/public' }
     maven { url 'https://jitpack.io' }
     maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+    maven {
+        name = 'minecraft-repo'
+        url = 'https://libraries.minecraft.net/'
+    }
 }
 
 dependencies {
@@ -20,6 +24,7 @@ dependencies {
     compileOnly "com.github.MilkBowl:VaultAPI:1.7"
     compileOnly 'me.clip:placeholderapi:2.10.9'
     compileOnly files("../Packs/LegacyWrapper.jar")
+    compile 'com.mojang:authlib:1.5.25'
 }
 
 processResources {
