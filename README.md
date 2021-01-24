@@ -53,15 +53,21 @@ Beheading: Has a higher chance to give the head of a mob or player.
 Stiffen: Will give resistance if you have low health!  
 Last Resort: Your attacks will deal 3x damage if you have very low health!  
 
+#### Bow enchantments  
+Enderbow: Allows you to teleport easily with bows! (Must Shift while shooting until teleported)  
+Machinery: Send down a barrage of arrows on your opponents! (Only activates every few shots, can be configured)  
+Energized: Shoot yourself to gain a temporary speed and regeneration buff!  
+Shockwave: Damages all entities near the place you shot your arrow on!  
+
 # Permissions  
 
-Player commands  
+#### Player commands  
 eps.enchants - Gives access to /enchants.  
 eps.tokens - Gives access to /tokens.  
 eps.scrap - Gives access to /scrap.  
 eps.paytokens - Gives access to /paytokens.  
 
-Admin commands  
+#### Admin commands  
 eps.admin.reload - Gives access to /eps reload.  
 eps.admin.settokens - Gives access to /eps settokens.  
 eps.admin.changetokens - Gives access to /eps changetokens.  
