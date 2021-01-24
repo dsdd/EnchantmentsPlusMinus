@@ -1,12 +1,16 @@
 package org.eps.pvppack;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -31,6 +35,29 @@ public class EnchantProcessor implements Listener {
 	public EnchantProcessor(Plugin plugin) {
 		Bukkit.getPluginManager().registerEvents(this, plugin);
 	}
+
+	private static final Map<EntityType, UUID> MHF_UUIDs = new HashMap<EntityType, UUID>() {
+		{
+			put(EntityType.BLAZE, UUID.fromString("4c38ed11-596a-4fd4-ab1d-26f386c1cbac")); // MHF_Blaze
+			put(EntityType.CAVE_SPIDER, UUID.fromString("cab28771-f0cd-4fe7-b129-02c69eba79a5"));  // MHF_CaveSpider
+			put(EntityType.CHICKEN, UUID.fromString("92deafa9-4307-42d9-b003-88601598d6c0")); // MHF_Chicken
+			put(EntityType.COW, UUID.fromString("f159b274-c22e-4340-b7c1-52abde147713")); // MHF_Cow
+			put(EntityType.ENDERMAN, UUID.fromString("40ffb372-12f6-4678b-3f22-176bf56dd4b")); // MHF_Enderman
+			put(EntityType.GHAST, UUID.fromString("063085a6-797f-4785b-e1a2-1cd7580f752")); // MHF_Ghast
+			put(EntityType.IRON_GOLEM, UUID.fromString("757f90b2-2344-4b8d8-dac8-24232e2cece")); // MHF_Golem
+			put(EntityType.MAGMA_CUBE, UUID.fromString("0972bdd1-4b86-49fb9-ecca-353f8491a51")); // MHF_LavaSlime
+			put(EntityType.MUSHROOM_COW, UUID.fromString("a46817d6-73c5-4f3fb-712af-6b3ff47b96")); // MHF_MushroomCow
+			put(EntityType.OCELOT, UUID.fromString("1bee9df5-4f71-42a2b-f52d9-7970d3fea3")); // MHF_Ocelot
+			put(EntityType.PIG, UUID.fromString("8b57078b-f1bd-45df8-3c4d8-8d16768fbe")); // MHF_Pig
+			//put(EntityType.PIG_ZOMBIE, UUID.fromString("18a2bb50-334a-40849-1842c-380251a24b")); // MHF_PigZombie
+			put(EntityType.SHEEP, UUID.fromString("dfaad551-4e7e-45a1a-6f7c6-fc5ec823ac")); // MHF_Sheep
+			put(EntityType.SLIME, UUID.fromString("870aba93-40e8-48b38-9c532-ece00d6630")); // MHF_Slime
+			put(EntityType.SPIDER, UUID.fromString("5ad55f34-41b6-4bd29-c3218-983c635936")); // MHF_Spider
+			put(EntityType.SQUID, UUID.fromString("72e64683-e313-4c36a-408c6-6b64e94af5")); // MHF_Squid
+			put(EntityType.VILLAGER, UUID.fromString("bd482739-767c-45dca-1f8c3-3c40530952")); // MHF_Villager
+			put(EntityType.WITHER_SKELETON, UUID.fromString("7ed571a5-9fb8-416c8-b9dfb-2f446ab5b2")); // MHF_WSkeleton
+		}
+	};
 
 	@EventHandler
 	public void onEntityDamageByEntity(EntityDamageByEntityEvent e)
@@ -229,6 +256,13 @@ public class EnchantProcessor implements Listener {
 			else
 				return new ItemStack(Material.matchMaterial("SKULL_HEAD"), 1, (short) 5);
 		default:
+			if (MHF_UUIDs.containsKey(e.getType())) {
+				ItemStack head = LegacyUtil.isLegacy() ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
+				SkullMeta skull = (SkullMeta) head.getItemMeta();
+				skull.setOwningPlayer(Bukkit.getOfflinePlayer(MHF_UUIDs.get(e.getType())));
+				head.setItemMeta(skull);
+				return head;
+			}
 			return null;
 		}
 	}
