@@ -131,9 +131,8 @@ public class EnchantProcessor implements Listener {
 				}
 				if (piece.getItemMeta().hasEnchant(CustomEnchants.VOLCANIC))
 				{
-					double rgefsa = ConfigUtil.getAutofilledDouble(CustomEnchants.VOLCANIC, piece.getEnchantmentLevel(CustomEnchants.VOLCANIC), "ticks");
-					Integer sjdsa = (int)rgefsa;
-                    e.getDamager().setFireTicks(sjdsa);
+					int duration = ConfigUtil.getAutofilledDouble(CustomEnchants.VOLCANIC, piece.getEnchantmentLevel(CustomEnchants.VOLCANIC), "ticks").intValue();
+                    e.getDamager().setFireTicks(duration);
                     world.spawnParticle(Particle.LAVA, e.getEntity().getLocation(), 1);
 				}
 				if (piece.getItemMeta().hasEnchant(CustomEnchants.SATURATED))
