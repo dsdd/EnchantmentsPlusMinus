@@ -1,5 +1,6 @@
 package org.whyisthisnecessary.eps.visual;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +25,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.whyisthisnecessary.eps.Main;
 import org.whyisthisnecessary.eps.api.ConfigUtil;
@@ -36,6 +38,7 @@ public class EnchantGUI implements Listener {
 
 	public static Map<Player, Inventory> GUIs = new HashMap<Player, Inventory>();
 	public static Map<Player, String> guiNames = new HashMap<Player, String>();
+	private static List<Material> hoes = new ArrayList<Material>(Arrays.asList(new Material[]{Material.WOODEN_HOE, Material.STONE_HOE, Material.IRON_HOE, Material.matchMaterial("GOLDEN_HOE"), Material.matchMaterial("GOLD_HOE"), Material.DIAMOND_HOE, Material.matchMaterial("NETHERITE_HOE")}));
 	
 	public static void setupGUI(Player player)
 	{
@@ -58,8 +61,7 @@ public class EnchantGUI implements Listener {
 		Inventory inv = GUIs.get(p);
 		inv.clear();
 		createPanes(inv);
-		@SuppressWarnings("unchecked")
-		List<String> l = (List<String>) Main.GuisConfig.getList("guis."+guiname+".enchants");
+		List<String> l = Main.GuisConfig.getStringList("guis."+guiname+".enchants");
         String[] list = new String[l.size()];
         list = l.toArray(list);
         for (String i : list)
@@ -335,6 +337,16 @@ public class EnchantGUI implements Listener {
 	{
 		if (e.getAction().equals(Action.RIGHT_CLICK_AIR) || e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
 		{
+			PlayerInventory inv = e.getPlayer().getInventory();
+			Material m = inv.getItemInMainHand().getType();
+			if (m.equals(Material.BOW))
+				return;
+			if (m.equals(Material.matchMaterial("CROSSBOW")))
+				return;
+			if (inv.getItemInOffHand().getType().equals(Material.SHIELD))
+				return;
+			if (hoes.contains(m))
+				return;
 			if (e.getClickedBlock() != null)
 			if (e.getClickedBlock().getState() instanceof Container)
 				return;

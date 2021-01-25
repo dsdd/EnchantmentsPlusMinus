@@ -168,7 +168,11 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	@Override
 	public void onDisable()
 	{
-		new AutoUpdate().onEnable();
+		try {
+			
+		new AutoUpdate().onEnable();	
+		
+		}	catch (Exception e) {}
 	}
 	
 	@EventHandler
@@ -254,6 +258,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	}
 	
 	/** Creates a new file without having to add try/catch statement to reduce lines.
+	 * For convenience and readability, really.
 	 * 
 	 * @param file
 	 * @return Result of file creation
@@ -310,7 +315,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	 * @param pl The plugin
 	 * @return The file
 	 */
-	public static File getJarFile(Plugin pl)
+	private static File getJarFile(Plugin pl)
 	{ 
 		try 
 		{

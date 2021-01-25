@@ -1,8 +1,9 @@
 package org.whyisthisnecessary.eps.command;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.bukkit.Material;
@@ -17,29 +18,25 @@ import org.whyisthisnecessary.eps.visual.EnchantGUI;
 public class EnchantsCommand implements CommandExecutor {
 
 	private static Set<String> guis;
-	private static List<List<Material>> list;
-	private static List<String> listnames;
+	private static Map<List<Material>, String> list = new HashMap<List<Material>, String>();
 	
 	/** Sets up enchant GUIs for use.
 	 * Should never be used by plugins, for internal use only!
 	 */
 	public static void setupGUIs()
 	{
-		list = new ArrayList<List<Material>>(Arrays.asList());
-		listnames = new ArrayList<String>(Arrays.asList());
 		guis = Main.GuisConfig.getConfigurationSection("guis").getKeys(false);
-		for (String i : guis) {
-			listnames.add(i);
-			List<String> slist = Main.GuisConfig.getStringList("guis."+i+".items");
-			List<Material> tlist = new ArrayList<Material>(Arrays.asList());
-			for (String i1 : slist)
+		for (String i : guis) 
+		{
+			List<Material> tlist = new ArrayList<Material>();
+			for (String i1 : Main.GuisConfig.getStringList("guis."+i+".items"))
 			{
-				if (Material.getMaterial(i1) != null)
-				tlist.add(Material.getMaterial(i1));
+				if (Material.matchMaterial(i1) != null)
+				tlist.add(Material.matchMaterial(i1));
 			}
 			if (!(tlist.isEmpty()))
-			list.add(tlist);
-		    }
+			list.put(tlist, i);
+		}
 	}
 	
 	@Override
@@ -55,10 +52,11 @@ public class EnchantsCommand implements CommandExecutor {
         {        	
         	for (int i=0;i<list.size();i++)
         	{
-                if (list.get(i).contains(p.getInventory().getItemInMainHand().getType()))
+        		for (Map.Entry<List<Material>, String> entry : list.entrySet())
+                if (entry.getKey().contains(p.getInventory().getItemInMainHand().getType()))
                 {
             	    sender.sendMessage(LangUtil.getLangMessage("openenchantsgui"));
-            	    EnchantGUI.openInventory(p, listnames.get(i));
+            	    EnchantGUI.openInventory(p, entry.getValue());
             	    return true;
                 }
         	}

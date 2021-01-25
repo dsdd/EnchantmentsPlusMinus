@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,13 +15,13 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.whyisthisnecessary.eps.Main;
 import org.whyisthisnecessary.eps.api.ConfigUtil;
-import org.whyisthisnecessary.eps.legacy.LegacyUtil;
 import org.whyisthisnecessary.eps.util.LangUtil;
 import org.whyisthisnecessary.eps.util.TokenUtil;
 
 public class EnchantProcessor implements Listener {
 
 	public Map<Player, Integer> blocklog = new HashMap<Player, Integer>();
+	private Random random = new Random();
 	
 	public EnchantProcessor(Main plugin) {
 		Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -41,7 +42,6 @@ public class EnchantProcessor implements Listener {
 		LangUtil.setDefaultLangMessage("miningtokensget", "&aYou received %tokens% tokens for mining!");
 	}	
 	
-	 @SuppressWarnings("deprecation")
 	 @EventHandler
 	 public void onKill(EntityDeathEvent e)
 	 {
@@ -49,16 +49,13 @@ public class EnchantProcessor implements Listener {
 		 Player killer = e.getEntity().getKiller();
 		 if (killer instanceof Player)
 		 {
-		     if ((boolean)ConfigUtil.getConfig().get("mobkilltokens.enabled")==false) return;
+		     if (!ConfigUtil.getConfig().getBoolean("mobkilltokens.enabled")) 
+		    	 return;
 			 Integer tokenmin = ConfigUtil.getConfig().getInt("mobkilltokens.min");
 			 Integer tokenmax = ConfigUtil.getConfig().getInt("mobkilltokens.max");
-			 Integer tokens = new Random().nextInt(tokenmax-tokenmin)+tokenmin;
-			 String name = "";
-			 if (LegacyUtil.isLegacy())
-				 name = e.getEntity().getType().getName();
-			 else
-				 name = e.getEntity().getType().getKey().getKey();
-			 killer.sendMessage(LangUtil.getLangMessage("mobkill").replaceAll("%tokens%", tokens.toString()).replaceAll("%mob%", name));
+			 Integer tokens = random.nextInt(tokenmax-tokenmin)+tokenmin;
+			 String name = e.getEntityType().name();
+			 killer.sendMessage(LangUtil.getLangMessage("mobkill").replaceAll("%tokens%", tokens.toString()).replaceAll("%mob%", WordUtils.capitalizeFully(name.replaceAll("_", " ").toLowerCase())));
 			 TokenUtil.changeTokens(killer, tokens);
 		 }
 	 }
@@ -70,11 +67,12 @@ public class EnchantProcessor implements Listener {
 		 Player killer = e.getEntity().getKiller();
 		 if (killer instanceof Player)
 		 {
-			 if (ConfigUtil.getConfig().getBoolean("playerkilltokens.enabled")==false) return;
+			 if (!ConfigUtil.getConfig().getBoolean("playerkilltokens.enabled")) 
+				 return;
 			 Integer tokenmin = ConfigUtil.getConfig().getInt("playerkilltokens.min");
 			 Integer tokenmax = ConfigUtil.getConfig().getInt("playerkilltokens.max");
 		     Player killed = (Player) e.getEntity();
-		     Integer tokens = new Random().nextInt(tokenmax-tokenmin)+tokenmin;
+		     Integer tokens = random.nextInt(tokenmax-tokenmin)+tokenmin;
 		     killer.sendMessage(LangUtil.getLangMessage("playerkill").replaceAll("%tokens%", tokens.toString()).replaceAll("%victim%", killed.getName()));
 		     TokenUtil.changeTokens(killer, tokens);
 		 }
@@ -99,7 +97,7 @@ public class EnchantProcessor implements Listener {
 			{
 				blocklog.put(e.getPlayer(), 0);
 				int min = ConfigUtil.getConfig().getInt("miningtokens.min");
-				Integer tokens = new Random().nextInt(ConfigUtil.getConfig().getInt("miningtokens.max")-min)+min;
+				Integer tokens = random.nextInt(ConfigUtil.getConfig().getInt("miningtokens.max")-min)+min;
 				TokenUtil.changeTokens(e.getPlayer(), tokens);
 				e.getPlayer().sendMessage(LangUtil.getLangMessage("miningtokensget").replaceAll("%tokens%", tokens.toString()));
 			}

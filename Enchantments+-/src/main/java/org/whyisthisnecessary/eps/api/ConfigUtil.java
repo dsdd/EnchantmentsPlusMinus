@@ -1,10 +1,6 @@
 package org.whyisthisnecessary.eps.api;
 
 import java.io.File;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -14,9 +10,6 @@ import org.whyisthisnecessary.eps.legacy.NameUtil;
 import org.whyisthisnecessary.eps.util.DataUtil;
 
 public class ConfigUtil {
-	
-	private static ScriptEngineManager mgr = new ScriptEngineManager();
-    private static ScriptEngine engine = mgr.getEngineByName("JavaScript");
     
 	/** Gets the main config file.
 	 * 
@@ -61,18 +54,7 @@ public class ConfigUtil {
     {
     	String value = getEnchantConfig(enchant).getString(path);
     	value = value.replaceAll("%lvl%", enchlvl.toString());
-    	Object num = 0;
-	    try {
-		num = engine.eval(value); } 
-	    catch (ScriptException e1) {e1.printStackTrace();}
-	    if (num instanceof Double)
-	    {
-	        return (Double) num;
-	    }
-	    else
-	    {
-	    	return Double.valueOf((Integer)num);
-	    }
+	    return eval(value);
     }
 	
 	/**
@@ -88,11 +70,7 @@ public class ConfigUtil {
     {
     	String value = getEnchantConfig(enchant).getString(path);
     	value = value.replaceAll("%lvl%", enchlvl.toString());
-    	Object num = 0;
-	    try {
-		num = engine.eval(value); } 
-	    catch (ScriptException e1) {e1.printStackTrace();}
-	    return (Integer) num;
+	    return (int)eval(value);
     }
 	
 	/**
@@ -398,4 +376,84 @@ public class ConfigUtil {
     {
     	setConfigValue(enchant, "upgradedesc", desc);
     }
+    
+    public static double eval(final String str) {
+	    return new Object() {
+	        int pos = -1, ch;
+
+	        void nextChar() {
+	            ch = (++pos < str.length()) ? str.charAt(pos) : -1;
+	        }
+
+	        boolean eat(int charToEat) {
+	            while (ch == ' ') nextChar();
+	            if (ch == charToEat) {
+	                nextChar();
+	                return true;
+	            }
+	            return false;
+	        }
+
+	        double parse() {
+	            nextChar();
+	            double x = parseExpression();
+	            if (pos < str.length()) throw new RuntimeException("Unexpected: " + (char)ch);
+	            return x;
+	        }
+
+	        // Grammar:
+	        // expression = term | expression `+` term | expression `-` term
+	        // term = factor | term `*` factor | term `/` factor
+	        // factor = `+` factor | `-` factor | `(` expression `)`
+	        //        | number | functionName factor | factor `^` factor
+
+	        double parseExpression() {
+	            double x = parseTerm();
+	            for (;;) {
+	                if      (eat('+')) x += parseTerm(); // addition
+	                else if (eat('-')) x -= parseTerm(); // subtraction
+	                else return x;
+	            }
+	        }
+
+	        double parseTerm() {
+	            double x = parseFactor();
+	            for (;;) {
+	                if      (eat('*')) x *= parseFactor(); // multiplication
+	                else if (eat('/')) x /= parseFactor(); // division
+	                else return x;
+	            }
+	        }
+
+	        double parseFactor() {
+	            if (eat('+')) return parseFactor(); // unary plus
+	            if (eat('-')) return -parseFactor(); // unary minus
+
+	            double x;
+	            int startPos = this.pos;
+	            if (eat('(')) { // parentheses
+	                x = parseExpression();
+	                eat(')');
+	            } else if ((ch >= '0' && ch <= '9') || ch == '.') { // numbers
+	                while ((ch >= '0' && ch <= '9') || ch == '.') nextChar();
+	                x = Double.parseDouble(str.substring(startPos, this.pos));
+	            } else if (ch >= 'a' && ch <= 'z') { // functions
+	                while (ch >= 'a' && ch <= 'z') nextChar();
+	                String func = str.substring(startPos, this.pos);
+	                x = parseFactor();
+	                if (func.equals("sqrt")) x = Math.sqrt(x);
+	                else if (func.equals("sin")) x = Math.sin(Math.toRadians(x));
+	                else if (func.equals("cos")) x = Math.cos(Math.toRadians(x));
+	                else if (func.equals("tan")) x = Math.tan(Math.toRadians(x));
+	                else throw new RuntimeException("Unknown function: " + func);
+	            } else {
+	                throw new RuntimeException("Unexpected: " + (char)ch);
+	            }
+
+	            if (eat('^')) x = Math.pow(x, parseFactor()); // exponentiation
+
+	            return x;
+	        }
+	    }.parse();
+	}
 }

@@ -33,6 +33,7 @@ public class EnchantProcessor implements Listener {
 	private Map<Player, Long> enderbowCooldown = new HashMap<Player, Long>();
 	private Map<Player, Integer> machineryShots = new HashMap<Player, Integer>();
 	private Map<Player, Integer> tdShots = new HashMap<Player, Integer>();
+	private Material cb = Material.matchMaterial("CROSSBOW");
 	
 	public EnchantProcessor()
 	{
@@ -58,36 +59,38 @@ public class EnchantProcessor implements Listener {
 		World world = player.getWorld();
 		
 		Material material = mainitem.getType();
-		if (!(material.equals(Material.BOW) && !(material.equals(Material.CROSSBOW))))
+		if (!(material.equals(Material.BOW) && !(material.equals(cb))))
 			return;
 		
 		if (mainmeta.hasEnchant(CustomEnchants.ENDERBOW))
 		{
-			if (!player.isSneaking())
-				return;
-			double cooldown = ConfigUtil.getAutofilledDouble(CustomEnchants.ENDERBOW, mainmeta.getEnchantLevel(CustomEnchants.ENDERBOW), "cooldown")*1000;
-			long fulltime = System.currentTimeMillis();
-			if (enderbowCooldown.get(player) == null)
-				enderbowCooldown.put(player, (long) (System.currentTimeMillis()-cooldown));
-			long time = enderbowCooldown.get(player);
-			
-			if (fulltime-time < cooldown)
+			if (player.isSneaking())
 			{
-				player.sendMessage(LangUtil.getLangMessage("cooldown-error").replaceAll("%secs%", Double.toString(Math.floor(((cooldown-(fulltime-time))/1000)*10)/10)));
-				return;
+				double cooldown = ConfigUtil.getAutofilledDouble(CustomEnchants.ENDERBOW, mainmeta.getEnchantLevel(CustomEnchants.ENDERBOW), "cooldown")*1000;
+				long fulltime = System.currentTimeMillis();
+				if (enderbowCooldown.get(player) == null)
+					enderbowCooldown.put(player, (long) (System.currentTimeMillis()-cooldown));
+				long time = enderbowCooldown.get(player);
+				
+				// Check if cooldown is met
+				if (fulltime-time < cooldown)
+					player.sendMessage(LangUtil.getLangMessage("cooldown-error").replaceAll("%secs%", Double.toString(Math.floor(((cooldown-(fulltime-time))/1000)*10)/10)));
+				else
+				{
+					double radius = ConfigUtil.getAutofilledDouble(CustomEnchants.ENDERBOW, mainmeta.getEnchantLevel(CustomEnchants.ENDERBOW), "radius");
+					double distance = player.getLocation().distance(arrow.getLocation());
+					
+					// Check if distance from player exceeds limits
+					if (distance > radius)
+						player.sendMessage(LangUtil.getLangMessage("enderbow-radius-error").replaceAll("%blocks%", Double.toString(radius)));
+					else
+					{
+						enderbowCooldown.put(player, fulltime);
+						player.teleport(arrow.getLocation());
+						player.playEffect(EntityEffect.TELEPORT_ENDER);
+					}
+				}
 			}
-			
-			double radius = ConfigUtil.getAutofilledDouble(CustomEnchants.ENDERBOW, mainmeta.getEnchantLevel(CustomEnchants.ENDERBOW), "radius");
-			double distance = player.getLocation().distance(arrow.getLocation());
-			if (distance > radius)
-			{
-				player.sendMessage(LangUtil.getLangMessage("enderbow-radius-error").replaceAll("%blocks%", Double.toString(radius)));
-				return;
-			}
-			
-			enderbowCooldown.put(player, fulltime);
-			player.teleport(arrow.getLocation());
-			player.playEffect(EntityEffect.TELEPORT_ENDER);
 		}
 		
 		if (mainmeta.hasEnchant(CustomEnchants.MACHINERY))
@@ -98,6 +101,7 @@ public class EnchantProcessor implements Listener {
 			machineryShots.put(player, shots+1);
 			if (shots == shotstoactivate)
 			{
+				machineryShots.put(player, 0);
 				int radius = ConfigUtil.getAutofilledInt(CustomEnchants.MACHINERY, mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "radius");
 				int arrows = ConfigUtil.getAutofilledInt(CustomEnchants.MACHINERY, mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "arrows");
 				Location loc = arrow.getLocation();
@@ -118,35 +122,32 @@ public class EnchantProcessor implements Listener {
 			tdShots.put(player, shots+1);
 			if (shots == shotstoactivate)
 			{
+				tdShots.put(player, 0);
 				Entity entity = e.getHitEntity();
 				
-				if (entity == null)
-					return;
-				
+				if (entity != null)
 				world.strikeLightning(entity.getLocation());
 			}
 		}
 		
 		if (mainmeta.hasEnchant(CustomEnchants.ENERGIZED))
 		{
+			// Just a temporary name for checking
 			Entity a = e.getHitEntity();
-			if (a == null)
-				return;
-			if (!(a instanceof LivingEntity))
-				return;
-			if (a != arrow.getShooter())
-				return;
 			
-			LivingEntity entity = (LivingEntity) a;
-			int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.ENERGIZED);
+			if (a != null && (a instanceof LivingEntity) && a == arrow.getShooter())
+			{
+				LivingEntity entity = (LivingEntity) a;
+				int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.ENERGIZED);
+				
+				int speed_amplifier = ConfigUtil.getAutofilledInt(CustomEnchants.ENERGIZED, enchlvl, "speed-amplifier");
+				int speed_duration = ConfigUtil.getAutofilledInt(CustomEnchants.ENERGIZED, enchlvl, "speed-duration");
+				int regeneration_amplifier = ConfigUtil.getAutofilledInt(CustomEnchants.ENERGIZED, enchlvl, "regeneration-amplifier");
+				int regeneration_duration = ConfigUtil.getAutofilledInt(CustomEnchants.ENERGIZED, enchlvl, "regeneration-duration");
 			
-			int speed_amplifier = ConfigUtil.getAutofilledInt(CustomEnchants.ENERGIZED, enchlvl, "speed-amplifier");
-			int speed_duration = ConfigUtil.getAutofilledInt(CustomEnchants.ENERGIZED, enchlvl, "speed-duration");
-			int regeneration_amplifier = ConfigUtil.getAutofilledInt(CustomEnchants.ENERGIZED, enchlvl, "regeneration-amplifier");
-			int regeneration_duration = ConfigUtil.getAutofilledInt(CustomEnchants.ENERGIZED, enchlvl, "regeneration-duration");
-		
-			entity.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, speed_duration*20, speed_amplifier-1));
-			entity.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, regeneration_duration*20, regeneration_amplifier-1));
+				entity.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, speed_duration*20, speed_amplifier-1));
+				entity.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, regeneration_duration*20, regeneration_amplifier-1));
+			}
 		}
 		
 		if (mainmeta.hasEnchant(CustomEnchants.SHOCKWAVE))

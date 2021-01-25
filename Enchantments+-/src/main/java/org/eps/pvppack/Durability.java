@@ -20,23 +20,30 @@ public class Durability {
 			return;
 		if (item.getItemMeta() == null)
 			return;
-		if (!(item.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable))
-			return;
 		if (LegacyUtil.isLegacy())
 		durability = item.getDurability();
 		else
 		{
+			if (!(item instanceof org.bukkit.inventory.meta.Damageable))
+				return;
 			int i = item.getType().getMaxDurability()-((org.bukkit.inventory.meta.Damageable)item.getItemMeta()).getDamage();
 			durability = (short)i;
 		}
 		maxdurability = item.getType().getMaxDurability();
 	}
 	
+	@Deprecated
 	public Integer getDamage()
 	{
 		return maxdurability-durability;
 	}
 	
+	public Integer getDurability()
+	{
+		return Short.toUnsignedInt(durability);
+	}
+	
+	@Deprecated
 	public void setDamage(Integer dmg)
 	{
 		if (item == null)
@@ -47,6 +54,20 @@ public class Durability {
 		{
 			org.bukkit.inventory.meta.Damageable dmg1 = ((org.bukkit.inventory.meta.Damageable)item.getItemMeta());
 			dmg1.setDamage(dmg);
+			item.setItemMeta((ItemMeta) dmg1);
+		}
+	}
+	
+	public void setDurability(Integer durability)
+	{
+		if (item == null)
+			return;
+		if (LegacyUtil.isLegacy())
+			item.setDurability(durability.shortValue());
+		else
+		{
+			org.bukkit.inventory.meta.Damageable dmg1 = ((org.bukkit.inventory.meta.Damageable)item.getItemMeta());
+			dmg1.setDamage(maxdurability-durability);
 			item.setItemMeta((ItemMeta) dmg1);
 		}
 	}
