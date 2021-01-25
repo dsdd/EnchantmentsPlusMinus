@@ -7,8 +7,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
+import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -29,6 +28,10 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.whyisthisnecessary.eps.visual.EnchantMetaWriter;
+
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
+
 import org.whyisthisnecessary.eps.api.ConfigUtil;
 import org.whyisthisnecessary.eps.legacy.LegacyUtil;
 
@@ -36,11 +39,8 @@ public class EnchantProcessor implements Listener {
 
 	public static Random rand = new Random();
 	
-	public EnchantProcessor(Plugin plugin) {
-		Bukkit.getPluginManager().registerEvents(this, plugin);
-	}
-
 	private static final Map<EntityType, String> mobHeads = new HashMap<EntityType, String>() {
+		private static final long serialVersionUID = 1L;
 		{
 			put(EntityType.BLAZE, "ewogICJ0aW1lc3RhbXAiIDogMTYxMTUyNTMzNTAzOCwKICAicHJvZmlsZUlkIiA6ICI0YzM4ZWQxMTU5NmE0ZmQ0YWIxZDI2ZjM4NmMxY2JhYyIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfQmxhemUiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDA2ZTM0MmY5MGVjNTM4YWFhMTU1MmIyMjRmMjY0YTA0MDg0MDkwMmUxMjZkOTFlY2U2MTM5YWE1YjNjN2NjMyIKICAgIH0KICB9Cn0="); // MHF_Blaze
 			put(EntityType.CAVE_SPIDER, "ewogICJ0aW1lc3RhbXAiIDogMTYxMTUyNTM2MzQ4NywKICAicHJvZmlsZUlkIiA6ICJjYWIyODc3MWYwY2Q0ZmU3YjEyOTAyYzY5ZWJhNzlhNSIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfQ2F2ZVNwaWRlciIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS83N2IwNzA2M2E2ODc0ZmEzZTIyNTQ4ZTAyMDYyYmQ3MzNjMjU4ODU5Mjk4MDk2MjQxODBhZWJiODUxNTU3ZjZhIgogICAgfQogIH0KfQ==");  // MHF_CaveSpider
@@ -62,6 +62,14 @@ public class EnchantProcessor implements Listener {
 			put(EntityType.WITHER_SKELETON, "ewogICJ0aW1lc3RhbXAiIDogMTYxMTUyOTE5OTczMywKICAicHJvZmlsZUlkIiA6ICI3ZWQ1NzFhNTlmYjg0MTZjOGI5ZGZiMmY0NDZhYjViMiIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfV1NrZWxldG9uIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2JhOTZlOWQ3NmJlZDMwMDkwY2U2ZTJkODQyNTk5NjU5NGVlYzZkNjhhYzg4Y2YwNzM1NmU5ODE0ODM0MjQzZWMiCiAgICB9CiAgfQp9"); // MHF_WSkeleton
 		}
 	};
+	private static Map<EntityType, ItemStack> mobSkulls = new HashMap<EntityType, ItemStack>();
+	
+	public EnchantProcessor(Plugin plugin) {
+		Bukkit.getPluginManager().registerEvents(this, plugin);
+		
+		for (Map.Entry<EntityType, String> entry : mobHeads.entrySet())
+			mobSkulls.put(entry.getKey(), getCustomSkull(mobHeads.get(entry.getKey()), WordUtils.capitalizeFully(entry.getKey().name()) + " Head"));
+	}
 
 	@EventHandler
 	public void onEntityDamageByEntity(EntityDamageByEntityEvent e)
@@ -80,9 +88,9 @@ public class EnchantProcessor implements Listener {
 		if (meta.hasEnchant(CustomEnchants.JAGGED))
 		{
 			Double dtp = ConfigUtil.getAutofilledDouble(CustomEnchants.JAGGED, meta.getEnchantLevel(CustomEnchants.JAGGED), "durabilitythresholdpercent");
-			Short maxdur = item.getType().getMaxDurability();
-			Integer durtaken = dmg.getDamage();
-			Double dp =  ((double)maxdur-(double)durtaken) / ((double)maxdur) * 100;
+			Integer maxdur = (int) item.getType().getMaxDurability();
+			Integer durability = dmg.getDurability();
+			Double dp = (double) (durability/maxdur*100);
 			if (dp < dtp) {
 		    e.setDamage(e.getDamage() + meta.getEnchantLevel(CustomEnchants.JAGGED));
 		    if (!LegacyUtil.isLegacy())
@@ -143,9 +151,8 @@ public class EnchantProcessor implements Listener {
 			if (item == null || meta == null) { return; }
 			if (meta.hasEnchant(CustomEnchants.RETALIATE))
 			{
-				double duration = ConfigUtil.getAutofilledDouble(CustomEnchants.RETALIATE, meta.getEnchantLevel(CustomEnchants.RETALIATE), "duration")*20;
-				int durationint = (int) duration;
-				p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, durationint, meta.getEnchantLevel(CustomEnchants.RETALIATE)-1));
+				int duration = ConfigUtil.getAutofilledInt(CustomEnchants.RETALIATE, meta.getEnchantLevel(CustomEnchants.RETALIATE), "duration")*20;
+				p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, meta.getEnchantLevel(CustomEnchants.RETALIATE)-1));
 			}
 			
 			ItemStack[] armor = {p.getInventory().getHelmet(), p.getInventory().getChestplate(), p.getInventory().getLeggings(), p.getInventory().getBoots()};
@@ -162,8 +169,8 @@ public class EnchantProcessor implements Listener {
 				}
 				if (piece.getItemMeta().hasEnchant(CustomEnchants.VOLCANIC))
 				{
-					int duration = ConfigUtil.getAutofilledDouble(CustomEnchants.VOLCANIC, piece.getEnchantmentLevel(CustomEnchants.VOLCANIC), "ticks").intValue();
-                    e.getDamager().setFireTicks(duration);
+					int ticks = ConfigUtil.getAutofilledInt(CustomEnchants.VOLCANIC, piece.getEnchantmentLevel(CustomEnchants.VOLCANIC), "ticks");
+                    e.getDamager().setFireTicks(ticks);
                     world.spawnParticle(Particle.LAVA, e.getEntity().getLocation(), 1);
 				}
 				if (piece.getItemMeta().hasEnchant(CustomEnchants.SATURATED))
@@ -198,7 +205,7 @@ public class EnchantProcessor implements Listener {
 			{
 				ItemStack head = getHead(e.getEntity());
 				if (head != null)
-				e.getDrops().add(head);
+				e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), head);
 			}
 		}
 	}
@@ -219,7 +226,7 @@ public class EnchantProcessor implements Listener {
 				SkullMeta skull = (SkullMeta) head.getItemMeta();
 				skull.setOwningPlayer(e.getEntity());
 				head.setItemMeta(skull);
-				e.getDrops().add(head);
+				e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), head);
 			}
 		}
 	}
@@ -261,12 +268,12 @@ public class EnchantProcessor implements Listener {
 				return new ItemStack(Material.matchMaterial("SKULL_HEAD"), 1, (short) 5);
 		default:
 			if (mobHeads.containsKey(e.getType())) {
-				return getCustomSkull(mobHeads.get(e.getType()), e.getName() + " Head");
+				return mobSkulls.get(e.getType());
 			}
 			return null;
 		}
 	}
-
+	
 	private static ItemStack getCustomSkull(String texture, String name) {
 		ItemStack head = LegacyUtil.isLegacy() ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
 
