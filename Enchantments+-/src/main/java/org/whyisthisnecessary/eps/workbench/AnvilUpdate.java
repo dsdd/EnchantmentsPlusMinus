@@ -20,34 +20,32 @@ public class AnvilUpdate implements Listener {
 	{
 		AnvilInventory anvil = e.getInventory();
 		
-		if (anvil.getItem(0) == null) return;
+		if (anvil.getItem(0) == null || anvil.getRepairCost() == 0) return;
 		
 		ItemStack slot1 = anvil.getItem(0);
 		ItemStack slot2 = anvil.getItem(1);
-		if (slot2 == null)
-		{
-			anvil.setItem(2, slot1);
+
+		ItemStack item = new ItemStack(slot1.getType(), slot1.getAmount());
+		ItemMeta meta = item.getItemMeta();
+		meta.setDisplayName(anvil.getRenameText());
+		item.setItemMeta(meta);
+
+		Map<Enchantment, Integer> enchantments;
+
+		if (slot2 == null) {
+			enchantments = CustomEnchantedBook.getEnchants(slot1);
+		} else {
+			enchantments = CustomEnchantedBook.combineEnchants(slot1, slot2, false);
 		}
-		else
-		{
-			ItemStack item = new ItemStack(slot1.getType(), slot1.getAmount());	
-			ItemMeta meta = item.getItemMeta();
-			meta.setDisplayName(slot1.getItemMeta().getDisplayName());
-			item.setItemMeta(meta);
-			
-			Map<Enchantment, Integer> map = CustomEnchantedBook.combineEnchants(slot1, slot2, false);
-			for (Map.Entry<Enchantment, Integer> entry : map.entrySet())
-			{
-				int maxlevel = Main.Config.getInt("enchants."+NameUtil.getName(entry.getKey())+".maxlevel");
-				if (maxlevel != 0 && entry.getValue() > maxlevel)
-					item.addUnsafeEnchantment(entry.getKey(), maxlevel);
-				else
-					item.addUnsafeEnchantment(entry.getKey(), entry.getValue());
-			}
-			ItemMeta lore = EnchantMetaWriter.getWrittenMeta(item);
-			item.setItemMeta(lore);
-			
-			anvil.setItem(2, item);
+		for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
+			int maxlevel = Main.Config.getInt("enchants." + NameUtil.getName(entry.getKey()) + ".maxlevel");
+			if (maxlevel != 0 && entry.getValue() > maxlevel)
+				item.addUnsafeEnchantment(entry.getKey(), maxlevel);
+			else
+				item.addUnsafeEnchantment(entry.getKey(), entry.getValue());
 		}
+		ItemMeta lore = EnchantMetaWriter.getWrittenMeta(item);
+		item.setItemMeta(lore);
+		e.setResult(item);
 	}
 }

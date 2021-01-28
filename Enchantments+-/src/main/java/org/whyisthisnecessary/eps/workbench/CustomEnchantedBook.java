@@ -2,6 +2,7 @@ package org.whyisthisnecessary.eps.workbench;
 
 import java.util.Map;
 
+import com.google.common.collect.Maps;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -41,7 +42,7 @@ public class CustomEnchantedBook extends ItemStack {
 		
 	}
 	
-	private static Map<Enchantment, Integer> getEnchants(ItemStack item)
+	public static Map<Enchantment, Integer> getEnchants(ItemStack item)
 	{
 		if (item.getItemMeta() instanceof EnchantmentStorageMeta)
 			return ((EnchantmentStorageMeta)item.getItemMeta()).getStoredEnchants();
@@ -49,26 +50,9 @@ public class CustomEnchantedBook extends ItemStack {
 			return item.getItemMeta().getEnchants();
 	}
 	
-	public Map<Enchantment, Integer> combineEnchants(ItemStack item, boolean safe)
-	{
-		Map<Enchantment, Integer> combine = getEnchants(this);
-		
-		for (Map.Entry<Enchantment, Integer> entry : getEnchants(item).entrySet())
-		{
-			Integer first = combine.get(entry.getKey());
-			if (first == null) continue;
-			Integer lvl = first+entry.getValue();
-			if (safe && lvl > entry.getKey().getMaxLevel())
-				lvl = entry.getKey().getMaxLevel();
-			if (combine.get(entry.getKey()) != null)
-		    combine.put(entry.getKey(), lvl);
-		}
-		return combine;
-	}
-	
 	public static Map<Enchantment, Integer> combineEnchants(ItemStack item, ItemStack item1, boolean safe)
 	{
-		Map<Enchantment, Integer> combine = getEnchants(item);
+		Map<Enchantment, Integer> combine = Maps.newHashMap(getEnchants(item));
 		
 		for (Map.Entry<Enchantment, Integer> entry : getEnchants(item1).entrySet())
 		{

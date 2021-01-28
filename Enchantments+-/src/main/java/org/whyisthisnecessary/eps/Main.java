@@ -43,6 +43,7 @@ import org.whyisthisnecessary.eps.legacy.LegacyUtil;
 import org.whyisthisnecessary.eps.util.DataUtil;
 import org.whyisthisnecessary.eps.visual.EnchantGUI;
 import org.whyisthisnecessary.eps.visual.EnchantMetaWriter;
+import org.whyisthisnecessary.eps.workbench.AnvilUpdate;
 
 import com.google.common.io.Files;
 
@@ -136,7 +137,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 		// Load visuals
 		Bukkit.getPluginManager().registerEvents(new EnchantGUI(), this);
 		Bukkit.getPluginManager().registerEvents(new EnchantMetaWriter(), this);
-		//Bukkit.getPluginManager().registerEvents(new AnvilUpdate(), this);
+		Bukkit.getPluginManager().registerEvents(new AnvilUpdate(), this);
 		
 		
 		// Initialize legacy support
