@@ -339,18 +339,13 @@ public class EnchantGUI implements Listener {
 		{
 			PlayerInventory inv = e.getPlayer().getInventory();
 			Material m = inv.getItemInMainHand().getType();
-			if (m.equals(Material.BOW))
+			if (m.equals(Material.BOW) ||
+					m.equals(Material.matchMaterial("CROSSBOW")) ||
+					inv.getItemInOffHand().getType().equals(Material.SHIELD) ||
+					hoes.contains(m) ||
+					(e.getClickedBlock() != null && e.getClickedBlock().getType().isInteractable()))
 				return;
-			if (m.equals(Material.matchMaterial("CROSSBOW")))
-				return;
-			if (inv.getItemInOffHand().getType().equals(Material.SHIELD))
-				return;
-			if (hoes.contains(m))
-				return;
-			if (e.getClickedBlock() != null)
-			if (e.getClickedBlock().getState() instanceof Container)
-				return;
-			if (Main.Config.getBoolean("open-enchant-gui-on-right-click") == true)
+			if (Main.Config.getBoolean("open-enchant-gui-on-right-click"))
 				Main.EnchantsCMD.onCommand(e.getPlayer(), Bukkit.getPluginCommand("enchants"), "enchants", new String[] {"dontshow"});
 		}
 	}
