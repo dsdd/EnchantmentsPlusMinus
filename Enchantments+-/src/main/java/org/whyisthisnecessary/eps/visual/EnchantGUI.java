@@ -11,7 +11,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.block.Container;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -345,7 +344,7 @@ public class EnchantGUI implements Listener {
 					hoes.contains(m) ||
 					(e.getClickedBlock() != null && e.getClickedBlock().getType().isInteractable()))
 				return;
-			if (Main.Config.getBoolean("open-enchant-gui-on-right-click"))
+			if (Main.Config.getBoolean("open-enchant-gui-on-right-click") == true)
 				Main.EnchantsCMD.onCommand(e.getPlayer(), Bukkit.getPluginCommand("enchants"), "enchants", new String[] {"dontshow"});
 		}
 	}

@@ -18,9 +18,11 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -34,10 +36,12 @@ import com.mojang.authlib.properties.Property;
 
 import org.whyisthisnecessary.eps.api.ConfigUtil;
 import org.whyisthisnecessary.eps.legacy.LegacyUtil;
+import org.whyisthisnecessary.eps.util.LangUtil;
 
 public class EnchantProcessor implements Listener {
 
 	public static Random rand = new Random();
+	private Map<Player, Long> phCooldown = new HashMap<Player, Long>();
 	
 	private static final Map<EntityType, String> mobHeads = new HashMap<EntityType, String>() {
 		private static final long serialVersionUID = 1L;
@@ -130,7 +134,7 @@ public class EnchantProcessor implements Listener {
 			{
 			if (piece.getItemMeta().hasEnchant(CustomEnchants.INSATIABLE))
 			{
-				double damage = ConfigUtil.getAutofilledDouble(CustomEnchants.INSATIABLE, piece.getEnchantmentLevel(CustomEnchants.INSATIABLE), "extradamage");
+				double damage = ConfigUtil.getAutofilledDouble(CustomEnchants.INSATIABLE, piece.getItemMeta().getEnchantLevel(CustomEnchants.INSATIABLE), "extradamage");
 				e.setDamage(e.getDamage() + (damage - (damage*(d.getHealth()/20))));
 				if (!LegacyUtil.isLegacy())
 					world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1, new org.bukkit.Particle.DustOptions(Color.RED, 5));
@@ -158,34 +162,38 @@ public class EnchantProcessor implements Listener {
 			ItemStack[] armor = {p.getInventory().getHelmet(), p.getInventory().getChestplate(), p.getInventory().getLeggings(), p.getInventory().getBoots()};
 			for (ItemStack piece : armor)
 			{
+				ItemMeta pmeta = piece.getItemMeta();
 				if (piece != null)
 				{
-				if (piece.getItemMeta().hasEnchant(CustomEnchants.POISONOUS))
-				{
-					LivingEntity en = (LivingEntity) e.getDamager();
-					double duration = ConfigUtil.getAutofilledDouble(CustomEnchants.POISONOUS, piece.getEnchantmentLevel(CustomEnchants.POISONOUS), "ticks");
-					PotionEffect pe = (new PotionEffect(PotionEffectType.POISON, (int) duration, piece.getEnchantmentLevel(CustomEnchants.POISONOUS)-1));
-					pe.apply(en);
-				}
-				if (piece.getItemMeta().hasEnchant(CustomEnchants.VOLCANIC))
-				{
-					int ticks = ConfigUtil.getAutofilledInt(CustomEnchants.VOLCANIC, piece.getEnchantmentLevel(CustomEnchants.VOLCANIC), "ticks");
-                    e.getDamager().setFireTicks(ticks);
-                    world.spawnParticle(Particle.LAVA, e.getEntity().getLocation(), 1);
-				}
-				if (piece.getItemMeta().hasEnchant(CustomEnchants.SATURATED))
-				{
-					double duration = ConfigUtil.getAutofilledDouble(CustomEnchants.SATURATED, piece.getEnchantmentLevel(CustomEnchants.SATURATED), "ticks");
-					PotionEffect pe = new PotionEffect(PotionEffectType.SATURATION, (int) duration, piece.getEnchantmentLevel(CustomEnchants.SATURATED)-1);
-					pe.apply(p);
-				}
-				if (piece.getItemMeta().hasEnchant(CustomEnchants.STIFFEN))
-				{
-					double healththreshold = ConfigUtil.getAutofilledDouble(CustomEnchants.STIFFEN, piece.getEnchantmentLevel(CustomEnchants.STIFFEN), "healththreshold");
-					int amplifier = ConfigUtil.getAutofilledInt(CustomEnchants.STIFFEN, piece.getEnchantmentLevel(CustomEnchants.STIFFEN), "amplifier");
-					if (((LivingEntity)e.getEntity()).getHealth() <= healththreshold)
-                    	((LivingEntity)e.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, amplifier-1));
-				}
+					if (pmeta.hasEnchant(CustomEnchants.POISONOUS))
+					{
+						LivingEntity en = (LivingEntity) e.getDamager();
+						int duration = ConfigUtil.getAutofilledInt(CustomEnchants.POISONOUS, pmeta.getEnchantLevel(CustomEnchants.POISONOUS), "ticks");
+						PotionEffect pe = (new PotionEffect(PotionEffectType.POISON, duration, pmeta.getEnchantLevel(CustomEnchants.POISONOUS)-1));
+						pe.apply(en);
+					}
+					
+					if (pmeta.hasEnchant(CustomEnchants.VOLCANIC))
+					{
+						int ticks = ConfigUtil.getAutofilledInt(CustomEnchants.VOLCANIC, pmeta.getEnchantLevel(CustomEnchants.VOLCANIC), "ticks");
+	                    e.getDamager().setFireTicks(ticks);
+	                    world.spawnParticle(Particle.LAVA, e.getEntity().getLocation(), 1);
+					}
+					
+					if (pmeta.hasEnchant(CustomEnchants.SATURATED))
+					{
+						int duration = ConfigUtil.getAutofilledInt(CustomEnchants.SATURATED, pmeta.getEnchantLevel(CustomEnchants.SATURATED), "ticks");
+						PotionEffect pe = new PotionEffect(PotionEffectType.SATURATION, duration, pmeta.getEnchantLevel(CustomEnchants.SATURATED)-1);
+						pe.apply(p);
+					}
+					
+					if (pmeta.hasEnchant(CustomEnchants.STIFFEN))
+					{
+						double healththreshold = ConfigUtil.getAutofilledDouble(CustomEnchants.STIFFEN, pmeta.getEnchantLevel(CustomEnchants.STIFFEN), "healththreshold");
+						int amplifier = ConfigUtil.getAutofilledInt(CustomEnchants.STIFFEN, pmeta.getEnchantLevel(CustomEnchants.STIFFEN), "amplifier")-1;
+						if (((LivingEntity)e.getEntity()).getHealth() <= healththreshold)
+	                    	((LivingEntity)e.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, amplifier-1));
+					}
 				}
 			}
 		}
@@ -205,7 +213,7 @@ public class EnchantProcessor implements Listener {
 			{
 				ItemStack head = getHead(e.getEntity());
 				if (head != null)
-				e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), head);
+					e.getDrops().add(head);
 			}
 		}
 	}
@@ -226,7 +234,35 @@ public class EnchantProcessor implements Listener {
 				SkullMeta skull = (SkullMeta) head.getItemMeta();
 				skull.setOwningPlayer(e.getEntity());
 				head.setItemMeta(skull);
-				e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), head);
+				e.getDrops().add(head);
+			}
+		}
+	}
+	
+	@EventHandler
+	public void onPlayerInteract(PlayerInteractEvent e)
+	{
+		if (e.getAction().equals(Action.RIGHT_CLICK_AIR) || e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
+		{
+			ItemMeta meta = e.getPlayer().getInventory().getItemInMainHand().getItemMeta();
+			if (meta != null)
+			if (meta.hasEnchant(CustomEnchants.POWERHOUSE))
+			{
+				double cooldown = ConfigUtil.getAutofilledDouble(CustomEnchants.POWERHOUSE, meta.getEnchantLevel(CustomEnchants.POWERHOUSE), "cooldown")*1000;
+				long fulltime = System.currentTimeMillis();
+				if (phCooldown.get(e.getPlayer()) == null)
+					phCooldown.put(e.getPlayer(), (long)System.currentTimeMillis()-(long)cooldown);
+				long time = phCooldown.get(e.getPlayer());
+				
+				// Check if cooldown is met
+				if (fulltime-time < cooldown)
+					e.getPlayer().sendMessage(LangUtil.getLangMessage("cooldown-error").replaceAll("%secs%", Double.toString(Math.floor(((cooldown-(fulltime-time))/1000)*10)/10)));
+				else
+				{
+					int duration = ConfigUtil.getAutofilledInt(CustomEnchants.POWERHOUSE, meta.getEnchantLevel(CustomEnchants.POWERHOUSE), "duration");
+					int amplifier = ConfigUtil.getAutofilledInt(CustomEnchants.POWERHOUSE, meta.getEnchantLevel(CustomEnchants.POWERHOUSE), "amplifier")-1;
+		            e.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, amplifier));
+				}
 			}
 		}
 	}

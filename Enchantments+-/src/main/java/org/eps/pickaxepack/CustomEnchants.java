@@ -15,6 +15,7 @@ public class CustomEnchants {
 	public static final Enchantment CHARITY = CustomEnchant.newEnchant("charity", "Charity");
 	public static final Enchantment EXCAVATE = CustomEnchant.newEnchant("excavate", "Excavate");
 	public static final Enchantment DIAMOND = CustomEnchant.newEnchant("diamond", "Diamond");
+	public static final Enchantment VEIN_MINER = CustomEnchant.newEnchant("vein_miner", "Vein_Miner");
 	
 	public static void register()
 	{
@@ -28,5 +29,6 @@ public class CustomEnchants {
 		CustomEnchant.registerEnchant(CHARITY);
 		CustomEnchant.registerEnchant(EXCAVATE);
 		CustomEnchant.registerEnchant(DIAMOND);
+		CustomEnchant.registerEnchant(VEIN_MINER);
 	}
 }

@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.whyisthisnecessary.eps.api.ConfigUtil;
 import org.whyisthisnecessary.eps.util.DataUtil;
+import org.whyisthisnecessary.eps.util.LangUtil;
 
 public class Updater {
 
@@ -36,5 +37,12 @@ public class Updater {
     	
     	Main.Config.set("misc", null);
     	DataUtil.saveConfig(Main.Config, Main.ConfigFile);
+    	
+    	// 1.3r - 1.4r compatibility
+    	LangUtil.setDefaultLangMessage("token-pouch", "&eToken Pouch");
+    	LangUtil.setDefaultLangMessage("claimed-token-pouch", "&2You received %tokens% tokens from the token pouch!");
+    	LangUtil.setDefaultLangMessage("token-pouch-lore-1", "&7%tokens% Tokens");
+    	LangUtil.setDefaultLangMessage("token-pouch-lore-2", "&7Right-Click to claim tokens in the pouch!");
+    	LangUtil.setDefaultLangMessage("startup-message", "&2Thank you for using Enchantments+-!");
 	}
 }

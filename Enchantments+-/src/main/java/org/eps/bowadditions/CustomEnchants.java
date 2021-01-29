@@ -10,6 +10,7 @@ public class CustomEnchants {
 	public static final Enchantment THUNDERING_BLOW = CustomEnchant.newEnchant("thundering_blow", "Thundering_Blow");
 	public static final Enchantment ENERGIZED = CustomEnchant.newEnchant("energized", "Energized");
 	public static final Enchantment SHOCKWAVE = CustomEnchant.newEnchant("shockwave", "Shockwave");
+	public static final Enchantment FIREWORKS = CustomEnchant.newEnchant("fireworks", "Fireworks");
 	
 	public static void register()
 	{
@@ -18,5 +19,6 @@ public class CustomEnchants {
 		CustomEnchant.registerEnchant(THUNDERING_BLOW);
 		CustomEnchant.registerEnchant(ENERGIZED);
 		CustomEnchant.registerEnchant(SHOCKWAVE);
+		CustomEnchant.registerEnchant(FIREWORKS);
 	}
 }

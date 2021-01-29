@@ -16,6 +16,7 @@ public class CustomEnchants {
 	public static final Enchantment BEHEADING = CustomEnchant.newEnchant("beheading", "Beheading");
 	public static final Enchantment STIFFEN = CustomEnchant.newEnchant("stiffen", "Stiffen");
 	public static final Enchantment LASTRESORT = CustomEnchant.newEnchant("last_resort", "Last_Resort");
+	public static final Enchantment POWERHOUSE = CustomEnchant.newEnchant("powerhouse", "Powerhouse");
 	
 	
 	public static void register()
@@ -31,5 +32,6 @@ public class CustomEnchants {
 		CustomEnchant.registerEnchant(BEHEADING);
 		CustomEnchant.registerEnchant(STIFFEN);
 		CustomEnchant.registerEnchant(LASTRESORT);
+		CustomEnchant.registerEnchant(POWERHOUSE);
 	}
 }

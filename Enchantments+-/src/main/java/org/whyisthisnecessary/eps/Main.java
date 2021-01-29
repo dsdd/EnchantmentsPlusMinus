@@ -31,6 +31,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.eps.BuiltInPackParser;
 import org.eps.autoupdater.AutoUpdate;
+import org.whyisthisnecessary.eps.api.ConfigUtil;
 import org.whyisthisnecessary.eps.command.EPSCommand;
 import org.whyisthisnecessary.eps.command.EnchantsCommand;
 import org.whyisthisnecessary.eps.command.PayTokensCommand;
@@ -39,8 +40,10 @@ import org.whyisthisnecessary.eps.command.TokensCommand;
 import org.whyisthisnecessary.eps.dependencies.Metrics;
 import org.whyisthisnecessary.eps.dependencies.PlaceholderAPIHook;
 import org.whyisthisnecessary.eps.dependencies.VaultHook;
+import org.whyisthisnecessary.eps.item.ItemEvents;
 import org.whyisthisnecessary.eps.legacy.LegacyUtil;
 import org.whyisthisnecessary.eps.util.DataUtil;
+import org.whyisthisnecessary.eps.util.LangUtil;
 import org.whyisthisnecessary.eps.visual.EnchantGUI;
 import org.whyisthisnecessary.eps.visual.EnchantMetaWriter;
 import org.whyisthisnecessary.eps.workbench.AnvilUpdate;
@@ -134,9 +137,10 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 		Bukkit.getPluginCommand("tokens").setExecutor(new TokensCommand());
 		EnchantsCommand.setupGUIs();
 		
-		// Load visuals
+		// Load events
 		Bukkit.getPluginManager().registerEvents(new EnchantGUI(), this);
 		Bukkit.getPluginManager().registerEvents(new EnchantMetaWriter(), this);
+		Bukkit.getPluginManager().registerEvents(new ItemEvents(), this);
 		Bukkit.getPluginManager().registerEvents(new AnvilUpdate(), this);
 		
 		
@@ -164,6 +168,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	
 		EnchantMetaWriter.registerEnchantNames();
 		DataUtil.saveConfig(Main.Config, Main.ConfigFile);
+		ConfigUtil.reloadConfigs();
+		Bukkit.getConsoleSender().sendMessage(LangUtil.getLangMessage("startup-message"));
 	}
 	
 	@Override

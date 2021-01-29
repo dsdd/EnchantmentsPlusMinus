@@ -12,6 +12,8 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.whyisthisnecessary.eps.Main;
+import org.whyisthisnecessary.eps.api.ConfigUtil;
+import org.whyisthisnecessary.eps.item.TokenPouch;
 import org.whyisthisnecessary.eps.legacy.NameUtil;
 import org.whyisthisnecessary.eps.util.LangUtil;
 import org.whyisthisnecessary.eps.util.TokenUtil;
@@ -31,6 +33,8 @@ public class EPSCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.RED + "/eps changetokens [plr] [amount]");
 			sender.sendMessage(ChatColor.RED + "/eps enchant [enchant] [lvl]");
 			sender.sendMessage(ChatColor.RED + "/eps reloadpack [packname]");
+			sender.sendMessage(ChatColor.RED + "/eps book [enchant:lvl]");
+			sender.sendMessage(ChatColor.RED + "/eps tokenpouch [tokens]");
 			return false;
 		}
 		
@@ -48,6 +52,7 @@ public class EPSCommand implements CommandExecutor {
 			Main.LangConfig = YamlConfiguration.loadConfiguration(Main.LangFile);
 			Main.InCPTConfig = YamlConfiguration.loadConfiguration(Main.InCPTFile);
 			Main.GuisConfig = YamlConfiguration.loadConfiguration(Main.GuisFile);
+			ConfigUtil.reloadConfigs();
 			sender.sendMessage(LangUtil.getLangMessage("reloadconfig"));
 			return false;
 		}
@@ -149,7 +154,7 @@ public class EPSCommand implements CommandExecutor {
 		}
 		if (args[0].equalsIgnoreCase("book"))
 		{
-			if (!sender.hasPermission("eps.admin.reloadpack"))
+			if (!sender.hasPermission("eps.admin.book"))
 			{
 				sender.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
 				return false;
@@ -162,6 +167,7 @@ public class EPSCommand implements CommandExecutor {
 			if (args.length == 0)
 			{
 				sender.sendMessage(ChatColor.RED+"Usage: /eps book [enchant:lvl] [additionalenchs]");
+				return false;
 			}
 			
 			Player p = (Player)sender;
@@ -173,10 +179,9 @@ public class EPSCommand implements CommandExecutor {
 			
 			Map<Enchantment, Integer> map = new HashMap<Enchantment, Integer>();
 			
-			for (int i=0;i<args.length;i++)
+			for (int i=1;i<args.length;i++)
 			{
-				if (i == 0) continue;
-				String[] parts = args[1].split(":");
+				String[] parts = args[i].split(":");
 				
 				if (parts.length == 0)
 					continue;
@@ -194,13 +199,34 @@ public class EPSCommand implements CommandExecutor {
 				{
 					sender.sendMessage(LangUtil.getLangMessage(ChatColor.RED+"Invalid enchant "+NameUtil.getName(enchant).toUpperCase()+"!"));
 					sender.sendMessage(LangUtil.getLangMessage(ChatColor.RED+"Invalid enchant level "+parts[1]+"!"));
-					return false;
+					continue;
 				}
 				map.put(enchant, lvl);
 			}
 			
 			CustomEnchantedBook book = new CustomEnchantedBook(map);
+			book.setItemMeta(EnchantMetaWriter.getWrittenMetaBook(book));
 			p.getInventory().addItem(book);
+		}
+		if (args[0].equalsIgnoreCase("tokenpouch"))
+		{
+			if (!sender.hasPermission("eps.admin.book"))
+			{
+				sender.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
+				return false;
+			}
+			if (!(sender instanceof Player))
+			{
+				sender.sendMessage(LangUtil.getLangMessage("invalidplayertype"));
+				return false;
+			}
+			Player p = (Player)sender;
+			if (args.length < 1)
+			{
+				sender.sendMessage(ChatColor.RED+"Usage: /eps tokenpouch [tokens]");
+				return false;
+			}
+			p.getInventory().addItem(new TokenPouch(Integer.parseInt(args[1])));
 		}
 		
 		return false;

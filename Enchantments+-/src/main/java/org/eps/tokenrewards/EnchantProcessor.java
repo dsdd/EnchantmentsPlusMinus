@@ -49,10 +49,10 @@ public class EnchantProcessor implements Listener {
 		 Player killer = e.getEntity().getKiller();
 		 if (killer instanceof Player)
 		 {
-		     if (!ConfigUtil.getConfig().getBoolean("mobkilltokens.enabled")) 
+		     if (!Main.Config.getBoolean("mobkilltokens.enabled")) 
 		    	 return;
-			 Integer tokenmin = ConfigUtil.getConfig().getInt("mobkilltokens.min");
-			 Integer tokenmax = ConfigUtil.getConfig().getInt("mobkilltokens.max");
+			 Integer tokenmin = Main.Config.getInt("mobkilltokens.min");
+			 Integer tokenmax = Main.Config.getInt("mobkilltokens.max");
 			 Integer tokens = random.nextInt(tokenmax-tokenmin)+tokenmin;
 			 String name = e.getEntityType().name();
 			 killer.sendMessage(LangUtil.getLangMessage("mobkill").replaceAll("%tokens%", tokens.toString()).replaceAll("%mob%", WordUtils.capitalizeFully(name.replaceAll("_", " ").toLowerCase())));
@@ -67,10 +67,10 @@ public class EnchantProcessor implements Listener {
 		 Player killer = e.getEntity().getKiller();
 		 if (killer instanceof Player)
 		 {
-			 if (!ConfigUtil.getConfig().getBoolean("playerkilltokens.enabled")) 
+			 if (!Main.Config.getBoolean("playerkilltokens.enabled")) 
 				 return;
-			 Integer tokenmin = ConfigUtil.getConfig().getInt("playerkilltokens.min");
-			 Integer tokenmax = ConfigUtil.getConfig().getInt("playerkilltokens.max");
+			 Integer tokenmin = Main.Config.getInt("playerkilltokens.min");
+			 Integer tokenmax = Main.Config.getInt("playerkilltokens.max");
 		     Player killed = (Player) e.getEntity();
 		     Integer tokens = random.nextInt(tokenmax-tokenmin)+tokenmin;
 		     killer.sendMessage(LangUtil.getLangMessage("playerkill").replaceAll("%tokens%", tokens.toString()).replaceAll("%victim%", killed.getName()));
@@ -93,11 +93,11 @@ public class EnchantProcessor implements Listener {
 		if (blocklog.containsKey(e.getPlayer()))
 		{
 			blocklog.put(e.getPlayer(), blocklog.get(e.getPlayer())+1);
-			if (blocklog.get(e.getPlayer()) > ConfigUtil.getConfig().getInt("miningtokens.blockstobreak"))
+			if (blocklog.get(e.getPlayer()) > Main.Config.getInt("miningtokens.blockstobreak"))
 			{
 				blocklog.put(e.getPlayer(), 0);
-				int min = ConfigUtil.getConfig().getInt("miningtokens.min");
-				Integer tokens = random.nextInt(ConfigUtil.getConfig().getInt("miningtokens.max")-min)+min;
+				int min = Main.Config.getInt("miningtokens.min");
+				Integer tokens = random.nextInt(Main.Config.getInt("miningtokens.max")-min)+min;
 				TokenUtil.changeTokens(e.getPlayer(), tokens);
 				e.getPlayer().sendMessage(LangUtil.getLangMessage("miningtokensget").replaceAll("%tokens%", tokens.toString()));
 			}

@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -16,6 +17,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.whyisthisnecessary.eps.Main;
 import org.whyisthisnecessary.eps.legacy.Label;
@@ -30,6 +32,7 @@ public class EnchantMetaWriter implements Listener {
 	{
 		ItemStack item = e.getCurrentItem();
 		if (item == null) return;
+		if (item.getType().equals(Material.ENCHANTED_BOOK)) return;
 		ItemMeta meta = getWrittenMeta(item);
 		if (meta == null) return;
 		if (meta.getLore() != item.getItemMeta().getLore())
@@ -41,6 +44,7 @@ public class EnchantMetaWriter implements Listener {
 	{
 		ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
 		if (item == null) return;
+		if (item.getType().equals(Material.ENCHANTED_BOOK)) return;
 		ItemMeta meta = getWrittenMeta(item);
 		if (meta == null) return;
 		if (meta.getLore() != item.getItemMeta().getLore())
@@ -52,6 +56,7 @@ public class EnchantMetaWriter implements Listener {
 	{
 		ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
 		if (item == null) return;
+		if (item.getType().equals(Material.ENCHANTED_BOOK)) return;
 		ItemMeta meta = getWrittenMeta(item);
 		if (meta == null) return;
 		if (meta.getLore() != item.getItemMeta().getLore())
@@ -120,6 +125,7 @@ public class EnchantMetaWriter implements Listener {
 		meta.setLore(lore);
 		return meta;
 	}
+	
 	/** Checks if roman numerals are enabled, then gets the String of it.
 	 * 
 	 * @param num The number
@@ -212,5 +218,62 @@ public class EnchantMetaWriter implements Listener {
 	{
 		for (Enchantment enchant : Label.values())
 			enchantnames.put(enchant, WordUtils.capitalizeFully(NameUtil.getName(enchant).replaceAll("_", " ")));
+	}
+	
+	public static List<String> getWrittenEnchantLoreBook(ItemStack item)
+	{
+		EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
+		if (meta == null)
+			return (new ArrayList<String>(Arrays.asList()));
+		Map<Enchantment, Integer> map = meta.getStoredEnchants();
+		List<String> list = meta.getLore();
+		
+		if (Main.Config.getBoolean("show-enchant-lore") == false)
+			return meta.getLore();
+		
+		if (list == null) list = new ArrayList<String>(Arrays.asList());
+		
+		Collection<Enchantment> enchants = Label.values();
+		
+		for (Enchantment enchant : enchants)
+		{
+			for (int i=0;i<list.size();i++)
+			{
+				String[] split = list.get(i).split(" ");
+				int numIndex = split.length-1;
+				String val = split[0];
+				for (int v=1;v<numIndex;v++)
+					val = val + " " + split[v];
+				if (split.length < 2)
+					continue;
+				if (!val.equals(ChatColor.GRAY+enchantnames.get(enchant)))
+					continue;
+				if (!(isNumeric(split[numIndex])|| isRomanNumeral(split[numIndex])))
+					continue;
+				list.remove(i);
+			}
+		}
+		
+		for (Map.Entry<Enchantment,Integer> entry : map.entrySet())  
+		{
+			if (enchants.contains(entry.getKey()))
+			{
+				String name = enchantnames.get(entry.getKey());
+				String lore = ChatColor.GRAY+name+" "+ getNumber(entry.getValue());
+			    list.add(0, lore);
+			}
+		}
+		return list;
+	}
+	
+	public static EnchantmentStorageMeta getWrittenMetaBook(ItemStack item)
+	{
+		if (Main.Config.getBoolean("show-enchant-lore") == false) return (EnchantmentStorageMeta)item.getItemMeta();
+		List<String> lore = EnchantMetaWriter.getWrittenEnchantLoreBook(item);
+		EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
+		if (meta != null)
+		if (lore != null)
+		meta.setLore(lore);
+		return meta;
 	}
 }

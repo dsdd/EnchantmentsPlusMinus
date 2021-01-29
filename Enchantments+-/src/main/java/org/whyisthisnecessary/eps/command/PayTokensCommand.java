@@ -32,7 +32,12 @@ public class PayTokensCommand implements CommandExecutor {
 			{
 				try {
 				Integer tokens = Integer.parseInt(args[1]);
-				TokenUtil.changeTokens(sender.getName(), -tokens);
+				if (TokenUtil.getTokens((Player)sender) < tokens)
+				{
+					sender.sendMessage(LangUtil.getLangMessage("invalidtokenamountpay"));
+					return true;
+				}
+				TokenUtil.changeTokens((Player)sender, -tokens);
 				TokenUtil.changeTokens(args[0], tokens);
 				return true;
 				}

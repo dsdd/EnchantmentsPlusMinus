@@ -2,11 +2,12 @@ package org.whyisthisnecessary.eps.workbench;
 
 import java.util.Map;
 
-import com.google.common.collect.Maps;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+
+import com.google.common.collect.Maps;
 
 
 public class CustomEnchantedBook extends ItemStack {
@@ -62,7 +63,13 @@ public class CustomEnchantedBook extends ItemStack {
 				combine.put(entry.getKey(), entry.getValue());
 				continue;
 			}
-			Integer lvl = first+entry.getValue();
+			Integer lvl = 0;
+			if (first == entry.getValue())
+				lvl = first+1;
+			if (first > entry.getValue())
+				lvl = first;
+			if (first < entry.getValue())
+				lvl = entry.getValue();
 			if (safe && lvl > entry.getKey().getMaxLevel())
 				lvl = entry.getKey().getMaxLevel();
 			if (combine.get(entry.getKey()) != null)

@@ -161,7 +161,28 @@ public class EnchantProcessor implements Listener {
 					continue;
 				
 
-				EntityDamageEvent event = new EntityDamageEvent(entity, DamageCause.PROJECTILE, dmg);
+				EntityDamageEvent event = new EntityDamageEvent(entity, DamageCause.PROJECTILE, 0);
+				Bukkit.getPluginManager().callEvent(event);
+				if (event.isCancelled())
+					continue;
+				
+				Damageable le = ((Damageable)entity);
+				le.damage(dmg);
+			}
+		}
+		
+		if (mainmeta.hasEnchant(CustomEnchants.FIREWORKS))
+		{
+			double dmg = ConfigUtil.getAutofilledDouble(CustomEnchants.FIREWORKS, mainmeta.getEnchantLevel(CustomEnchants.FIREWORKS), "damage");
+			world.createExplosion(arrow.getLocation(), 0F);
+			Collection<Entity> list = world.getNearbyEntities(arrow.getLocation(), 2, 2, 2);
+			for (Entity entity : list)
+			{
+				if (!(entity instanceof Damageable))
+					continue;
+				
+
+				EntityDamageEvent event = new EntityDamageEvent(entity, DamageCause.PROJECTILE, 0);
 				Bukkit.getPluginManager().callEvent(event);
 				if (event.isCancelled())
 					continue;

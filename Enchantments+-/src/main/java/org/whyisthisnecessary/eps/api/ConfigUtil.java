@@ -1,6 +1,9 @@
 package org.whyisthisnecessary.eps.api;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -11,6 +14,9 @@ import org.whyisthisnecessary.eps.util.DataUtil;
 
 public class ConfigUtil {
     
+	// This map is used to improve efficiency of getting values from each enchant config
+	protected static Map<Enchantment, FileConfiguration> fgMap = new HashMap<Enchantment, FileConfiguration>();
+	
 	/** Gets the main config file.
 	 * 
 	 * @return The config.yml file's FileConfiguration
@@ -19,16 +25,26 @@ public class ConfigUtil {
 	{
 		return Main.Config;
 	}
+    
+    /** Reloads all enchant configurations
+     */
+    public static void reloadConfigs()
+    {
+    	Enchantment[] enchants = Enchantment.values();
+    	for (Enchantment enchant : enchants)
+    		fgMap.put(enchant, YamlConfiguration.loadConfiguration(getEnchantFile(enchant)));
+    }
 	
-	/** Gets the config of the specified enchant.
+	/** Gets the config of the specified enchant.s
 	 * 
 	 * @param enchant The enchant in question
 	 * @return The config
 	 */
 	public static FileConfiguration getEnchantConfig(Enchantment enchant)
 	{
-		return YamlConfiguration.loadConfiguration(getEnchantFile(enchant));
+		return fgMap.get(enchant);
 	}
+	
 	/**
 	 * Returns the file which correlates to the enchant's configuration.
 	 * 

@@ -19,8 +19,8 @@ public class DataUtil {
 	public static File getUserDataFile(String playername)
 	{
 		String UUID = Main.UUIDDataStoreConfig.getString(playername);
-		if (UUID == null) return null;
-		return new File(Main.DataFolder, UUID+".yml");
+		File DataFile = new File(Main.DataFolder, UUID+".yml");
+		return DataFile;
 	}
 	
 	/** Gets the data file of the specified player.
@@ -30,7 +30,9 @@ public class DataUtil {
 	 */
 	public static File getUserDataFile(Player player)
 	{
-		return getUserDataFile(player.getName());
+		String UUID = Main.UUIDDataStoreConfig.getString(player.getName());
+		File DataFile = new File(Main.DataFolder, UUID+".yml");
+		return DataFile;
 	}
 	
 	/** Gets the UUID of the specified player.
@@ -77,6 +79,6 @@ public class DataUtil {
 	public static boolean playerExists(String playername)
 	{
 		File file = getUserDataFile(playername);
-		return file != null && file.exists();
+		return file != null;
 	}
 }
