@@ -3,20 +3,20 @@ package org.whyisthisnecessary.eps.command;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.whyisthisnecessary.eps.Main;
-import org.whyisthisnecessary.eps.api.ConfigUtil;
+import org.whyisthisnecessary.eps.EPS;
+import org.whyisthisnecessary.eps.api.EPSConfiguration;
+import org.whyisthisnecessary.eps.api.Reloadable;
 import org.whyisthisnecessary.eps.item.TokenPouch;
-import org.whyisthisnecessary.eps.legacy.NameUtil;
 import org.whyisthisnecessary.eps.util.LangUtil;
-import org.whyisthisnecessary.eps.util.TokenUtil;
+import org.whyisthisnecessary.eps.visual.EnchantGUI;
 import org.whyisthisnecessary.eps.visual.EnchantMetaWriter;
 import org.whyisthisnecessary.eps.workbench.CustomEnchantedBook;
 
@@ -31,10 +31,12 @@ public class EPSCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.RED + "/eps reload");
 			sender.sendMessage(ChatColor.RED + "/eps settokens [plr] [amount]");
 			sender.sendMessage(ChatColor.RED + "/eps changetokens [plr] [amount]");
+			sender.sendMessage(ChatColor.RED + "/eps give [plr] [amount]");
+			sender.sendMessage(ChatColor.RED + "/eps take [plr] [amount]");
 			sender.sendMessage(ChatColor.RED + "/eps enchant [enchant] [lvl]");
 			sender.sendMessage(ChatColor.RED + "/eps reloadpack [packname]");
-			sender.sendMessage(ChatColor.RED + "/eps book [enchant:lvl]");
-			sender.sendMessage(ChatColor.RED + "/eps tokenpouch [tokens]");
+			sender.sendMessage(ChatColor.RED + "/eps book [player] [enchant:lvl]");
+			sender.sendMessage(ChatColor.RED + "/eps tokenpouch [player] [tokens]");
 			return false;
 		}
 		
@@ -43,17 +45,14 @@ public class EPSCommand implements CommandExecutor {
 			String perm = "eps.admin.reload";
 			if (!sender.hasPermission(perm))
 			{
-				sender.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
+				LangUtil.sendMessage(sender, "insufficientpermission");
 				return false;
 			}
-			Main.plugin.reloadConfig();
-			Main.Config = Main.plugin.getConfig();
-			Main.UUIDDataStoreConfig = YamlConfiguration.loadConfiguration(Main.UUIDDataStore);
-			Main.LangConfig = YamlConfiguration.loadConfiguration(Main.LangFile);
-			Main.InCPTConfig = YamlConfiguration.loadConfiguration(Main.InCPTFile);
-			Main.GuisConfig = YamlConfiguration.loadConfiguration(Main.GuisFile);
-			ConfigUtil.reloadConfigs();
-			sender.sendMessage(LangUtil.getLangMessage("reloadconfig"));
+			EnchantGUI.setupInCPTS();
+			EPSConfiguration.reloadConfigs();
+			for (Reloadable r : Reloadable.CLASSES)
+				r.reload();
+			LangUtil.sendMessage(sender, "reloadconfig");
 			return false;
 		}
 		
@@ -62,7 +61,7 @@ public class EPSCommand implements CommandExecutor {
 			String perm = "eps.admin.settokens";
 			if (!sender.hasPermission(perm))
 			{
-				sender.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
+				LangUtil.sendMessage(sender, "insufficientpermission");
 				return false;
 			}
 			if (args.length < 3)
@@ -72,7 +71,7 @@ public class EPSCommand implements CommandExecutor {
 			}
 			try
 			{
-			TokenUtil.setTokens(args[1],Integer.parseInt(args[2]));
+			EPS.getEconomy().setBalance(args[1],Integer.parseInt(args[2]));
 			sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aSet "+args[1]+"'s tokens to "+Integer.parseInt(args[2])));
 			}
 			catch(NullPointerException e)
@@ -88,7 +87,7 @@ public class EPSCommand implements CommandExecutor {
 			String perm = "eps.admin.changetokens";
 			if (!sender.hasPermission(perm))
 			{
-				sender.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
+				LangUtil.sendMessage(sender, "insufficientpermission");
 				return false;
 			}
 			if (args.length < 3)
@@ -98,7 +97,7 @@ public class EPSCommand implements CommandExecutor {
 			}
 			try
 			{
-			TokenUtil.changeTokens(args[1],Integer.parseInt(args[2]));
+			EPS.getEconomy().changeBalance(args[1],Integer.parseInt(args[2]));
 			sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aChanged "+args[1]+"'s tokens by "+Integer.parseInt(args[2])));
 			}
 			catch(NullPointerException e)
@@ -115,7 +114,7 @@ public class EPSCommand implements CommandExecutor {
 			
 			if (!(sender instanceof Player))
 			{
-				sender.sendMessage(LangUtil.getLangMessage("invalidplayertype"));
+				LangUtil.sendMessage(sender, "invalidplayertype");
 				return true;
 			}
 			
@@ -131,7 +130,7 @@ public class EPSCommand implements CommandExecutor {
 				if (p.getInventory().getItemInMainHand().getAmount() > 0)
 				{
 					Integer num = Integer.parseInt(args[2]);
-					Enchantment enchant = NameUtil.getByName(args[1]);
+					Enchantment enchant = EPS.getDictionary().findEnchant(args[1]);
 					if (num != 0)
 						p.getInventory().getItemInMainHand().addUnsafeEnchantment(enchant, num);
 					else
@@ -142,13 +141,13 @@ public class EPSCommand implements CommandExecutor {
 				}
 				else
 				{
-					p.sendMessage(LangUtil.getLangMessage("invaliditem"));
+					LangUtil.sendMessage(p, "invaliditem");
 					return false;
 				}
 	        }
 			else
 			{
-				p.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
+				LangUtil.sendMessage(p, "insufficientpermission");
 				return false;
 			}
 		}
@@ -156,37 +155,42 @@ public class EPSCommand implements CommandExecutor {
 		{
 			if (!sender.hasPermission("eps.admin.book"))
 			{
-				sender.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
+				LangUtil.sendMessage(sender, "insufficientpermission");
 				return false;
 			}
 			if (!(sender instanceof Player))
 			{
-				sender.sendMessage(LangUtil.getLangMessage("invalidplayertype"));
+				LangUtil.sendMessage(sender, "invalidplayertype");
 				return false;
 			}
 			if (args.length == 0)
 			{
-				sender.sendMessage(ChatColor.RED+"Usage: /eps book [enchant:lvl] [additionalenchs]");
+				sender.sendMessage(ChatColor.RED+"Usage: /eps book [player] [enchant:lvl] [additionalenchs]");
 				return false;
 			}
 			
-			Player p = (Player)sender;
+			Player p = Bukkit.getPlayer(args[1]);
+			if (p == null)
+			{
+				LangUtil.sendMessage(sender, "invalidplayer");
+				return false;
+			}
 			if (p.getInventory().firstEmpty() == -1)
 			{
-				sender.sendMessage(LangUtil.getLangMessage("inventoryfull"));
+				LangUtil.sendMessage(sender, "inventoryfull");
 				return false;
 			}
 			
 			Map<Enchantment, Integer> map = new HashMap<Enchantment, Integer>();
 			
-			for (int i=1;i<args.length;i++)
+			for (int i=2;i<args.length;i++)
 			{
 				String[] parts = args[i].split(":");
 				
 				if (parts.length == 0)
 					continue;
 				
-				Enchantment enchant = NameUtil.getByName(parts[0]);
+				Enchantment enchant = EPS.getDictionary().findEnchant(parts[0]);
 				if (parts.length == 1)
 				{
 					map.put(enchant, 1);
@@ -197,8 +201,8 @@ public class EPSCommand implements CommandExecutor {
 				Integer lvl = Integer.parseInt(parts[1]);
 				if (enchant == null)
 				{
-					sender.sendMessage(LangUtil.getLangMessage(ChatColor.RED+"Invalid enchant "+NameUtil.getName(enchant).toUpperCase()+"!"));
-					sender.sendMessage(LangUtil.getLangMessage(ChatColor.RED+"Invalid enchant level "+parts[1]+"!"));
+					LangUtil.sendMessage(sender, ChatColor.RED+"Invalid enchant "+EPS.getDictionary().getName(enchant).toUpperCase()+"!");
+					LangUtil.sendMessage(sender, ChatColor.RED+"Invalid enchant level "+parts[1]+"!");
 					continue;
 				}
 				map.put(enchant, lvl);
@@ -212,23 +216,50 @@ public class EPSCommand implements CommandExecutor {
 		{
 			if (!sender.hasPermission("eps.admin.book"))
 			{
-				sender.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
+				LangUtil.sendMessage(sender, "insufficientpermission");
 				return false;
 			}
 			if (!(sender instanceof Player))
 			{
-				sender.sendMessage(LangUtil.getLangMessage("invalidplayertype"));
+				LangUtil.sendMessage(sender, "invalidplayertype");
 				return false;
 			}
-			Player p = (Player)sender;
+			Player p = Bukkit.getPlayer(args[1]);
+			if (p == null)
+			{
+				LangUtil.sendMessage(sender, "invalidplayer");
+				return false;
+			}
 			if (args.length < 1)
 			{
-				sender.sendMessage(ChatColor.RED+"Usage: /eps tokenpouch [tokens]");
+				sender.sendMessage(ChatColor.RED+"Usage: /eps tokenpouch [player] [tokens]");
 				return false;
 			}
-			p.getInventory().addItem(new TokenPouch(Integer.parseInt(args[1])));
+			p.getInventory().addItem(new TokenPouch(Integer.parseInt(args[2])));
 		}
-		
+		if (args[0].equalsIgnoreCase("give"))
+		{
+			if (args.length < 3)
+			{
+				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cUsage: /eps give [player] [amount]"));
+				return true;
+			}
+			String[] t = args;
+			t[0] = "changetokens";
+			onCommand(sender, cmd, label, t);
+		}
+		if (args[0].equalsIgnoreCase("take"))
+		{
+			if (args.length < 3)
+			{
+				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cUsage: /eps take [player] [amount]"));
+				return true;
+			}
+			String[] t = args;
+			t[0] = "changetokens";
+			t[2] = "-"+t[2];
+			onCommand(sender, cmd, label, t);
+		}
 		return false;
 	}
 }

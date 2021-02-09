@@ -5,12 +5,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -26,19 +26,21 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.whyisthisnecessary.eps.EPS;
 import org.whyisthisnecessary.eps.Main;
-import org.whyisthisnecessary.eps.api.ConfigUtil;
-import org.whyisthisnecessary.eps.legacy.LegacyUtil;
-import org.whyisthisnecessary.eps.legacy.NameUtil;
+import org.whyisthisnecessary.eps.api.EPSConfiguration;
+import org.whyisthisnecessary.eps.economy.Economy;
+import org.whyisthisnecessary.eps.util.Dictionary;
 import org.whyisthisnecessary.eps.util.LangUtil;
-import org.whyisthisnecessary.eps.util.TokenUtil;
 
 public class EnchantGUI implements Listener {
 
 	public static Map<Player, Inventory> GUIs = new HashMap<Player, Inventory>();
 	public static Map<Player, String> guiNames = new HashMap<Player, String>();
+	public static Map<List<String>, List<Enchantment>> incpts = new HashMap<List<String>, List<Enchantment>>();
 	private static List<Material> hoes = new ArrayList<Material>(Arrays.asList(new Material[]{Material.WOODEN_HOE, Material.STONE_HOE, Material.IRON_HOE, Material.matchMaterial("GOLDEN_HOE"), Material.matchMaterial("GOLD_HOE"), Material.DIAMOND_HOE, Material.matchMaterial("NETHERITE_HOE")}));
-	
+	private static final Economy economy = EPS.getEconomy();
+	private static final Dictionary dictionary = EPS.getDictionary();
 	public static void setupGUI(Player player)
 	{
 		Inventory inv = Bukkit.createInventory(player, 36, "Enchantments");
@@ -61,15 +63,12 @@ public class EnchantGUI implements Listener {
 		inv.clear();
 		createPanes(inv);
 		List<String> l = Main.GuisConfig.getStringList("guis."+guiname+".enchants");
-        String[] list = new String[l.size()];
-        list = l.toArray(list);
-        for (String i : list)
-        {
+        for (String i : l)
         	add(p, inv, i);
-        }
+
         ItemStack i = new ItemStack(Material.GOLD_INGOT, 1);
         ItemMeta meta = i.getItemMeta();
-        meta.setDisplayName(ChatColor.GREEN+"Your Tokens » "+ChatColor.YELLOW+Integer.toString(TokenUtil.getTokens(p.getName())));
+        meta.setDisplayName(LangUtil.getLangMessage("balance-display-in-gui").replaceAll("%balance%", economy.getBalance(p.getName()).toString()));
         i.setItemMeta(meta);
         inv.setItem(4, i);
         inv.setItem(31, i);
@@ -78,18 +77,13 @@ public class EnchantGUI implements Listener {
 	@SuppressWarnings("deprecation")
 	public static void createPanes(Inventory gui)
     {
-		ItemStack slot = new ItemStack(Material.AIR, 1);
-		if (LegacyUtil.isLegacy())
-		{
-			slot = new ItemStack(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short)15);
-		}
-		else
-			slot = new ItemStack(Material.matchMaterial("BLACK_STAINED_GLASS_PANE"), 1);
+		ItemStack slot = EPS.onLegacy() ? new ItemStack(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short)15) 
+										: new ItemStack(Material.matchMaterial("BLACK_STAINED_GLASS_PANE"), 1);
     	ItemMeta meta = slot.getItemMeta();
     	meta.setDisplayName("");
     	slot.setItemMeta(meta);
     	for (int i=0;i<9;i++)
-    	gui.setItem(i, slot);
+    		gui.setItem(i, slot);
     	gui.setItem(9, slot);
     	gui.setItem(17, slot);
     	gui.setItem(18, slot);
@@ -103,63 +97,59 @@ public class EnchantGUI implements Listener {
 		ItemStack mainhand = p.getInventory().getItemInMainHand();
 		ItemMeta mainmeta = mainhand.getItemMeta();
     	String cost;
-    	Enchantment enchant = NameUtil.getByName(NamespacedKey.minecraft(name));
+    	Enchantment enchant = dictionary.findEnchant(name);
     	if (enchant == null) {
     		Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid enchantment name "+name+"!");
     		return;
     	}
-    	String displayname = name.substring(0,1).toUpperCase() + name.substring(1);
-    	displayname = displayname.replaceAll("_", " ");
-    	displayname = WordUtils.capitalizeFully(displayname);
-    	String upgradeicon = ConfigUtil.getString(enchant, "upgradeicon");
-    	if (upgradeicon == null)
-    	{
-    		Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"No upgrade icon written in enchant config "+NameUtil.getName(enchant)+"! Setting to default BOOK.");
-    	    upgradeicon = Material.BOOK.name();
-    	}
-    	Material material = Material.matchMaterial(upgradeicon);
-    	String desc = ConfigUtil.getString(enchant, "upgradedesc");
-    	Integer maxlevel = ConfigUtil.getInt(enchant, "maxlevel");
+    	EPSConfiguration config = EPSConfiguration.getConfiguration(enchant);
+    	String displayname = EnchantMetaWriter.enchantnames.get(enchant);
+    	Material material = config.getMaterial("upgradeicon");
+    	String desc = config.getString("upgradedesc");
+    	Integer maxlevel = config.getInt("maxlevel");
+    	
         if (!(mainmeta.getEnchantLevel(enchant) >= maxlevel))
         {
-        	String method = ConfigUtil.getString(enchant, "cost.type");
+        	String method = config.getString("cost.type");
         	cost = Integer.toString(getCost(method, enchant, mainmeta.getEnchantLevel(enchant), 1));
         }
         else
         {
-            cost = "Maxed!";
+        	if (!p.hasPermission("eps.admin.bypassmaxlevel"))
+        		cost = "Maxed!";
+        	else
+        	{
+        		String method = config.getString("cost.type");
+            	cost = Integer.toString(getCost(method, enchant, mainmeta.getEnchantLevel(enchant), 1));
+        	}
         }
+        
         if (desc == null)
         	Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid upgrade description for enchant "+name.toUpperCase()+"!");
         if (maxlevel == 0)
         	Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Max level for enchant"+name.toUpperCase()+" is zero! Is this intentional?");
-        ItemStack slot = new ItemStack(Material.BOOK, 1);;
-        if (material != null)
-        slot = new ItemStack(material, 1);
-        else
-        Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid material type for enchantment "+name.toUpperCase()+". Setting to default BOOK.");
+        if (material == null)
+        	Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid material type for enchantment "+name.toUpperCase()+". Setting to default BOOK.");
+
+        ItemStack slot = material == null ? new ItemStack(Material.BOOK, 1) : new ItemStack(material, 1);
         ItemMeta meta = slot.getItemMeta();
         meta.setDisplayName(ChatColor.AQUA+displayname);
-        meta.setLore(Arrays.asList(new String[] { "", 
-        		ChatColor.GRAY+desc,
-        		"",
-        		ChatColor.GREEN+"Cost » "+ ChatColor.YELLOW +cost,
-        		ChatColor.GREEN+"Max Level » "+ ChatColor.YELLOW +maxlevel,
-        		ChatColor.GREEN+"Current Level » "+ ChatColor.YELLOW +mainmeta.getEnchantLevel(enchant),
-        		"",
-        		ChatColor.GRAY+"» Left-Click to upgrade once",
-        		ChatColor.GRAY+"» Right-Click to upgrade 5 times",
-        		ChatColor.GRAY+"» Shift-Right-Click to upgrade 50 times",
-        		}));
+        
+        List<String> lore = EnchantMetaWriter.getDescription(enchant);
+		        
+        for (String s : Main.GuiLoreConfig.getStringList("lore"))
+        	lore.add(ChatColor.translateAlternateColorCodes('&', s.replaceAll("%cost%", cost).replaceAll("%maxlevel%", maxlevel.toString()).replaceAll("%currentlevel%", Integer.toString(mainmeta.getEnchantLevel(enchant)))));
+        
+        meta.setLore(lore);
         meta.addEnchant(enchant, 1, true);
-        meta.addItemFlags(new ItemFlag[] { ItemFlag.HIDE_ENCHANTS });
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         slot.setItemMeta(meta);
         inv.setItem(inv.firstEmpty(), slot);
     }
 	
 	@EventHandler(priority = EventPriority.HIGH)
     public void onpickaxeinventoryDrag(final InventoryDragEvent e) {
-		if (LegacyUtil.isLegacy())
+		if (EPS.onLegacy())
 		{
 			if (!isSimilarInventory(e.getInventory(), GUIs.get(e.getWhoClicked()))) return;
 	        if (!compareInvs(e.getInventory(), GUIs.get(e.getWhoClicked()))) return;
@@ -175,7 +165,7 @@ public class EnchantGUI implements Listener {
 	@EventHandler(priority = EventPriority.HIGH)
     public void onpickaxeinventoryClick(final InventoryClickEvent e) {
         if (e.getInventory().getHolder() != e.getWhoClicked()) return;
-        if (LegacyUtil.isLegacy())
+        if (EPS.onLegacy())
 		{
 			if (!isSimilarInventory(e.getInventory(), GUIs.get(e.getWhoClicked()))) return;
 	        if (!compareInvs(e.getInventory(), GUIs.get(e.getWhoClicked()))) return;
@@ -198,7 +188,8 @@ public class EnchantGUI implements Listener {
         for (Map.Entry<Enchantment, Integer> entry : enchs.entrySet())
             ench = entry.getKey();
         
-        if (ench == null) return;
+        if (ench == null) 
+        	return;
         
         if (e.isLeftClick())
             UpgradeItem(ench, p, 1);
@@ -221,74 +212,85 @@ public class EnchantGUI implements Listener {
 	 */
 	public static Integer getCost(String type, Enchantment enchant, Integer enchlvl, Integer multi)
     {
+		EPSConfiguration config = EPSConfiguration.getConfiguration(enchant);
     	if (type.equalsIgnoreCase("manual"))
     	{
-    		Integer val = ConfigUtil.getInt(enchant, "cost."+(enchlvl+1));
+    		Integer val = config.getInt("cost."+(enchlvl+1));
     		for (int i=1;i<multi;i++)
     		{
-    			val = val + ConfigUtil.getInt(enchant, "cost."+(enchlvl+1+i));
+    			val = val + config.getInt("cost."+(enchlvl+1+i));
     		}
     		return val;
     	}
     	else if (type.equalsIgnoreCase("linear"))
     	{
-    		Integer startvalue = ConfigUtil.getInt(enchant, "cost.startvalue");
-    		Integer value = ConfigUtil.getInt(enchant, "cost.value");
-    		return (startvalue+(value*enchlvl)*multi);
+    		Integer startvalue = config.getInt("cost.startvalue");
+    		Integer value = config.getInt("cost.value");
+    		Integer fin = enchlvl == 0 ? 0 : startvalue;
+    		for (int i=enchlvl+1;i<=multi;i++)
+    			fin = fin + (value*multi);
+    		return fin;
     	}
     	else if (type.equalsIgnoreCase("exponential"))
     	{
-    		Double multi1 = ConfigUtil.getDouble(enchant, "cost.multi");
-    		Integer startvalue = ConfigUtil.getInt(enchant, "cost.startvalue");
-    		return (int)(startvalue*Math.pow((Math.pow(multi1, enchlvl)), multi));
+    		Double multi1 = config.getDouble("cost.multi");
+    		Integer startvalue = config.getInt("cost.startvalue");
+    		return (int)(startvalue*Math.pow((Math.pow(multi1, enchlvl+1)), multi));
     	}
     	else
     	{
-    		return 0;
+    		return Integer.MAX_VALUE;
     	}
     }
 	
 	public void UpgradeItem(Enchantment enchant, Player p, Integer multi)
     {
+		EPSConfiguration config = EPSConfiguration.getConfiguration(enchant);
 		ItemStack mainhand = p.getInventory().getItemInMainHand();
 		ItemMeta mainmeta = mainhand.getItemMeta();
-    	String method = ConfigUtil.getString(enchant, "cost.type");
+    	String method = config.getString("cost.type");
     	Integer cost = (getCost(method, enchant, mainmeta.getEnchantLevel(enchant), multi));
-    	if (!(mainmeta.getEnchantLevel(enchant)+multi-1 >= ConfigUtil.getInt(enchant, "maxlevel")) || p.hasPermission("eps.admin.bypassmaxlevel"))
+    	if (!(mainmeta.getEnchantLevel(enchant)+multi-1 >= config.getInt("maxlevel")) || p.hasPermission("eps.admin.bypassmaxlevel"))
     	{
     		if (!p.hasPermission("eps.admin.bypassincompatibilities"))
     		{
-	    		List<String> list = Main.InCPTConfig.getStringList(NameUtil.getName(enchant));
-	    		if (list != null)
-	    			for (String s : list)
-	    				if (mainhand.containsEnchantment(NameUtil.getByName(s)))
-	    				{
-	    					p.sendMessage(LangUtil.getLangMessage("lockedupgrade"));
-	    					return;
-	    				}
+    			for (Map.Entry<List<String>, List<Enchantment>> entry : incpts.entrySet())
+    			{
+    				if (entry.getKey().contains(mainhand.getType().name()))
+    				{
+    					if (entry.getValue().contains(enchant))
+				    		for (Enchantment e : entry.getValue())
+				    			if (e != null)
+					    			if (mainmeta.hasEnchant(e) && e != enchant)
+					    			{
+					    				LangUtil.sendMessage(p, "lockedupgrade");
+					    				return;
+					    			}
+    				}
+    			}
     		}
 
-    		if (TokenUtil.getTokens(p.getName()) >= cost)
+    		if (economy.getBalance(p.getName()) >= cost)
             {
-	        	p.sendMessage(LangUtil.getLangMessage("upgradedpickaxe"));
+	        	LangUtil.sendMessage(p, "upgradedpickaxe");
 	        	mainhand.addUnsafeEnchantment(enchant, mainmeta.getEnchantLevel(enchant)+multi);
-	        	Integer newvalue = TokenUtil.getTokens(p.getName()) - cost;
-	        	TokenUtil.setTokens(p.getName(), newvalue);
+	        	Integer newvalue = economy.getBalance(p.getName()) - cost;
+	        	economy.setBalance(p.getName(), newvalue);
 	        	mainhand.setItemMeta(EnchantMetaWriter.getWrittenMeta(mainhand));
 	        	loadInventory(p, guiNames.get(p));
             }
 	        else
 	        {
-	        	p.sendMessage(LangUtil.getLangMessage("insufficienttokens"));
+	        	LangUtil.sendMessage(p, "insufficienttokens");
 	        }
     	}
-    	else if ((mainmeta.getEnchantLevel(enchant) >= ConfigUtil.getInt(enchant, "maxlevel")))
+    	else if ((mainmeta.getEnchantLevel(enchant) >= config.getInt("maxlevel")))
     	{
-    		p.sendMessage(LangUtil.getLangMessage("exceedmaxlvl"));
+    		LangUtil.sendMessage(p, "exceedmaxlvl");
     	}
     	else
     	{
-    		p.sendMessage(LangUtil.getLangMessage("maxedupgrade"));
+    		LangUtil.sendMessage(p, "maxedupgrade");
     	}
 
     }
@@ -342,10 +344,30 @@ public class EnchantGUI implements Listener {
 					m.equals(Material.matchMaterial("CROSSBOW")) ||
 					inv.getItemInOffHand().getType().equals(Material.SHIELD) ||
 					hoes.contains(m) ||
+					m.equals(Material.FISHING_ROD) ||
 					(e.getClickedBlock() != null && e.getClickedBlock().getType().isInteractable()))
 				return;
 			if (Main.Config.getBoolean("open-enchant-gui-on-right-click") == true)
 				Main.EnchantsCMD.onCommand(e.getPlayer(), Bukkit.getPluginCommand("enchants"), "enchants", new String[] {"dontshow"});
+		}
+	}
+	
+	public static void setupInCPTS()
+	{
+		ConfigurationSection cs = Main.InCPTConfig.getConfigurationSection("incompatibilities");
+		
+		if (cs == null)
+		{
+			Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid incompatibilities.yml file! Delete the current one to generate a new one.");
+			return;
+		}
+		Set<String> a = cs.getKeys(false);
+		for (String i : a) 
+		{
+			List<Enchantment> enchs = new ArrayList<Enchantment>();
+				for (String s : Main.InCPTConfig.getStringList("incompatibilities."+i+".enchants"))
+					enchs.add(dictionary.findEnchant(s));
+			incpts.put(Main.InCPTConfig.getStringList("incompatibilities."+i+".items"), enchs);
 		}
 	}
 }

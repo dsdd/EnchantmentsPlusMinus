@@ -43,7 +43,7 @@ public class EnchantsCommand implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
 		if (!(sender instanceof Player)) {
-        	sender.sendMessage(LangUtil.getLangMessage("invalidplayertype"));
+        	LangUtil.sendMessage(sender, "invalidplayertype");
         	return true;
         }
         Player p = (Player) sender;
@@ -55,7 +55,7 @@ public class EnchantsCommand implements CommandExecutor {
         		for (Map.Entry<List<Material>, String> entry : list.entrySet())
                 if (entry.getKey().contains(p.getInventory().getItemInMainHand().getType()))
                 {
-            	    sender.sendMessage(LangUtil.getLangMessage("openenchantsgui"));
+            	    LangUtil.sendMessage(sender, "openenchantsgui");
             	    EnchantGUI.openInventory(p, entry.getValue());
             	    return true;
                 }
@@ -63,11 +63,11 @@ public class EnchantsCommand implements CommandExecutor {
         	if (args.length > 0)
         	{
         	if (args[0] != "dontshow")
-        		sender.sendMessage(LangUtil.getLangMessage("invaliditem"));
+        		LangUtil.sendMessage(sender, "invaliditem");
         	}
         	else
         	{
-        		sender.sendMessage(LangUtil.getLangMessage("invaliditem"));
+        		LangUtil.sendMessage(sender, "invaliditem");
         	}
         	return false;
         }
@@ -76,10 +76,10 @@ public class EnchantsCommand implements CommandExecutor {
         	if (args.length > 0)
         	{
         	if (args[0] != "dontshow")
-        		sender.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
+        		LangUtil.sendMessage(sender, "insufficientpermission");
         	}
         	else
-        		sender.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
+        		LangUtil.sendMessage(sender, "insufficientpermission");
         }
 		return false;
 	}

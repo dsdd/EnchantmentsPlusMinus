@@ -8,7 +8,7 @@ import java.util.UUID;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.whyisthisnecessary.eps.legacy.LegacyUtil;
+import org.whyisthisnecessary.eps.EPS;
 import org.whyisthisnecessary.eps.util.LangUtil;
 
 import com.mojang.authlib.GameProfile;
@@ -23,7 +23,7 @@ public class TokenPouch extends ItemStack {
 	
 	public TokenPouch(int tokens)
 	{
-		super(LegacyUtil.isLegacy() ? Material.matchMaterial("SKULL_ITEM") : Material.PLAYER_HEAD, 1);
+		super(EPS.onLegacy() ? Material.matchMaterial("SKULL_ITEM") : Material.PLAYER_HEAD, 1);
 		SkullMeta meta = pouchSkullMeta;
 		meta.setDisplayName(LangUtil.getLangMessage("token-pouch"));
 		meta.setLore(Arrays.asList(new String[] {
@@ -36,7 +36,7 @@ public class TokenPouch extends ItemStack {
 	
 	// ¯\_(^v^)_/¯
 	private static SkullMeta getCustomSkullMeta(String texture) {
-		ItemStack head = LegacyUtil.isLegacy() ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
+		ItemStack head = EPS.onLegacy() ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
 		SkullMeta skull = (SkullMeta) head.getItemMeta();
 		GameProfile profile = new GameProfile(UUID.randomUUID(), null);
 

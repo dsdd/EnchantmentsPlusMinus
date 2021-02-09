@@ -7,16 +7,19 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
+@Deprecated
 public class TokenUtil {
 
 	private TokenUtil() {}
 	
 	/**Changes the amount of tokens a specified player has.
 	 * 
+	 * @deprecated Deprecated. Use EPS.getEconomy() instead.
 	 * @param playername The player affected
 	 * @param amount The amount of tokens changed. Can be negative.
 	 * @return Returns the amount of tokens the player has after.
 	 */
+	@Deprecated
 	public static Integer changeTokens(String playername, Integer amount)
 	{
 		File file = DataUtil.getUserDataFile(playername);
@@ -33,10 +36,12 @@ public class TokenUtil {
 	
 	/**Changes the amount of tokens a specified player has.
 	 * 
+	 * @deprecated Deprecated. Use EPS.getEconomy() instead.
 	 * @param player The player affected
 	 * @param amount The amount of tokens changed. Can be negative.
 	 * @return Returns the amount of tokens the player has after.
 	 */
+	@Deprecated
 	public static Integer changeTokens(Player player, Integer amount)
 	{
 		return changeTokens(player.getName(), amount);
@@ -44,10 +49,12 @@ public class TokenUtil {
 	
 	/**Sets the amount of tokens a specified player has.
 	 * 
+	 * @deprecated Deprecated. Use EPS.getEconomy() instead.
 	 * @param playername The player affected
 	 * @param value The amount of tokens to be set to. Can be negative, but why?
 	 * @return Returns the amount of tokens the player has after.
 	 */
+	@Deprecated
 	public static Integer setTokens(String playername, Integer value)
 	{
 		File file = DataUtil.getUserDataFile(playername);
@@ -64,10 +71,12 @@ public class TokenUtil {
 	
 	/**Sets the amount of tokens a specified player has.
 	 * 
+	 * @deprecated Deprecated. Use EPS.getEconomy() instead.
 	 * @param player The player affected
 	 * @param value The amount of tokens to be set to. Can be negative, but why?
 	 * @return Returns the amount of tokens the player has after.
 	 */
+	@Deprecated
 	public static Integer setTokens(Player player, Integer value)
 	{
 		return setTokens(player.getName(), value);
@@ -75,9 +84,11 @@ public class TokenUtil {
 	
 	/**Returns the amount of tokens a specified player has.
 	 * 
+	 * @deprecated Deprecated. Use EPS.getEconomy() instead.
 	 * @param player The player to get from
 	 * @return Returns the amount of tokens a specified player has.
 	 */
+	@Deprecated
 	public static Integer getTokens(Player player)
 	{
 		return getTokens(player.getName());
@@ -85,9 +96,11 @@ public class TokenUtil {
 	
 	/**Returns the amount of tokens a specified player has.
 	 * 
+	 * @deprecated Deprecated. Use EPS.getEconomy() instead.
 	 * @param playername The player to get from
 	 * @return Returns the amount of tokens a specified player has.
 	 */
+	@Deprecated
 	public static Integer getTokens(String playername)
 	{
 		File file = DataUtil.getUserDataFile(playername);

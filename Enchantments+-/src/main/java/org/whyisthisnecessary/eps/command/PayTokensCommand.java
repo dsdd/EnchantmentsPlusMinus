@@ -4,27 +4,30 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.whyisthisnecessary.eps.EPS;
+import org.whyisthisnecessary.eps.economy.Economy;
 import org.whyisthisnecessary.eps.util.DataUtil;
 import org.whyisthisnecessary.eps.util.LangUtil;
-import org.whyisthisnecessary.eps.util.TokenUtil;
 
 public class PayTokensCommand implements CommandExecutor {
 
+	private Economy economy = EPS.getEconomy();
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
 		if (!(sender instanceof Player)) {
-			sender.sendMessage(LangUtil.getLangMessage("invalidplayertype"));
+			LangUtil.sendMessage(sender, "invalidplayertype");
 			return false;
 		}
 		if (sender.hasPermission("eps.paytokens"))
 		{
 			if (args.length == 0) {
-			sender.sendMessage(LangUtil.getLangMessage("unspecifiedplayer"));
+			LangUtil.sendMessage(sender, "unspecifiedplayer");
 			return false;
 			}
 			if (args.length == 1)  {
-			sender.sendMessage(LangUtil.getLangMessage("unspecifiedtokenspay"));
+			LangUtil.sendMessage(sender, "unspecifiedtokenspay");
 			return false;
 			}
 			
@@ -32,23 +35,23 @@ public class PayTokensCommand implements CommandExecutor {
 			{
 				try {
 				Integer tokens = Integer.parseInt(args[1]);
-				if (TokenUtil.getTokens((Player)sender) < tokens)
+				if (economy.getBalance((Player)sender) < tokens)
 				{
-					sender.sendMessage(LangUtil.getLangMessage("invalidtokenamountpay"));
+					LangUtil.sendMessage(sender, "invalidtokenamountpay");
 					return true;
 				}
-				TokenUtil.changeTokens((Player)sender, -tokens);
-				TokenUtil.changeTokens(args[0], tokens);
+				economy.changeBalance((Player)sender, -tokens);
+				economy.changeBalance(args[0], tokens);
 				return true;
 				}
 				catch (NumberFormatException e){
-					sender.sendMessage(LangUtil.getLangMessage("invalidtokenamountpay"));
+					LangUtil.sendMessage(sender, "invalidtokenamountpay");
 					return true;
 				}
 			}
 			else
 			{
-				sender.sendMessage(LangUtil.getLangMessage("invalidplayer"));
+				LangUtil.sendMessage(sender, "invalidplayer");
 				return false;
 			}
 		}

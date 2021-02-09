@@ -4,7 +4,12 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 
-@SuppressWarnings("deprecation")
+/** Deprecated. Use EPS.getDictionary() instead.
+ * 
+ * @author TreuGames
+ *
+ */
+@Deprecated
 public class NameUtil {
 	
 	public static Enchantment getByName(String name)

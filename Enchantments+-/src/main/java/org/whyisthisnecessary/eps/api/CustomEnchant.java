@@ -1,18 +1,16 @@
 package org.whyisthisnecessary.eps.api;
 
-import java.lang.reflect.Field;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.enchantments.Enchantment;
+import org.whyisthisnecessary.eps.EPS;
+import org.whyisthisnecessary.eps.Main;
 import org.whyisthisnecessary.eps.legacy.Label;
-import org.whyisthisnecessary.eps.legacy.LegacyUtil;
-import org.whyisthisnecessary.eps.legacy.NameUtil;
-import org.whyisthisnecessary.eps.util.WrapUtil;
+import org.whyisthisnecessary.eps.util.Wrapper;
 import org.whyisthisnecessary.legacywrapper.LegacyWrapper;
 
 @SuppressWarnings("deprecation")
@@ -23,6 +21,7 @@ public class CustomEnchant {
 	/**Wraps a custom enchant with the specified namespace, name and max level and returns it
 	 * maxLvl only sets the maximum safe enchantment level for this enchant, and has no other use
 	 * 
+	 * @deprecated Deprecated. Use newEnchant() instead.
 	 * @param namespace The Java name for this enchant
 	 * @param name The display name for this enchant
 	 * @param maxLvl The maximum safe enchantment level for this enchant
@@ -31,8 +30,8 @@ public class CustomEnchant {
 	@Deprecated
 	public static Enchantment wrapEnchant(String namespace, String name, Integer maxLvl)
 	{
-		if (!LegacyUtil.isLegacy())
-			return (new WrapUtil(namespace, name, maxLvl));
+		if (!EPS.onLegacy())
+			return (new Wrapper(namespace, name, maxLvl));
 		else
 			return (LegacyWrapper.newEnchant(namespace, name, maxLvl));
 	}
@@ -45,54 +44,41 @@ public class CustomEnchant {
 	 */
 	public static Enchantment newEnchant(String namespace, String name)
 	{
-		if (!LegacyUtil.isLegacy())
-		{
-			Enchantment e = new WrapUtil(namespace, name, 32767);
-			//registerEnchant(e);
-			return e;
-		}
-		else
-		{
-			Enchantment e = LegacyWrapper.newEnchant(namespace, name, 32767);
-			//registerEnchant(e);
-			return e;
-		}
+		return EPS.onLegacy() ? LegacyWrapper.newEnchant(namespace, name, 32767) : new Wrapper(namespace, name, 32767);
 	}
 	
 	/**Registers an enchant for use.
 	 * Without registering an enchant, the enchant becomes unusable.
-	 * Note that already registered enchants will print an error if registered again.
 	 * 
 	 * @param enchant The enchant you want to register.
 	 * @return Returns if the registering was successful.
 	 */
 	public static boolean registerEnchant(Enchantment enchant)
 	{
-		boolean registered = false;
-		if (LegacyUtil.isLegacy())
+		if (EPS.onLegacy())
 			Label.addLabel(enchant.getName(), enchant);
 		else
 			Label.addLabel(enchant.getKey().getKey(), enchant);
 		registeredEnchants.add(enchant);
-		if (!Arrays.stream(Enchantment.values()).collect(Collectors.toList()).contains(enchant))
+		File enchantfile = new File(Main.EnchantsFolder, EPS.getDictionary().getName(enchant)+".yml");
+		if (enchantfile.exists())
+			EPSConfiguration.fgMap.put(enchant, EPSConfiguration.loadConfiguration(enchantfile));
+		if (!Arrays.asList(Enchantment.values()).contains(enchant))
 		{
 			try
 			{
-				Field f = Enchantment.class.getDeclaredField("acceptingNew");
-				f.setAccessible(true);
-				f.set(null, true);
 				Enchantment.registerEnchantment(enchant);
-				Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GREEN+"Registered enchant "+NameUtil.getName(enchant).toUpperCase()+"!");
+				Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GREEN+"Registered enchant "+EPS.getDictionary().getName(enchant).toUpperCase()+"!");
+				return true;
 			}
 			catch (Exception e)
 			{
-				registered = false;
 				e.printStackTrace();
 			}
-			return registered;
+			return false;
 		}
 		else
-	    return registered;
+			return false;
 		
 	}
 }

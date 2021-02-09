@@ -2,9 +2,9 @@ package org.eps;
 
 import org.whyisthisnecessary.eps.Main;
 
-public class BuiltInPackParser {
+public class PackLoader {
 
-	public BuiltInPackParser(Main plugin)
+	public PackLoader(Main plugin)
 	{
 		new org.eps.pickaxepack.PackMain().onEnable();
 		new org.eps.pvppack.PackMain().onEnable();

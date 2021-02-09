@@ -24,23 +24,30 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.whyisthisnecessary.eps.api.ConfigUtil;
+import org.whyisthisnecessary.eps.EPS;
+import org.whyisthisnecessary.eps.Main;
+import org.whyisthisnecessary.eps.api.EPSConfiguration;
+import org.whyisthisnecessary.eps.api.Reloadable;
 import org.whyisthisnecessary.eps.dependencies.VaultHook;
-import org.whyisthisnecessary.eps.legacy.LegacyUtil;
+import org.whyisthisnecessary.eps.economy.Economy;
 import org.whyisthisnecessary.eps.util.LangUtil;
-import org.whyisthisnecessary.eps.util.TokenUtil;
 
-public class EnchantProcessor implements Listener {
+public class EnchantProcessor implements Listener, Reloadable {
 	
 	private boolean allowenchantmods = true;
 	private boolean enchantprocessed = false;
 	private Collection<Location> saves = new ArrayList<Location>();
 	private Random temp = new Random();
-	private static Material endframe = LegacyUtil.isLegacy() ? Material.matchMaterial("ENDER_PORTAL_FRAME") : Material.matchMaterial("END_PORTAL_FRAME");
+	private Material endframe = EPS.onLegacy() ? Material.matchMaterial("ENDER_PORTAL_FRAME") : Material.matchMaterial("END_PORTAL_FRAME");
+	private Economy economy = EPS.getEconomy();
 	
     public EnchantProcessor(Plugin plugin)
     {
     	Bukkit.getPluginManager().registerEvents(this, plugin);
+    	setDefault(EPSConfiguration.getConfiguration(CustomEnchants.TOKENCHARITY), "random-range", "%lvl%");
+    	setDefault(EPSConfiguration.getConfiguration(CustomEnchants.CHARITY), "random-range", "%lvl%");
+    	setDefault(EPSConfiguration.getConfiguration(CustomEnchants.TOKENBLOCKS), "random-range", "%lvl%");
+    	setDefault(EPSConfiguration.getConfiguration(CustomEnchants.MONEYBLOCKS), "random-range", "%lvl%");
     }
     
 	@EventHandler
@@ -56,7 +63,7 @@ public class EnchantProcessor implements Listener {
 		if (e.getPlayer().getGameMode() == GameMode.CREATIVE || e.getPlayer().getGameMode() == GameMode.SPECTATOR)
 			return;
 		if (e.getPlayer().getInventory().firstEmpty() == -1) {
-			e.getPlayer().sendMessage(LangUtil.getLangMessage("inventoryfull"));
+			LangUtil.sendMessage(e.getPlayer(), "inventoryfull");
             return; }
 		if (e.getBlock().getState() instanceof Container)
             return;
@@ -68,39 +75,45 @@ public class EnchantProcessor implements Listener {
 		
 		if (mainmeta.hasEnchant(CustomEnchants.HASTE))
 		{
-			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.HASTE, mainmeta.getEnchantLevel(CustomEnchants.HASTE), "chance"))
+			if (getNext() <= EPSConfiguration.getConfiguration(CustomEnchants.HASTE).getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.HASTE), "chance"))
 			{
-				e.getPlayer().sendMessage(LangUtil.getLangMessage("hasteactivate"));
+				LangUtil.sendMessage(e.getPlayer(), "hasteactivate");
 				e.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 60, mainmeta.getEnchantLevel(CustomEnchants.HASTE)-1));
 			}
 		}
 		
 		if (mainmeta.hasEnchant(CustomEnchants.TOKENBLOCKS))
 		{
-			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.TOKENBLOCKS, mainmeta.getEnchantLevel(CustomEnchants.TOKENBLOCKS), "chance"))
+			EPSConfiguration config = EPSConfiguration.getConfiguration(CustomEnchants.TOKENBLOCKS);
+			int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.TOKENBLOCKS);
+			if (getNext() <= config.getAutofilledDouble(enchlvl, "chance"))
 			{
-				double explicit = ConfigUtil.getAutofilledDouble(CustomEnchants.TOKENBLOCKS, mainmeta.getEnchantLevel(CustomEnchants.TOKENBLOCKS), "tokens");
-				int val = (int) explicit;
-				e.getPlayer().sendMessage(LangUtil.getLangMessage("tokenblocksactivate").replaceAll("%tokens%", Integer.toString(val)));
-				TokenUtil.changeTokens(e.getPlayer(), val);
+				int randomrange = config.getAutofilledInt(enchlvl, "random-range");
+				int tokens = config.getAutofilledInt(enchlvl, "tokens")+temp.nextInt(randomrange*2)-randomrange;
+				String m = LangUtil.getLangMessage("tokenblocksactivate").replaceAll("%tokens%", Integer.toString(tokens));
+				if (m != "")
+					e.getPlayer().sendMessage(m);
+				economy.changeBalance(e.getPlayer(), tokens);
 			}
 		}
 		
 		if (mainmeta.hasEnchant(CustomEnchants.MONEYBLOCKS))
 		{
-			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.MONEYBLOCKS, mainmeta.getEnchantLevel(CustomEnchants.TOKENBLOCKS), "chance"))
+			EPSConfiguration config = EPSConfiguration.getConfiguration(CustomEnchants.MONEYBLOCKS);
+			int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.MONEYBLOCKS);
+			if (getNext() <= config.getAutofilledDouble(enchlvl, "chance"))
 			{
 				if (PackMain.VaultEnabled)
 				{
-					double explicit = ConfigUtil.getAutofilledDouble(CustomEnchants.MONEYBLOCKS, mainmeta.getEnchantLevel(CustomEnchants.MONEYBLOCKS), "money");
-					int val = (int) explicit;
-					e.getPlayer().sendMessage(LangUtil.getLangMessage("moneyblocksactivate").replaceAll("%money%", Integer.toString(val)));
-					VaultHook.getEconomy().depositPlayer(e.getPlayer(), val);
+					int randomrange = config.getAutofilledInt(enchlvl, "random-range");
+					int money = config.getAutofilledInt(enchlvl, "money")+temp.nextInt(randomrange*2)-randomrange;
+					String m = LangUtil.getLangMessage("moneyblocksactivate").replaceAll("%money%", Integer.toString(money));
+					if (m != "")
+						e.getPlayer().sendMessage(m);
+					VaultHook.getEconomy().depositPlayer(e.getPlayer(), money);
 				}
 				else
-				{
 					Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"You must have Vault to use money enchants!");
-				}
 			}
 		}
 		
@@ -108,13 +121,17 @@ public class EnchantProcessor implements Listener {
 		{
 			if (PackMain.VaultEnabled)
 			{
-				if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.CHARITY, mainmeta.getEnchantLevel(CustomEnchants.CHARITY), "chance"))
+				EPSConfiguration config = EPSConfiguration.getConfiguration(CustomEnchants.CHARITY);
+				int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.CHARITY);
+				if (getNext() <= config.getAutofilledDouble(enchlvl, "chance"))
 				{
-				double explicit = ConfigUtil.getAutofilledDouble(CustomEnchants.CHARITY, mainmeta.getEnchantLevel(CustomEnchants.CHARITY), "money");
-				int val = (int) explicit;
-				Bukkit.broadcastMessage(LangUtil.getLangMessage("charityactivate").replaceAll("%money%", Integer.toString(val)).replaceAll("%player%", e.getPlayer().getDisplayName()));
-				for (Player p : Bukkit.getOnlinePlayers())
-				VaultHook.getEconomy().depositPlayer(p, val);
+					int randomrange = config.getAutofilledInt(enchlvl, "random-range");
+					int money = config.getAutofilledInt(enchlvl, "money")+temp.nextInt(randomrange*2)-randomrange;
+					String m = LangUtil.getLangMessage("charityactivate").replaceAll("%money%", Integer.toString(money)).replaceAll("%player%", e.getPlayer().getDisplayName());
+					if (m != "")
+						Bukkit.broadcastMessage(m);
+					for (Player p : Bukkit.getOnlinePlayers())
+						VaultHook.getEconomy().depositPlayer(p, money);
 				}
 			}
 			else
@@ -125,13 +142,17 @@ public class EnchantProcessor implements Listener {
 		
 		if (mainmeta.hasEnchant(CustomEnchants.TOKENCHARITY))
 		{
-			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.TOKENCHARITY, mainmeta.getEnchantLevel(CustomEnchants.TOKENCHARITY), "chance"))
+			EPSConfiguration config = EPSConfiguration.getConfiguration(CustomEnchants.TOKENCHARITY);
+			int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.TOKENCHARITY);
+			if (getNext() <= config.getAutofilledDouble(enchlvl, "chance"))
 			{
-			double explicit = ConfigUtil.getAutofilledDouble(CustomEnchants.TOKENCHARITY, mainmeta.getEnchantLevel(CustomEnchants.TOKENCHARITY), "tokens");
-			int val = (int) explicit;
-			Bukkit.broadcastMessage(LangUtil.getLangMessage("tokencharityactivate").replaceAll("%tokens%", Integer.toString(val)).replaceAll("%player%", e.getPlayer().getDisplayName()));
-			for (Player p : Bukkit.getOnlinePlayers())
-			TokenUtil.changeTokens(p, val);
+				int randomrange = config.getAutofilledInt(enchlvl, "random-range");
+				int tokens = config.getAutofilledInt(enchlvl, "tokens")+temp.nextInt(randomrange*2)-randomrange;
+				String m = LangUtil.getLangMessage("tokencharityactivate").replaceAll("%tokens%", Integer.toString(tokens)).replaceAll("%player%", e.getPlayer().getDisplayName());
+				if (m != "")
+					Bukkit.broadcastMessage(m);
+				for (Player p : Bukkit.getOnlinePlayers())
+					economy.changeBalance(p, tokens);
 			}
 		}
 
@@ -145,20 +166,17 @@ public class EnchantProcessor implements Listener {
 			enchantprocessed = true;
 			Integer enchlvl = mainmeta.getEnchantLevel(CustomEnchants.EXPLOSIVE);
 		    
-		    if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.EXPLOSIVE, mainmeta.getEnchantLevel(CustomEnchants.EXPLOSIVE), "chance"))
+		    if (getNext() <= EPSConfiguration.getConfiguration(CustomEnchants.EXPLOSIVE).getAutofilledDouble(enchlvl, "chance"))
 			{
 					Location loc = e.getBlock().getLocation();
-					int radius = enchlvl/2;
+					int radius = (int) (Math.floor(enchlvl/2)+1);
 					List<Block> area = sphere(loc, radius);
 					loc.getWorld().createExplosion(loc, 0F);
 					
 					for (Block block : area) 
 					{
-					    if (block.getType() == Material.BEDROCK || block.getType() == endframe)
+					    if (block.getType() == Material.BEDROCK || block.getType() == Material.AIR || block.getType() == endframe)
 					    	continue;
-					    
-					    if (block.getType() == Material.AIR)
-				        	continue;
 					    
 					    BlockBreakEvent newevent = new BlockBreakEvent(block, e.getPlayer());
 					    Bukkit.getServer().getPluginManager().callEvent(newevent);
@@ -184,7 +202,7 @@ public class EnchantProcessor implements Listener {
 			Integer enchlvl = mainmeta.getEnchantLevel(CustomEnchants.EXCAVATE);
 		    
 		    
-			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.EXCAVATE, mainmeta.getEnchantLevel(CustomEnchants.EXCAVATE), "chance"))
+			if (getNext() <= EPSConfiguration.getConfiguration(CustomEnchants.EXCAVATE).getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.EXCAVATE), "chance"))
 			{
 					Location loc = e.getBlock().getLocation();
 					int radius = enchlvl/2;
@@ -226,7 +244,7 @@ public class EnchantProcessor implements Listener {
 			Integer enchlvl = mainmeta.getEnchantLevel(CustomEnchants.DIAMOND);
 		    
 		    
-			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.DIAMOND, mainmeta.getEnchantLevel(CustomEnchants.DIAMOND), "chance"))
+			if (getNext() <= EPSConfiguration.getConfiguration(CustomEnchants.DIAMOND).getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.DIAMOND), "chance"))
 			{
 					Location loc = e.getBlock().getLocation();
 					int radius = enchlvl/2;
@@ -263,7 +281,7 @@ public class EnchantProcessor implements Listener {
 			Integer enchlvl = mainmeta.getEnchantLevel(CustomEnchants.VEIN_MINER);
 		    
 		    
-			if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.VEIN_MINER, mainmeta.getEnchantLevel(CustomEnchants.VEIN_MINER), "chance"))
+			if (getNext() <= EPSConfiguration.getConfiguration(CustomEnchants.VEIN_MINER).getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.VEIN_MINER), "chance"))
 			{
 					Location loc = e.getBlock().getLocation();
 					int radius = enchlvl/2;
@@ -308,7 +326,7 @@ public class EnchantProcessor implements Listener {
 		{
 			Integer lvl1 = mainmeta.getEnchantLevel(CustomEnchants.TELEPATHY);
 			if (lvl1 > 0) {
-		        if (getNext() <= ConfigUtil.getAutofilledDouble(CustomEnchants.TELEPATHY, mainmeta.getEnchantLevel(CustomEnchants.TELEPATHY), "chance"))
+		        if (getNext() <= EPSConfiguration.getConfiguration(CustomEnchants.TELEPATHY).getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.TELEPATHY), "chance"))
 		        {
 		        	e.setDropItems(false);
 		        	for (ItemStack drop : dropsfinal) {
@@ -346,9 +364,9 @@ public class EnchantProcessor implements Listener {
 			{	
 			    if (getFortuneDrops().contains(m) && !(saves.contains(block.getLocation()))) {
 			    	enchantprocessed = true;
-			    	drop.setAmount(getDropCount(lvl, new Random())); }
+			    	drop.setAmount(getDropCount(lvl, temp)); }
 			}
-		    if (lvl1 > 0 && getNext() < ConfigUtil.getAutofilledDouble(CustomEnchants.AUTOSMELT, mainmeta.getEnchantLevel(CustomEnchants.AUTOSMELT), "chance"))
+		    if (lvl1 > 0 && getNext() < EPSConfiguration.getConfiguration(CustomEnchants.AUTOSMELT).getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.AUTOSMELT), "chance"))
 		    {
 		    	enchantprocessed = true;
                 if (m.equals(Material.COBBLESTONE))
@@ -418,7 +436,7 @@ public class EnchantProcessor implements Listener {
     {
     	List<Material> fortuneapply = new ArrayList<Material>();
     	List<String> list;
-    	list = ConfigUtil.getConfig().getStringList("applyfortuneon");
+    	list = Main.Config.getStringList("applyfortuneon");
     	for (String i : list)
     	fortuneapply.add(Material.getMaterial(i));
     	return fortuneapply;
@@ -452,6 +470,18 @@ public class EnchantProcessor implements Listener {
 	public double getNext()
 	{
 		return temp.nextDouble()*100;
+	}
+	
+	public void setDefault(EPSConfiguration config, String path, Object value)
+	{
+		if (!config.isSet(path))
+			config.set(path, value);
+		config.save();
+	}
+
+	@Override
+	public void reload() {
+		
 	}
 	
 }

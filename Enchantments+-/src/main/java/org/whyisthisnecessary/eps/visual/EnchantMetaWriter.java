@@ -1,5 +1,6 @@
 package org.whyisthisnecessary.eps.visual;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,88 +13,83 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.whyisthisnecessary.eps.EPS;
 import org.whyisthisnecessary.eps.Main;
+import org.whyisthisnecessary.eps.api.EPSConfiguration;
+import org.whyisthisnecessary.eps.api.Reloadable;
 import org.whyisthisnecessary.eps.legacy.Label;
-import org.whyisthisnecessary.eps.legacy.NameUtil;
+import org.whyisthisnecessary.eps.util.Dictionary;
 
-public class EnchantMetaWriter implements Listener {
+public class EnchantMetaWriter implements Listener, Reloadable {
 	
 	protected static Map<Enchantment, String> enchantnames = new HashMap<Enchantment, String>();
+	private static boolean ve = Main.Config.getBoolean("show-vanilla-enchants-in-lore");
+	private static boolean show_enchant_lore = Main.Config.getBoolean("show-enchant-lore");
+	private static boolean show_enchant_descriptions_in_lore = Main.Config.getBoolean("show-enchant-descriptions-in-lore");
+	private static Map<Enchantment, ArrayList<String>> descriptionMap = new HashMap<>();
+	private static List<String> allDescriptionLines = new ArrayList<String>();
+	private static ChatColor prefix = show_enchant_descriptions_in_lore ? ChatColor.BLUE : ChatColor.GRAY;
+	private static final Dictionary dictionary = EPS.getDictionary();
 	
-	@EventHandler(priority = EventPriority.HIGH)
-	public void onInventoryClick(InventoryClickEvent e)
+	public EnchantMetaWriter()
 	{
-		ItemStack item = e.getCurrentItem();
-		if (item == null) return;
-		if (item.getType().equals(Material.ENCHANTED_BOOK)) return;
-		ItemMeta meta = getWrittenMeta(item);
-		if (meta == null) return;
-		if (meta.getLore() != item.getItemMeta().getLore())
-			e.getCurrentItem().setItemMeta(meta);
-	}
-	
-	@EventHandler
-	public void onPlayerInteract(PlayerInteractEvent e)
-	{
-		ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
-		if (item == null) return;
-		if (item.getType().equals(Material.ENCHANTED_BOOK)) return;
-		ItemMeta meta = getWrittenMeta(item);
-		if (meta == null) return;
-		if (meta.getLore() != item.getItemMeta().getLore())
-			item.setItemMeta(meta);
-	}
-	
-	@EventHandler
-	public void onInventoryOpen(InventoryOpenEvent e)
-	{
-		ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
-		if (item == null) return;
-		if (item.getType().equals(Material.ENCHANTED_BOOK)) return;
-		ItemMeta meta = getWrittenMeta(item);
-		if (meta == null) return;
-		if (meta.getLore() != item.getItemMeta().getLore())
-			item.setItemMeta(meta);
+		for (Enchantment enchant : Enchantment.values())
+		{
+			String configdesc = EPSConfiguration.loadConfiguration(new File(Main.EnchantsFolder, dictionary.getName(enchant)+".yml")).getString("upgradedesc");
+			final String desc = configdesc == null ? dictionary.getDefaultDescription(enchant) : configdesc;
+			
+			descriptionMap.put(enchant, new ArrayList<String>() {
+				private static final long serialVersionUID = -5686650364578005499L;
+				{
+			        add("");
+			        if (desc.length() > 120)
+			            for (int i=0;i<=(desc.length() / 90);i++)
+			            {
+			            	String str = ChatColor.GRAY+desc.substring(45*i, 45*i+45 > desc.length() ? desc.length() : 45*i+45);
+			            	add(str);
+			            	allDescriptionLines.add(str);
+			            }
+			        else
+			        {
+			        	add(ChatColor.GRAY+desc);
+			        	allDescriptionLines.add(ChatColor.GRAY+desc);
+			        }
+			        add("");
+		    	}
+			}
+			);
+		}
 	}
 	
 	private static List<String> getWrittenEnchantLore(ItemStack item)
 	{
 		ItemMeta meta = item.getItemMeta();
 		if (meta == null)
-			return (new ArrayList<String>(Arrays.asList()));
-		Map<Enchantment, Integer> map = meta.getEnchants();
-		List<String> list = meta.getLore();
-		
-		if (Main.Config.getBoolean("show-enchant-lore") == false)
+			return (new ArrayList<String>());
+		if (!show_enchant_lore)
 			return meta.getLore();
-		
-		if (list == null) list = new ArrayList<String>(Arrays.asList());
-		
-		Collection<Enchantment> enchants = Label.values();
+		Map<Enchantment, Integer> map = meta.getEnchants();
+		List<String> list = meta.getLore() == null ? new ArrayList<String>() : meta.getLore();
+		Collection<Enchantment> enchants = ve ? new ArrayList<Enchantment>(Arrays.asList(Enchantment.values())) : Label.values();
 		
 		for (Enchantment enchant : enchants)
 		{
 			for (int i=0;i<list.size();i++)
 			{
-				String[] split = list.get(i).split(" ");
-				int numIndex = split.length-1;
-				String val = split[0];
-				for (int v=1;v<numIndex;v++)
-					val = val + " " + split[v];
-				if (split.length < 2)
-					continue;
-				if (!val.equals(ChatColor.GRAY+enchantnames.get(enchant)))
-					continue;
-				if (!(isNumeric(split[numIndex])|| isRomanNumeral(split[numIndex])))
-					continue;
-				list.remove(i);
+				String s = list.get(i);
+				if (s.split(" ").length > 1)
+					if (s.startsWith(ChatColor.GRAY+enchantnames.get(enchant)) ||
+						s.startsWith(ChatColor.BLUE+enchantnames.get(enchant)))
+						list.remove(i);
+				if (allDescriptionLines.contains(s) || s.equals(ChatColor.BLACK+"-"))
+					list.remove(i);
 			}
 		}
 		
@@ -102,8 +98,17 @@ public class EnchantMetaWriter implements Listener {
 			if (enchants.contains(entry.getKey()))
 			{
 				String name = enchantnames.get(entry.getKey());
-				String lore = ChatColor.GRAY+name+" "+ getNumber(entry.getValue());
+				String lore = prefix+name+" "+ getNumber(entry.getValue());
+			    if (show_enchant_descriptions_in_lore)
+			    {
+				    List<String> l = getDescription(entry.getKey());
+				    for (int i=l.size()-1;i>-1;i--)
+				    	if (l.get(i) != "")
+				    	list.add(0, l.get(i));
+			    }
 			    list.add(0, lore);
+			    if (show_enchant_descriptions_in_lore)
+			    	list.add(0, ChatColor.BLACK+"-");
 			}
 		}
 		return list;
@@ -117,12 +122,15 @@ public class EnchantMetaWriter implements Listener {
 	 */
 	public static ItemMeta getWrittenMeta(ItemStack item)
 	{
-		if (Main.Config.getBoolean("show-enchant-lore") == false) return item.getItemMeta();
+		if (!show_enchant_lore) 
+			return item.getItemMeta();
 		List<String> lore = EnchantMetaWriter.getWrittenEnchantLore(item);
 		ItemMeta meta = item.getItemMeta();
 		if (meta != null)
 		if (lore != null)
 		meta.setLore(lore);
+		if (ve)
+			meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 		return meta;
 	}
 	
@@ -133,10 +141,7 @@ public class EnchantMetaWriter implements Listener {
 	 */
 	public static String getNumber(Integer num)
 	{
-		if (Main.Config.getBoolean("use-roman-numerals") == false)
-			return num.toString();
-		else
-			return getRomanNumeral(num);
+		return Main.Config.getBoolean("use-roman-numerals") ? getRomanNumeral(num) : num.toString();
 	}
 	
 	/** Gets the roman numeral of the specified number.
@@ -200,57 +205,35 @@ public class EnchantMetaWriter implements Listener {
 		}
 	}
 	
-	private static boolean isNumeric(String strNum) 
-	{
-	    try
-	    {
-	    	Integer integer = Integer.parseInt(strNum);
-	    	integer++;
-	    	return true;
-	    }
-	    catch (NumberFormatException e)
-	    {
-	    	return false;
-	    }
-	}
-	
 	public static void registerEnchantNames()
 	{
-		for (Enchantment enchant : Label.values())
-			enchantnames.put(enchant, WordUtils.capitalizeFully(NameUtil.getName(enchant).replaceAll("_", " ")));
+		for (Enchantment enchant : Enchantment.values())
+			enchantnames.put(enchant, WordUtils.capitalizeFully(dictionary.getName(enchant).replaceAll("_", " ")));
 	}
 	
 	public static List<String> getWrittenEnchantLoreBook(ItemStack item)
 	{
 		EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
 		if (meta == null)
-			return (new ArrayList<String>(Arrays.asList()));
+			return (new ArrayList<String>());
 		Map<Enchantment, Integer> map = meta.getStoredEnchants();
-		List<String> list = meta.getLore();
+		List<String> list = meta.getLore() == null ? new ArrayList<String>() : meta.getLore();
 		
-		if (Main.Config.getBoolean("show-enchant-lore") == false)
-			return meta.getLore();
-		
-		if (list == null) list = new ArrayList<String>(Arrays.asList());
-		
-		Collection<Enchantment> enchants = Label.values();
+		if (show_enchant_lore == false)
+			return list;
+
+		Collection<Enchantment> enchants = ve ? new ArrayList<Enchantment>(Arrays.asList(Enchantment.values())) : Label.values();
 		
 		for (Enchantment enchant : enchants)
 		{
 			for (int i=0;i<list.size();i++)
 			{
-				String[] split = list.get(i).split(" ");
-				int numIndex = split.length-1;
-				String val = split[0];
-				for (int v=1;v<numIndex;v++)
-					val = val + " " + split[v];
-				if (split.length < 2)
-					continue;
-				if (!val.equals(ChatColor.GRAY+enchantnames.get(enchant)))
-					continue;
-				if (!(isNumeric(split[numIndex])|| isRomanNumeral(split[numIndex])))
-					continue;
-				list.remove(i);
+				String s = list.get(i);
+				if (s.split(" ").length > 1)
+				if (s.startsWith(prefix+enchantnames.get(enchant)))
+					list.remove(i);
+				if (allDescriptionLines.contains(s))
+					list.remove(i);
 			}
 		}
 		
@@ -259,7 +242,7 @@ public class EnchantMetaWriter implements Listener {
 			if (enchants.contains(entry.getKey()))
 			{
 				String name = enchantnames.get(entry.getKey());
-				String lore = ChatColor.GRAY+name+" "+ getNumber(entry.getValue());
+				String lore = prefix+name+" "+ getNumber(entry.getValue());
 			    list.add(0, lore);
 			}
 		}
@@ -268,12 +251,57 @@ public class EnchantMetaWriter implements Listener {
 	
 	public static EnchantmentStorageMeta getWrittenMetaBook(ItemStack item)
 	{
-		if (Main.Config.getBoolean("show-enchant-lore") == false) return (EnchantmentStorageMeta)item.getItemMeta();
+		if (!show_enchant_lore) 
+			return (EnchantmentStorageMeta)item.getItemMeta();
 		List<String> lore = EnchantMetaWriter.getWrittenEnchantLoreBook(item);
 		EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
 		if (meta != null)
 		if (lore != null)
 		meta.setLore(lore);
+		if (ve)
+			meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
 		return meta;
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected static List<String> getDescription(Enchantment enchant)
+	{
+		ArrayList<String> o = descriptionMap.get(enchant);
+		return o == null ? new ArrayList<String>() : (ArrayList<String>) o.clone();
+	}
+	
+	private static void refreshItem(ItemStack item)
+	{
+		if (item == null) return;
+		if (item.getType().equals(Material.ENCHANTED_BOOK)) return;
+		ItemMeta meta = getWrittenMeta(item);
+		if (meta == null) return;
+		if (meta.getLore() != item.getItemMeta().getLore())
+			item.setItemMeta(meta);
+	}
+	
+	@EventHandler
+	public void onInventoryClick(InventoryClickEvent e)
+	{
+		refreshItem(e.getCurrentItem());
+	}
+	
+	@EventHandler
+	public void onPlayerInteract(PlayerInteractEvent e)
+	{
+		refreshItem(e.getPlayer().getInventory().getItemInMainHand());
+	}
+	
+	@EventHandler
+	public void onInventoryOpen(InventoryOpenEvent e)
+	{
+		refreshItem(e.getPlayer().getInventory().getItemInMainHand());
+	}
+
+	@Override
+	public void reload() {
+		ve = Main.Config.getBoolean("show-vanilla-enchants-in-lore");
+		show_enchant_lore = Main.Config.getBoolean("show-enchant-lore");
+		show_enchant_descriptions_in_lore = Main.Config.getBoolean("show-enchant-descriptions-in-lore");
 	}
 }

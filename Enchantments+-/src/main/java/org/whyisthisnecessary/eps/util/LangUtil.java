@@ -1,14 +1,26 @@
 package org.whyisthisnecessary.eps.util;
 
-import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.whyisthisnecessary.eps.Main;
+import org.whyisthisnecessary.eps.api.Reloadable;
 
-public class LangUtil {
+
+public class LangUtil implements Reloadable {
 	
-	private LangUtil() {}
+	private static Map<String, String> msgs = new HashMap<String, String>();
+	private static String prefix = Main.LangConfig.getString("prefix");
+	public static LangUtil lang = new LangUtil();
+
+	private LangUtil() 
+	{
+		reload();
+	}
 	
 	/**Returns the language message defined in lang.yml
 	 * 
@@ -16,22 +28,8 @@ public class LangUtil {
 	 * @return Returns the language message defined in lang.yml
 	 */
 	public static String getLangMessage(String langkey)
-	{
-		String prefix = Main.LangConfig.getString("prefix");
-		String message =  Main.LangConfig.getString("messages."+langkey);
-		
-		if (prefix == null)
-		{
-			Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid prefix text! Please change your prefix in lang.yml.");
-			prefix = "";
-		}
-		if (message == null)
-		{
-			Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid message text! Please change "+langkey+" in lang.yml.");
-			message = "&cAn unexpected error occured while attempting to perform this command";
-		}
-		
-		return ChatColor.translateAlternateColorCodes('&',prefix + message);
+	{	
+		return ChatColor.translateAlternateColorCodes('&',prefix + msgs.get(langkey));
 	}
 	
 	/**Sets the language message defined in lang.yml
@@ -42,14 +40,9 @@ public class LangUtil {
 	public static void setLangMessage(String langkey, String message)
 	{
 		Main.LangConfig.set("messages."+langkey, message);
+		msgs.put(langkey, message);
 		if (Main.LangFile.exists())
-		{
-            try {
-            	Main.LangConfig.save(Main.LangFile);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+            DataUtil.saveConfig(Main.LangConfig, Main.LangFile);
 	}
 	
 	/**Sets the language message defined in lang.yml if it does not already exist
@@ -59,17 +52,33 @@ public class LangUtil {
 	 */
 	public static void setDefaultLangMessage(String langkey, String message)
 	{
-		if (Main.LangConfig.get("messages."+langkey) == null)
-		{
-			Main.LangConfig.set("messages."+langkey, message);
-			if (Main.LangFile.exists())
-			{
-				try {
-					Main.LangConfig.save(Main.LangFile);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+		if (!msgs.containsKey(langkey))
+			setLangMessage(langkey, message);
+	}
+	
+	/** Goes through null and blank checking
+	 * 
+	 * @param p The sender to message
+	 * @param message The message to be sent
+	 */
+	public static void sendMessage(Player p, String langkey)
+	{
+		sendMessage((CommandSender)p, langkey);
+	}
+	
+	public static void sendMessage(CommandSender p, String langkey)
+	{
+		String a = getLangMessage(langkey);
+		if (a == null || a == "" || a == " ")
+			return;
+		p.sendMessage(a);
+	}
+
+	@Override
+	public void reload() 
+	{
+		ConfigurationSection section = Main.LangConfig.getConfigurationSection("messages");
+		for (Map.Entry<String, Object> entry : section.getValues(false).entrySet())
+			msgs.put(entry.getKey(), entry.getValue().toString());
 	}
 }

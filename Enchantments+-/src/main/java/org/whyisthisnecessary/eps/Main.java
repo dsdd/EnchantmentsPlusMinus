@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -23,15 +24,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.eps.BuiltInPackParser;
+import org.eps.PackLoader;
 import org.eps.autoupdater.AutoUpdate;
-import org.whyisthisnecessary.eps.api.ConfigUtil;
+import org.whyisthisnecessary.eps.api.EPSConfiguration;
+import org.whyisthisnecessary.eps.api.Reloadable;
 import org.whyisthisnecessary.eps.command.EPSCommand;
 import org.whyisthisnecessary.eps.command.EnchantsCommand;
 import org.whyisthisnecessary.eps.command.PayTokensCommand;
@@ -41,7 +44,6 @@ import org.whyisthisnecessary.eps.dependencies.Metrics;
 import org.whyisthisnecessary.eps.dependencies.PlaceholderAPIHook;
 import org.whyisthisnecessary.eps.dependencies.VaultHook;
 import org.whyisthisnecessary.eps.item.ItemEvents;
-import org.whyisthisnecessary.eps.legacy.LegacyUtil;
 import org.whyisthisnecessary.eps.util.DataUtil;
 import org.whyisthisnecessary.eps.util.LangUtil;
 import org.whyisthisnecessary.eps.visual.EnchantGUI;
@@ -50,7 +52,9 @@ import org.whyisthisnecessary.eps.workbench.AnvilUpdate;
 
 import com.google.common.io.Files;
 
-public class Main extends JavaPlugin implements Listener, CommandExecutor {
+import net.md_5.bungee.api.ChatColor;
+
+public class Main extends JavaPlugin implements Listener, CommandExecutor, Reloadable {
 
 	public static Main plugin;
 	public static File DataFolder;
@@ -59,13 +63,16 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	public static File LangFile;
 	public static File InCPTFile;
 	public static File GuisFile;
+	public static File GuiLoreFile;
 	public static File UUIDDataStore;
 	public static FileConfiguration Config;
 	public static FileConfiguration LangConfig;
 	public static FileConfiguration UUIDDataStoreConfig;
 	public static FileConfiguration InCPTConfig;	
 	public static FileConfiguration GuisConfig;
+	public static FileConfiguration GuiLoreConfig;
 	public static EnchantsCommand EnchantsCMD;
+	public static EnchantMetaWriter enchantMetaWriter;
 	
 	@Override
 	public void onEnable()
@@ -100,6 +107,11 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 		InCPTFile = new File(getDataFolder(), "incompatibilities.yml");
 		saveDefaultFile("/incompatibilities.yml", InCPTFile);
 		InCPTConfig = YamlConfiguration.loadConfiguration(InCPTFile);
+		
+		// Create Gui Lore File
+		GuiLoreFile = new File(getDataFolder(), "gui_lore.yml");
+		saveDefaultFile("/gui_lore.yml", GuiLoreFile);
+		GuiLoreConfig = YamlConfiguration.loadConfiguration(GuiLoreFile);
 		
 		// Create Data Files
 		UUIDDataStore = new File(DataFolder, "usernamestore.yml");
@@ -138,38 +150,55 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 		EnchantsCommand.setupGUIs();
 		
 		// Load events
+		enchantMetaWriter = new EnchantMetaWriter();
 		Bukkit.getPluginManager().registerEvents(new EnchantGUI(), this);
-		Bukkit.getPluginManager().registerEvents(new EnchantMetaWriter(), this);
+		Bukkit.getPluginManager().registerEvents(enchantMetaWriter, this);
 		Bukkit.getPluginManager().registerEvents(new ItemEvents(), this);
 		Bukkit.getPluginManager().registerEvents(new AnvilUpdate(), this);
 		
 		
 		// Initialize legacy support
-		LegacyUtil.checkLegacy();
 		File file = new File(getDataFolder().getParentFile(), "LegacyWrapper.jar");
-		if (LegacyUtil.isLegacy() && !file.exists())
-		{
-			File lw = downloadFile(getDataFolder().getParentFile().getPath()+"/LegacyWrapper.jar", "https://github.com/dsdd/EnchantmentsPlusMinus/raw/main/Packs/LegacyWrapper.jar"); try{        
-			Plugin plugin1 = Bukkit.getPluginManager().loadPlugin(lw);
-			Bukkit.getPluginManager().enablePlugin(plugin1); } catch (Exception e) {}
-		}
-		LegacyUtil.initialize(this);
+		if (EPS.onLegacy() && !file.exists()) try {
+			Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(downloadFile(getDataFolder().getParentFile().getPath()+"/LegacyWrapper.jar", "https://github.com/dsdd/EnchantmentsPlusMinus/raw/main/Packs/LegacyWrapper.jar"))); } catch (Exception e) {}
 		
+		if (EPS.onLegacy() && !Bukkit.getPluginManager().isPluginEnabled("LegacyWrapper")) 
+		{
+			Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Sorry, but it seems that there was an error downloading LegacyWrapper. "
+					+ "To prevent data corruption, Enchantments+- will be forcefully disabled."
+					+ "If this is unintentional, please report this to TreuGames for further investigation.");
+			Bukkit.getPluginManager().disablePlugin(plugin);
+		}
+				
+		// Register reloadables
+		EPS.registerReloader(this);
+		EPS.registerReloader(new EPS());
+		EPS.registerReloader(enchantMetaWriter);
+		EPS.registerReloader(LangUtil.lang);
+				
 		// Finalize loading
-		new BuiltInPackParser(this);
-		for (Player p : Bukkit.getOnlinePlayers())
+		try 
 		{
-			EnchantGUI.setupGUI(p);
+			Field f = Enchantment.class.getDeclaredField("acceptingNew");
+			f.setAccessible(true);
+			f.set(null, true);
 		}
-		if (new File(getDataFolder(), "packs").exists())
-		{
-			new File(getDataFolder(), "packs").delete();
+		catch (Exception e) 
+		{ 
+			e.printStackTrace(); 
 		}
-	
+		new PackLoader(this);
 		EnchantMetaWriter.registerEnchantNames();
 		DataUtil.saveConfig(Main.Config, Main.ConfigFile);
-		ConfigUtil.reloadConfigs();
-		Bukkit.getConsoleSender().sendMessage(LangUtil.getLangMessage("startup-message"));
+		EPSConfiguration.reloadConfigs();
+		EnchantGUI.setupInCPTS();
+		for (Player p : Bukkit.getOnlinePlayers())
+			EnchantGUI.setupGUI(p);
+		
+		if (new File(getDataFolder(), "packs").exists())
+			new File(getDataFolder(), "packs").delete();
+
+		LangUtil.sendMessage(Bukkit.getConsoleSender(), "startup-message");
 	}
 	
 	@Override
@@ -225,9 +254,9 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 	 * @param path The path to set
 	 * @param value The value
 	 */
-	private void addDefault(FileConfiguration config, String path, Object value)
+	protected void addDefault(FileConfiguration config, String path, Object value)
 	{
-		if (config.get(path) == null)
+		if (!config.isSet(path))
 		{
 			config.set(path, value);
 		} 
@@ -414,5 +443,17 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 		    e.printStackTrace();
 		}
 		return (temp);
+	}
+
+	@Override
+	public void reload() 
+	{
+		plugin.reloadConfig();
+		Config = plugin.getConfig();
+		UUIDDataStoreConfig = YamlConfiguration.loadConfiguration(UUIDDataStore);
+		LangConfig = YamlConfiguration.loadConfiguration(LangFile);
+		InCPTConfig = YamlConfiguration.loadConfiguration(InCPTFile);
+		GuisConfig = YamlConfiguration.loadConfiguration(GuisFile);
+		GuiLoreConfig = YamlConfiguration.loadConfiguration(GuiLoreFile);
 	}
 }

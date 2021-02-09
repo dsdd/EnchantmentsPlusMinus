@@ -9,8 +9,9 @@ import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.eps.pvppack.Durability;
 import org.whyisthisnecessary.eps.Main;
-import org.whyisthisnecessary.eps.api.ConfigUtil;
+import org.whyisthisnecessary.eps.api.EPSConfiguration;
 import org.whyisthisnecessary.eps.visual.EnchantMetaWriter;
 
 public class AnvilUpdate implements Listener {
@@ -29,18 +30,16 @@ public class AnvilUpdate implements Listener {
 		ItemStack item = new ItemStack(slot1.getType(), slot1.getAmount());
 		ItemMeta meta = item.getItemMeta();
 		meta.setDisplayName(anvil.getRenameText());
+		meta.setLore(slot1.getItemMeta().getLore());
 		item.setItemMeta(meta);
+		Durability dura1 = new Durability(item);
+		Durability dura2 = new Durability(slot1);
+		dura1.setDurability(dura2.getDurability());
 		
-		Map<Enchantment, Integer> enchantments;
+		Map<Enchantment, Integer> enchantments = slot2 == null ? CustomEnchantedBook.getEnchants(slot1) : CustomEnchantedBook.combineEnchants(slot1, slot2, false);
 
-		if (slot2 == null) {
-			enchantments = CustomEnchantedBook.getEnchants(slot1);
-		} else {
-			enchantments = CustomEnchantedBook.combineEnchants(slot1, slot2, false);
-		}
-		
 		for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
-			int maxlevel = ConfigUtil.getInt(entry.getKey(), "maxlevel");
+			int maxlevel = EPSConfiguration.getConfiguration(entry.getKey()).getInt("maxlevel");
 			if (maxlevel != 0 && entry.getValue() > maxlevel)
 				item.addUnsafeEnchantment(entry.getKey(), maxlevel);
 			else

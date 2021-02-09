@@ -13,68 +13,83 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.whyisthisnecessary.eps.EPS;
 import org.whyisthisnecessary.eps.Main;
-import org.whyisthisnecessary.eps.api.ConfigUtil;
+import org.whyisthisnecessary.eps.api.Reloadable;
+import org.whyisthisnecessary.eps.economy.Economy;
+import org.whyisthisnecessary.eps.util.DataUtil;
 import org.whyisthisnecessary.eps.util.LangUtil;
-import org.whyisthisnecessary.eps.util.TokenUtil;
 
-public class EnchantProcessor implements Listener {
+public class EnchantProcessor implements Listener, Reloadable {
 
 	public Map<Player, Integer> blocklog = new HashMap<Player, Integer>();
 	private Random random = new Random();
+	private Economy economy = EPS.getEconomy();
+	private int blocksToBreak = Main.Config.getInt("miningtokens.blockstobreak");
+	private int miningTokensMin = Main.Config.getInt("miningtokens.min");
+	private int miningTokensMax = Main.Config.getInt("miningtokens.max");
+	private String miningTokensGet = LangUtil.getLangMessage("miningtokensget");
+	private boolean miningTokensEnabled = Main.Config.getBoolean("miningtokens.enabled");
+	private int playerKillTokensMin = Main.Config.getInt("playerkilltokens.min");
+	private int playerKillTokensMax = Main.Config.getInt("playerkilltokens.max");
+	private String playerKillGet = LangUtil.getLangMessage("playerkill");
+	private boolean playerKillTokensEnabled = Main.Config.getBoolean("playerkilltokens.enabled");
+	private int mobKillTokensMin = Main.Config.getInt("mobkilltokens.min");
+	private int mobKillTokensMax = Main.Config.getInt("mobkilltokens.max");
+	private String mobKillGet = LangUtil.getLangMessage("mobkill");
+	private boolean mobKillTokensEnabled = Main.Config.getBoolean("mobkilltokens.enabled");
+	
 	
 	public EnchantProcessor(Main plugin) {
 		Bukkit.getPluginManager().registerEvents(this, plugin);
+		EPS.registerReloader(this);
 
-		ConfigUtil.setDefault("playerkilltokens.enabled", true);
-		ConfigUtil.setDefault("playerkilltokens.min", 25);
-		ConfigUtil.setDefault("playerkilltokens.max", 50);
-		ConfigUtil.setDefault("mobkilltokens.enabled", true);
-		ConfigUtil.setDefault("mobkilltokens.min", 5);
-		ConfigUtil.setDefault("mobkilltokens.max", 10);
+		setDefault("playerkilltokens.enabled", true);
+		setDefault("playerkilltokens.min", 25);
+		setDefault("playerkilltokens.max", 50);
+		setDefault("mobkilltokens.enabled", true);
+		setDefault("mobkilltokens.min", 5);
+		setDefault("mobkilltokens.max", 10);
 		LangUtil.setDefaultLangMessage("playerkill", "&aYou received %tokens% tokens for killing %victim%!");
 		LangUtil.setDefaultLangMessage("mobkill", "&aYou received %tokens% tokens for killing %mob%!");
 		
-		ConfigUtil.setDefault("miningtokens.enabled", true);
-		ConfigUtil.setDefault("miningtokens.min", 25);
-		ConfigUtil.setDefault("miningtokens.max", 50);
-		ConfigUtil.setDefault("miningtokens.blockstobreak", 1000);
+		setDefault("miningtokens.enabled", true);
+		setDefault("miningtokens.min", 25);
+		setDefault("miningtokens.max", 50);
+		setDefault("miningtokens.blockstobreak", 1000);
 		LangUtil.setDefaultLangMessage("miningtokensget", "&aYou received %tokens% tokens for mining!");
 	}	
 	
 	 @EventHandler
 	 public void onKill(EntityDeathEvent e)
 	 {
-		 if (e.getEntity().getKiller() == null) return;
+		 if (!mobKillTokensEnabled) 
+	    	 return;
+		 if (e.getEntity().getKiller() == null) 
+			 return;
 		 Player killer = e.getEntity().getKiller();
 		 if (killer instanceof Player)
 		 {
-		     if (!Main.Config.getBoolean("mobkilltokens.enabled")) 
-		    	 return;
-			 Integer tokenmin = Main.Config.getInt("mobkilltokens.min");
-			 Integer tokenmax = Main.Config.getInt("mobkilltokens.max");
-			 Integer tokens = random.nextInt(tokenmax-tokenmin)+tokenmin;
+			 Integer tokens = random.nextInt(mobKillTokensMax-mobKillTokensMin)+mobKillTokensMin+1;
 			 String name = e.getEntityType().name();
-			 killer.sendMessage(LangUtil.getLangMessage("mobkill").replaceAll("%tokens%", tokens.toString()).replaceAll("%mob%", WordUtils.capitalizeFully(name.replaceAll("_", " ").toLowerCase())));
-			 TokenUtil.changeTokens(killer, tokens);
+			 killer.sendMessage(mobKillGet.replaceAll("%tokens%", tokens.toString()).replaceAll("%mob%", WordUtils.capitalizeFully(name.replaceAll("_", " ").toLowerCase())));
+			 economy.changeBalance(killer, tokens);
 		 }
 	 }
 	 
 	 @EventHandler
 	 public void onPlayerDeath(PlayerDeathEvent e)
 	 {
+		 if (!playerKillTokensEnabled) 
+			 return;
 		 if (e.getEntity().getKiller() == null) return;
 		 Player killer = e.getEntity().getKiller();
 		 if (killer instanceof Player)
 		 {
-			 if (!Main.Config.getBoolean("playerkilltokens.enabled")) 
-				 return;
-			 Integer tokenmin = Main.Config.getInt("playerkilltokens.min");
-			 Integer tokenmax = Main.Config.getInt("playerkilltokens.max");
 		     Player killed = (Player) e.getEntity();
-		     Integer tokens = random.nextInt(tokenmax-tokenmin)+tokenmin;
-		     killer.sendMessage(LangUtil.getLangMessage("playerkill").replaceAll("%tokens%", tokens.toString()).replaceAll("%victim%", killed.getName()));
-		     TokenUtil.changeTokens(killer, tokens);
+		     Integer tokens = random.nextInt(playerKillTokensMax-playerKillTokensMin)+playerKillTokensMin+1;
+		     killer.sendMessage(playerKillGet.replaceAll("%tokens%", tokens.toString()).replaceAll("%victim%", killed.getName()));
+		     economy.changeBalance(killer, tokens);
 		 }
 	 }
 	 
@@ -90,16 +105,17 @@ public class EnchantProcessor implements Listener {
 	 @EventHandler
 	 public void onBlockBreak(BlockBreakEvent e)
 	 {
+		 if (!miningTokensEnabled) 
+			 return;
 		if (blocklog.containsKey(e.getPlayer()))
 		{
 			blocklog.put(e.getPlayer(), blocklog.get(e.getPlayer())+1);
-			if (blocklog.get(e.getPlayer()) > Main.Config.getInt("miningtokens.blockstobreak"))
+			if (blocklog.get(e.getPlayer()) >= blocksToBreak)
 			{
 				blocklog.put(e.getPlayer(), 0);
-				int min = Main.Config.getInt("miningtokens.min");
-				Integer tokens = random.nextInt(Main.Config.getInt("miningtokens.max")-min)+min;
-				TokenUtil.changeTokens(e.getPlayer(), tokens);
-				e.getPlayer().sendMessage(LangUtil.getLangMessage("miningtokensget").replaceAll("%tokens%", tokens.toString()));
+				Integer tokens = random.nextInt(miningTokensMax-miningTokensMin)+miningTokensMin+1;
+				economy.changeBalance(e.getPlayer(), tokens);
+				e.getPlayer().sendMessage(miningTokensGet.replaceAll("%tokens%", tokens.toString()));
 			}
 		}
 	 }
@@ -112,5 +128,35 @@ public class EnchantProcessor implements Listener {
 	    		Main.Config.set("misc."+key, null);
 	    	}
 	 }
+	 
+	 public static void setDefault(String path, Object replace)
+     {
+		 if (!Main.Config.isSet(path))
+		 {
+			 Main.Config.set(path, replace);
+			 if (Main.ConfigFile.exists())
+			 {
+				 DataUtil.saveConfig(Main.Config, Main.ConfigFile);
+			 }
+		 }
+     } 
+
+	@Override
+	public void reload() 
+	{
+		blocksToBreak = Main.Config.getInt("miningtokens.blockstobreak");
+		miningTokensMin = Main.Config.getInt("miningtokens.min");
+		miningTokensMax = Main.Config.getInt("miningtokens.max");
+		miningTokensGet = LangUtil.getLangMessage("miningtokensget");
+		miningTokensEnabled = Main.Config.getBoolean("miningtokens.enabled");
+		playerKillTokensMin = Main.Config.getInt("playerkilltokens.min");
+		playerKillTokensMax = Main.Config.getInt("playerkilltokens.max");
+		playerKillGet = LangUtil.getLangMessage("playerkill");
+		playerKillTokensEnabled = Main.Config.getBoolean("playerkilltokens.enabled");
+		mobKillTokensMin = Main.Config.getInt("mobkilltokens.min");
+		mobKillTokensMax = Main.Config.getInt("mobkilltokens.max");
+		mobKillGet = LangUtil.getLangMessage("mobkill");
+		mobKillTokensEnabled = Main.Config.getBoolean("mobkilltokens.enabled");
+	}
 	
 }

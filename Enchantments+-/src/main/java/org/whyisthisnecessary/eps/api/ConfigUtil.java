@@ -12,6 +12,7 @@ import org.whyisthisnecessary.eps.Main;
 import org.whyisthisnecessary.eps.legacy.NameUtil;
 import org.whyisthisnecessary.eps.util.DataUtil;
 
+@Deprecated
 public class ConfigUtil {
     
 	// This map is used to improve efficiency of getting values from each enchant config

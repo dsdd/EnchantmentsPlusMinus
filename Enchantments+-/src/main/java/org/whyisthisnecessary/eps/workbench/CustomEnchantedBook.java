@@ -64,7 +64,7 @@ public class CustomEnchantedBook extends ItemStack {
 				continue;
 			}
 			Integer lvl = 0;
-			if (first == entry.getValue())
+			if (first == entry.getValue() && first > 0)
 				lvl = first+1;
 			if (first > entry.getValue())
 				lvl = first;

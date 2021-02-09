@@ -3,25 +3,20 @@ package org.whyisthisnecessary.eps.legacy;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.whyisthisnecessary.eps.EPS;
 import org.whyisthisnecessary.eps.Main;
 
 import net.md_5.bungee.api.ChatColor;
 
+/** Deprecated. Use EPS class instead.
+ * 
+ * @author TreuGames
+ *
+ */
+@Deprecated
 public class LegacyUtil {
 
-	private static Material legacyMaterial;
-	private static boolean legacy;
-	
-	/** Checks if the MC version is 1.12 or lower.
-	 */
-	public static void checkLegacy()
-	{
-		legacyMaterial = Material.getMaterial("BLACK_STAINED_GLASS_PANE");
-		if (legacyMaterial == null)
-			legacy = true;
-		else
-			legacy = false;
-	}
+	private static boolean legacy = Material.getMaterial("BLACK_STAINED_GLASS_PANE") == null;
 	
 	/** Initializes legacy support.
 	 * For internal legacy support only, should never be used by plugins!
@@ -55,7 +50,7 @@ public class LegacyUtil {
 	 */
 	public static Enchantment getByName(String name)
 	{
-		return (NameUtil.getByName(name));
+		return EPS.getDictionary().findEnchant(name);
 	}
 	
 	/** Gets the name of an enchant.
@@ -65,6 +60,6 @@ public class LegacyUtil {
 	 */
 	public static String getName(Enchantment enchant)
 	{
-		return (NameUtil.getName(enchant));
+		return EPS.getDictionary().getName(enchant);
 	}
 }

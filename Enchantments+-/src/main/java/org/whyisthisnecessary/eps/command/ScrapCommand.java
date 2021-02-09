@@ -9,10 +9,9 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.whyisthisnecessary.eps.EPS;
 import org.whyisthisnecessary.eps.Main;
-import org.whyisthisnecessary.eps.legacy.NameUtil;
 import org.whyisthisnecessary.eps.util.LangUtil;
-import org.whyisthisnecessary.eps.util.TokenUtil;
 
 public class ScrapCommand implements CommandExecutor {
 
@@ -35,12 +34,12 @@ public class ScrapCommand implements CommandExecutor {
         	
         	for (Map.Entry<Enchantment,Integer> entry : map.entrySet())
         	{
-        		scrapvalue = scrapvalue + Main.Config.getInt("enchants."+NameUtil.getName(entry.getKey()).toLowerCase()+".scrapvalue");
+        		scrapvalue = scrapvalue + Main.Config.getInt("enchants."+EPS.getDictionary().getName(entry.getKey()).toLowerCase()+".scrapvalue");
         	}
         	
         	if (scrapvalue > 0)
         	{
-        	    TokenUtil.changeTokens(p.getName(),scrapvalue);
+        	    EPS.getEconomy().changeBalance(p.getName(),scrapvalue);
         	    pinv.removeItem(pinv.getItemInMainHand());
         	    p.sendMessage(LangUtil.getLangMessage("scrapsuccess").replaceAll("%tokens%", scrapvalue.toString()));
         	}
