@@ -17,7 +17,10 @@ public class CustomEnchants {
 	public static final Enchantment STIFFEN = CustomEnchant.newEnchant("stiffen", "Stiffen");
 	public static final Enchantment LAST_RESORT = CustomEnchant.newEnchant("last_resort", "Last_Resort");
 	public static final Enchantment POWERHOUSE = CustomEnchant.newEnchant("powerhouse", "Powerhouse");
-	
+	public static final Enchantment MELTING = CustomEnchant.newEnchant("melting", "Melting");
+	public static final Enchantment BACKUP_SPELLS = CustomEnchant.newEnchant("backup_spells", "Backup_Spells");
+	public static final Enchantment OVERHEALED = CustomEnchant.newEnchant("overhealed", "Overhealed");
+	public static final Enchantment EVADE = CustomEnchant.newEnchant("evade", "Evade");
 	
 	public static void register()
 	{
@@ -33,5 +36,9 @@ public class CustomEnchants {
 		CustomEnchant.registerEnchant(STIFFEN);
 		CustomEnchant.registerEnchant(LAST_RESORT);
 		CustomEnchant.registerEnchant(POWERHOUSE);
+		CustomEnchant.registerEnchant(MELTING);
+		CustomEnchant.registerEnchant(BACKUP_SPELLS);
+		CustomEnchant.registerEnchant(OVERHEALED);
+		CustomEnchant.registerEnchant(EVADE);
 	}
 }

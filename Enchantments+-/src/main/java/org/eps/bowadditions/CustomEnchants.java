@@ -11,6 +11,7 @@ public class CustomEnchants {
 	public static final Enchantment ENERGIZED = CustomEnchant.newEnchant("energized", "Energized");
 	public static final Enchantment SHOCKWAVE = CustomEnchant.newEnchant("shockwave", "Shockwave");
 	public static final Enchantment FIREWORKS = CustomEnchant.newEnchant("fireworks", "Fireworks");
+	public static final Enchantment FLAMMABLE = CustomEnchant.newEnchant("flammable", "Flammable");
 	
 	public static void register()
 	{
@@ -20,5 +21,6 @@ public class CustomEnchants {
 		CustomEnchant.registerEnchant(ENERGIZED);
 		CustomEnchant.registerEnchant(SHOCKWAVE);
 		CustomEnchant.registerEnchant(FIREWORKS);
+		CustomEnchant.registerEnchant(FLAMMABLE);
 	}
 }

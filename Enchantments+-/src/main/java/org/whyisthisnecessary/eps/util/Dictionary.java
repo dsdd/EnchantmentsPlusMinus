@@ -3,6 +3,7 @@ package org.whyisthisnecessary.eps.util;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.whyisthisnecessary.eps.EPS;
+import org.whyisthisnecessary.eps.legacy.Label;
 
 public interface Dictionary {
 
@@ -200,7 +201,8 @@ public interface Dictionary {
 
 		@Override
 		public Enchantment findEnchant(String enchantName) {
-			return EPS.onLegacy() ? Enchantment.getByName(bukkitNaming(enchantName)) : Enchantment.getByKey(NamespacedKey.minecraft(enchantName));
+			Enchantment enchant =  EPS.onLegacy() ? Enchantment.getByName(bukkitNaming(enchantName)) : Enchantment.getByKey(NamespacedKey.minecraft(enchantName));
+			return enchant == null ? Label.getEnchant(enchantName) : enchant;
 		}	
 		
 		public String bukkitNaming(String minecraftNaming)

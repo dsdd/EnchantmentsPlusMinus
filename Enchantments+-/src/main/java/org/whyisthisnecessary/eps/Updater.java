@@ -2,6 +2,7 @@ package org.whyisthisnecessary.eps;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -82,6 +83,7 @@ public class Updater {
     	
     	LangUtil.setDefaultLangMessage("no-enchant-config-found", "&cCould not find the config for %enchant%! Automatically making one...");
     	LangUtil.setDefaultLangMessage("balance-display-in-gui", "&aYour Tokens » &e%balance%");
+    	LangUtil.setDefaultLangMessage("invalid-enchant", "&cCould not find specified enchant. Try using /eps reload.");
     	
     	// 1.5r - 1.6r compatibility
     	setDefault("anvil-combining-enabled", true);
@@ -89,6 +91,21 @@ public class Updater {
     	setDefault("show-vanilla-enchants-in-lore", true);
     	setDefault("show-enchant-descriptions-in-lore", true);
     	
+    	// 1.6r - 1.7r compatibility
+    	LangUtil.setDefaultLangMessage("cannot-open-gui", "&cYou cannot open the GUI at this time.");
+    	LangUtil.setDefaultLangMessage("boosted-activate", "&aBoosted fortune!");
+    	setDefault("enchant-lore-color", "&9");
+    	setDefault("custom-lore-color.depth_strider", "&2");
+    	setDefault("use-action-bar-instead-of-chat-inventory-full", true);
+    	setDefault("disabled-enchants", new ArrayList<String>(Arrays.asList(new String[]{"an enchant you don't like"})));
+    	setDefault("use-custom-fortune", true);
+    	LangUtil.setDefaultLangMessage("next-page", "&aNext page");
+    	LangUtil.setDefaultLangMessage("modify-gui", "&aModify GUI - Admin only");
+    	LangUtil.setDefaultLangMessage("modify-lore-1", "&7Left-Click to edit this enchant");
+    	LangUtil.setDefaultLangMessage("modify-lore-2", "&7Right-Click to remove this enchant");
+    	LangUtil.setDefaultLangMessage("modifying-config", "&aType in the new value of %entry%.");
+    	LangUtil.setDefaultLangMessage("modified-config", "&aChanged value!");
+	
 	}
 	
 	public static void setDefault(String path, Object value)

@@ -1,8 +1,6 @@
 package org.eps.bowadditions;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -10,13 +8,16 @@ import org.bukkit.EntityEffect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -25,23 +26,35 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
+import org.whyisthisnecessary.eps.api.TimeTracker;
+import org.whyisthisnecessary.eps.EPS;
+import org.whyisthisnecessary.eps.api.CountTracker;
 import org.whyisthisnecessary.eps.api.EPSConfiguration;
+import org.whyisthisnecessary.eps.api.Reloadable;
 import org.whyisthisnecessary.eps.util.LangUtil;
 
-public class EnchantProcessor implements Listener {
+public class EnchantProcessor implements Listener, Reloadable {
 	
-	private Map<Player, Long> enderbowCooldown = new HashMap<Player, Long>();
-	private Map<Player, Integer> machineryShots = new HashMap<Player, Integer>();
-	private Map<Player, Integer> tdShots = new HashMap<Player, Integer>();
+	private TimeTracker enderbowAbility = new TimeTracker();
+	private CountTracker machineryShots = new CountTracker();
+	private CountTracker tdShots = new CountTracker();
 	private Material cb = Material.matchMaterial("CROSSBOW");
+	private Random random = new Random();
+	private EPSConfiguration enderbowConfig = EPSConfiguration.getConfiguration(CustomEnchants.ENDERBOW);
+	private EPSConfiguration machineryConfig = EPSConfiguration.getConfiguration(CustomEnchants.MACHINERY);
+	private EPSConfiguration tbConfig = EPSConfiguration.getConfiguration(CustomEnchants.THUNDERING_BLOW);
+	private EPSConfiguration energizedConfig = EPSConfiguration.getConfiguration(CustomEnchants.ENERGIZED);
+	private EPSConfiguration shockwaveConfig = EPSConfiguration.getConfiguration(CustomEnchants.SHOCKWAVE);
+	private EPSConfiguration fwConfig = EPSConfiguration.getConfiguration(CustomEnchants.FIREWORKS);
 	
 	public EnchantProcessor()
 	{
 		LangUtil.setDefaultLangMessage("cooldown-error", "&cYou must wait %secs% more seconds to use this again!");
 		LangUtil.setDefaultLangMessage("enderbow-radius-error", "&cYou cannot teleport further than %blocks% blocks!");
+		EPS.registerReloader(this);
 	}
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onProjectileHit(ProjectileHitEvent e)
 	{
 		if (e.getEntity().isDead())
@@ -66,19 +79,15 @@ public class EnchantProcessor implements Listener {
 		{
 			if (player.isSneaking())
 			{
-				EPSConfiguration config = EPSConfiguration.getConfiguration(CustomEnchants.ENDERBOW);
-				double cooldown = config.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.ENDERBOW), "cooldown")*1000;
-				long fulltime = System.currentTimeMillis();
-				if (enderbowCooldown.get(player) == null)
-					enderbowCooldown.put(player, (long) (System.currentTimeMillis()-cooldown));
-				long time = enderbowCooldown.get(player);
+				double cooldown = enderbowConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.ENDERBOW), "cooldown")*1000;
 				
 				// Check if cooldown is met
-				if (fulltime-time < cooldown)
-					player.sendMessage(LangUtil.getLangMessage("cooldown-error").replaceAll("%secs%", Double.toString(Math.floor(((cooldown-(fulltime-time))/1000)*10)/10)));
+				long time = enderbowAbility.getLastUse(player);
+				if (time < cooldown)
+					player.sendMessage(LangUtil.getLangMessage("cooldown-error").replaceAll("%secs%", Double.toString(Math.floor(((cooldown-time)/1000)*10)/10)));
 				else
 				{
-					double radius = config.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.ENDERBOW), "radius");
+					double radius = enderbowConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.ENDERBOW), "radius");
 					double distance = player.getLocation().distance(arrow.getLocation());
 					
 					// Check if distance from player exceeds limits
@@ -86,7 +95,7 @@ public class EnchantProcessor implements Listener {
 						player.sendMessage(LangUtil.getLangMessage("enderbow-radius-error").replaceAll("%blocks%", Double.toString(radius)));
 					else
 					{
-						enderbowCooldown.put(player, fulltime);
+						enderbowAbility.use(player);
 						player.teleport(arrow.getLocation());
 						player.playEffect(EntityEffect.TELEPORT_ENDER);
 					}
@@ -96,21 +105,17 @@ public class EnchantProcessor implements Listener {
 		
 		if (mainmeta.hasEnchant(CustomEnchants.MACHINERY))
 		{
-			EPSConfiguration config = EPSConfiguration.getConfiguration(CustomEnchants.MACHINERY);
-			int shotstoactivate = config.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "shots-to-activate");
-			Integer shots = machineryShots.get(player);
-			shots = shots == null ? 0 : shots;
-			machineryShots.put(player, shots+1);
+			int shotstoactivate = machineryConfig.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "shots-to-activate");
+			int shots = machineryShots.increase(player);
 			if (shots >= shotstoactivate)
 			{
-				machineryShots.put(player, 0);
-				int radius = config.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "radius");
-				int arrows = config.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "arrows");
+				machineryShots.reset(player);
+				int radius = machineryConfig.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "radius");
+				int arrows = machineryConfig.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "arrows");
 				Location loc = arrow.getLocation();
-				Random random = new Random();
 				for (int i=0;i<arrows;i++)
 				{
-					Location location = new Location(world, nextDouble(random, radius*2)-radius+loc.getX(), loc.getY()+48, nextDouble(random, radius*2)-radius+loc.getZ());
+					Location location = new Location(world, nextDouble(radius*2)-radius+loc.getX(), loc.getY()+48, nextDouble(radius*2)-radius+loc.getZ());
 					world.spawnArrow(location, new Vector(0, -90, 0), 5, 0);
 				}
 			}
@@ -118,17 +123,15 @@ public class EnchantProcessor implements Listener {
 		
 		if (mainmeta.hasEnchant(CustomEnchants.THUNDERING_BLOW))
 		{
-			int shotstoactivate = EPSConfiguration.getConfiguration(CustomEnchants.THUNDERING_BLOW).getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.THUNDERING_BLOW), "shots-to-activate");
-			Integer shots = tdShots.get(player);
-			shots = shots == null ? 0 : shots;
-			tdShots.put(player, shots+1);
-			if (shots == shotstoactivate)
+			int shotstoactivate = tbConfig.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.THUNDERING_BLOW), "shots-to-activate");
+			int shots = tdShots.increase(player);
+			if (shots >= shotstoactivate)
 			{
-				tdShots.put(player, 0);
+				tdShots.reset(player);
 				Entity entity = e.getHitEntity();
 				
 				if (entity != null)
-				world.strikeLightning(entity.getLocation());
+					world.strikeLightning(entity.getLocation());
 			}
 		}
 		
@@ -141,12 +144,10 @@ public class EnchantProcessor implements Listener {
 			{
 				LivingEntity entity = (LivingEntity) a;
 				int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.ENERGIZED);
-				
-				EPSConfiguration config = EPSConfiguration.getConfiguration(CustomEnchants.ENERGIZED);
-				int speed_amplifier = config.getAutofilledInt(enchlvl, "speed-amplifier");
-				int speed_duration = config.getAutofilledInt(enchlvl, "speed-duration");
-				int regeneration_amplifier = config.getAutofilledInt(enchlvl, "regeneration-amplifier");
-				int regeneration_duration = config.getAutofilledInt(enchlvl, "regeneration-duration");
+				int speed_amplifier = energizedConfig.getAutofilledInt(enchlvl, "speed-amplifier");
+				int speed_duration = energizedConfig.getAutofilledInt(enchlvl, "speed-duration");
+				int regeneration_amplifier = energizedConfig.getAutofilledInt(enchlvl, "regeneration-amplifier");
+				int regeneration_duration = energizedConfig.getAutofilledInt(enchlvl, "regeneration-duration");
 			
 				entity.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, speed_duration*20, speed_amplifier-1));
 				entity.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, regeneration_duration*20, regeneration_amplifier-1));
@@ -155,9 +156,8 @@ public class EnchantProcessor implements Listener {
 		
 		if (mainmeta.hasEnchant(CustomEnchants.SHOCKWAVE))
 		{
-			EPSConfiguration config = EPSConfiguration.getConfiguration(CustomEnchants.SHOCKWAVE);
-			int r = config.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.SHOCKWAVE), "radius");
-			double dmg = config.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.SHOCKWAVE), "damage");
+			int r = shockwaveConfig.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.SHOCKWAVE), "radius");
+			double dmg = shockwaveConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.SHOCKWAVE), "damage");
 			Collection<Entity> list = world.getNearbyEntities(arrow.getLocation(), r, r, r);
 			for (Entity entity : list)
 			{
@@ -177,7 +177,7 @@ public class EnchantProcessor implements Listener {
 		
 		if (mainmeta.hasEnchant(CustomEnchants.FIREWORKS))
 		{
-			double dmg = EPSConfiguration.getConfiguration(CustomEnchants.FIREWORKS).getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.FIREWORKS), "damage");
+			double dmg = fwConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.FIREWORKS), "damage");
 			world.createExplosion(arrow.getLocation(), 0F);
 			Collection<Entity> list = world.getNearbyEntities(arrow.getLocation(), 2, 2, 2);
 			for (Entity entity : list)
@@ -195,10 +195,32 @@ public class EnchantProcessor implements Listener {
 				le.damage(dmg);
 			}
 		}
+		
+		if (mainmeta.hasEnchant(CustomEnchants.FLAMMABLE))
+		{
+			Block block = e.getEntity().getLocation().getBlock();
+			BlockBreakEvent b = new BlockBreakEvent(block, player);
+			Bukkit.getPluginManager().callEvent(b);
+			if (!b.isCancelled())
+				block.setType(Material.FIRE);
+		}
+		
+		
 	}
 	
-	public double nextDouble(Random random, int i)
+	public double nextDouble(int i)
 	{
 		return random.nextDouble()*i;
+	}
+
+	@Override
+	public void reload() 
+	{
+		enderbowConfig = EPSConfiguration.getConfiguration(CustomEnchants.ENDERBOW);
+		machineryConfig = EPSConfiguration.getConfiguration(CustomEnchants.MACHINERY);
+		tbConfig = EPSConfiguration.getConfiguration(CustomEnchants.THUNDERING_BLOW);
+		energizedConfig = EPSConfiguration.getConfiguration(CustomEnchants.ENERGIZED);
+		shockwaveConfig = EPSConfiguration.getConfiguration(CustomEnchants.SHOCKWAVE);
+		fwConfig = EPSConfiguration.getConfiguration(CustomEnchants.FIREWORKS);
 	}
 }

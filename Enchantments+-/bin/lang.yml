@@ -25,3 +25,21 @@ messages:
     moneyblocksactivate: "&aYou received $%money% from MoneyBlocks!"
     tokencharityactivate: "&aYou received %tokens% tokens from a token charity run by %player%&a!"
     charityactivate: "&aYou received $%money% from a charity by %player%&a!"
+    cooldown-error: '&cYou must wait %secs% more seconds to use this again!'
+    enderbow-radius-error: '&cYou cannot teleport further than %blocks% blocks!'
+    token-pouch: '&eToken Pouch'
+    token-pouch-lore-1: '&7%tokens% Tokens'
+    token-pouch-lore-2: '&7Right-Click to claim tokens in the pouch!'
+    startup-message: '&2Thank you for using Enchantments+-!'
+    claimed-token-pouch: '&2You received %tokens% tokens from the token pouch!'
+    no-enchant-config-found: '&cCould not find the config for %enchant%! Automatically making one...'
+    balance-display-in-gui: '&aYour Tokens » &e%balance%'
+    invalid-enchant: '&cCould not find specified enchant. Try using /eps reload.'
+    cannot-open-gui: '&cYou cannot open the GUI at this time.'
+    boosted-activate: '&aBoosted fortune!'
+    next-page: '&aNext page'
+    modify-gui: '&aModify GUI - Admin Only'
+    modify-lore-1: '&7Left-Click to edit this enchant'
+    modify-lore-2: '&7Right-Click to remove this enchant'
+    modifying-config: '&aType in the new value of %entry%.'
+    modified-config: '&aChanged value!'

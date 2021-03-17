@@ -1,11 +1,11 @@
 package org.whyisthisnecessary.eps.economy;
 
 import java.io.File;
+
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.whyisthisnecessary.eps.util.DataUtil;
-
-import com.osiris.dyml.DYModule;
-import com.osiris.dyml.DreamYaml;
 
 public class TokenEconomy implements Economy {
 	
@@ -13,11 +13,10 @@ public class TokenEconomy implements Economy {
 	public Integer changeBalance(String playername, Integer amount)
 	{
 		File file = DataUtil.getUserDataFile(playername);
-		DreamYaml yaml = new DreamYaml(file).load();
-		DYModule module = yaml.add("tokens");
-		int redefine = module.asInt() + amount;
-		module.setValue(redefine);
-		yaml.save();
+		FileConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+		int redefine = yaml.getInt("tokens") + amount;
+		yaml.set("tokens", redefine);
+		DataUtil.saveConfig(yaml, file);
 		return redefine;
 	}
 
@@ -31,10 +30,9 @@ public class TokenEconomy implements Economy {
 	public Integer setBalance(String playername, Integer value)
 	{
 		File file = DataUtil.getUserDataFile(playername);
-		DreamYaml yaml = new DreamYaml(file).load();
-		DYModule module = yaml.add("tokens");
-		module.setValue(value);
-		yaml.save();
+		FileConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+		yaml.set("tokens", value);
+		DataUtil.saveConfig(yaml, file);
 		return value;
 	}
 	
@@ -54,8 +52,6 @@ public class TokenEconomy implements Economy {
 	public Integer getBalance(String playername)
 	{
 		File file = DataUtil.getUserDataFile(playername);
-		DreamYaml yaml = new DreamYaml(file).load();
-		DYModule module = yaml.add("tokens");
-		return module.asInt();
+		return YamlConfiguration.loadConfiguration(file).getInt("tokens");
 	}
 }

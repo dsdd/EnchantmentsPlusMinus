@@ -11,12 +11,14 @@ import org.whyisthisnecessary.eps.EPS;
 import org.whyisthisnecessary.eps.Main;
 import org.whyisthisnecessary.eps.legacy.Label;
 import org.whyisthisnecessary.eps.util.Wrapper;
+import org.whyisthisnecessary.eps.visual.EnchantMetaWriter;
 import org.whyisthisnecessary.legacywrapper.LegacyWrapper;
 
 @SuppressWarnings("deprecation")
 public class CustomEnchant {
 
 	public static List<Enchantment> registeredEnchants = new ArrayList<Enchantment>(Arrays.asList());
+	private static List<String> disabledEnchants = Main.Config.getStringList("disabled-enchants");
 	
 	/**Wraps a custom enchant with the specified namespace, name and max level and returns it
 	 * maxLvl only sets the maximum safe enchantment level for this enchant, and has no other use
@@ -40,10 +42,14 @@ public class CustomEnchant {
 	 * 
 	 * @param namespace The Java name for this enchant
 	 * @param name The display name for this enchant
-	 * @return A custom enchant with the specified namespace, name and max level
+	 * @return A custom enchant with the specified namespace and name
 	 */
 	public static Enchantment newEnchant(String namespace, String name)
 	{
+		if (disabledEnchants.contains(name))
+			return SpecialEnchants.NULL;
+		if (disabledEnchants.contains(namespace))
+			return SpecialEnchants.NULL;
 		return EPS.onLegacy() ? LegacyWrapper.newEnchant(namespace, name, 32767) : new Wrapper(namespace, name, 32767);
 	}
 	
@@ -55,10 +61,10 @@ public class CustomEnchant {
 	 */
 	public static boolean registerEnchant(Enchantment enchant)
 	{
-		if (EPS.onLegacy())
-			Label.addLabel(enchant.getName(), enchant);
-		else
-			Label.addLabel(enchant.getKey().getKey(), enchant);
+		if (enchant == SpecialEnchants.NULL)
+			return false;
+		String name = EPS.onLegacy() ? enchant.getName() : enchant.getKey().getKey();
+		Label.addLabel(name, enchant);
 		registeredEnchants.add(enchant);
 		File enchantfile = new File(Main.EnchantsFolder, EPS.getDictionary().getName(enchant)+".yml");
 		if (enchantfile.exists())
@@ -68,6 +74,7 @@ public class CustomEnchant {
 			try
 			{
 				Enchantment.registerEnchantment(enchant);
+				EnchantMetaWriter.init(enchant);
 				Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GREEN+"Registered enchant "+EPS.getDictionary().getName(enchant).toUpperCase()+"!");
 				return true;
 			}
@@ -78,7 +85,15 @@ public class CustomEnchant {
 			return false;
 		}
 		else
+		{
+			EnchantMetaWriter.init(enchant);
 			return false;
+		}
 		
 	}
+}
+
+class SpecialEnchants {
+	
+	public static final Enchantment NULL = CustomEnchant.newEnchant("null", "null");
 }

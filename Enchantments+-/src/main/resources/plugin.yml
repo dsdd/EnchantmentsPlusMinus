@@ -1,38 +1,30 @@
 name: EnchantmentsPlusMinus
-version: "@version@"
+version: 1.9r-4
 author: whyisthisnecessary
 main: org.whyisthisnecessary.eps.Main
 description: Provides a unique way of obtaining custom enchantments for tools and armor
 api-version: 1.13
-softdepend: [PlaceholderAPI, Vault, LegacyWrapper]
+softdepend: [PlaceholderAPI, Vault, LegacyWrapper, WorldGuard]
+
 commands:
-  eps:
-    description: EPS admin commands
-    usage: /<command> [reload|changetokens|settokens] [player] [amount]
-    permission: eps.admin.*
-    permission-message: You don't have permission to use this command!
-  enchants:
-    aliases: [enchantments]
-    description: Opens the enchantment GUI to apply enchants to tools and armor
-    usage: /<command>
-    permission: eps.enchants
-    permission-message: You don't have permission to use this command!
-  tokens:
-    aliases: [token]
-    description: Tells you how many tokens you have
-    usage: /<command> [player]
-    permission: eps.tokens
-    permission-message: You don't have permission to use this command!
-  scrap:
-    description: Scraps your current tool for tokens.
-    usage: /<command>
-    permission: eps.scrap
-    permission-message: You don't have permission to use this command!
-  paytokens:
-    description: Pays the specified player a specified amount of tokens
-    usage: /<command> [player] [amount]
-    permission: eps.paytokens
-    permission-message: You don't have permission to use this command!
+    eps:
+      description: EPS admin commands
+      permission: eps.admin.*
+    enchants: 
+      aliases: [enchantments]
+      description: Opens the enchantment GUI to apply enchants to tools and armor
+      permission: eps.enchants
+    tokens:
+      aliases: [token]
+      description: Tells you how many tokens you have
+      permission: eps.tokens
+    scrap:
+      description: Scraps your current tool for tokens.
+      permission: eps.scrap
+    paytokens:
+      description: Pays the specified player a specified amount of tokens
+      permission: eps.paytokens
+        
 permissions:
   eps.enchants:
     description: Gives access to /enchants.

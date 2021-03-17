@@ -29,7 +29,9 @@ import org.whyisthisnecessary.eps.util.LangUtil;
 public class EPSConfiguration extends YamlConfiguration {
 
 	private File file = null;
+	private Map<String, String> cachedStrings = new HashMap<String, String>();
 	private static Dictionary dictionary = EPS.getDictionary();
+	private Map<String, Map<Integer, Double>> cachedAutofills = new HashMap<String, Map<Integer, Double>>();
 	
 	// This map is used to improve efficiency of getting values from each enchant config
 	protected static Map<Enchantment, EPSConfiguration> fgMap = new HashMap<Enchantment, EPSConfiguration>();
@@ -46,7 +48,7 @@ public class EPSConfiguration extends YamlConfiguration {
     			fgMap.put(enchant, EPSConfiguration.loadConfiguration(enchantfile));
     	}
     }
-	
+
 	public static EPSConfiguration loadConfiguration(File file)
 	{
 		Validate.notNull(file, "File cannot be null");
@@ -74,11 +76,25 @@ public class EPSConfiguration extends YamlConfiguration {
 	 * @param path The path you want to search for.
 	 * @return Returns the double value of the specified path.
 	 */
-	public Double getAutofilledDouble(Integer enchlvl, String path)
+	public double getAutofilledDouble(Integer enchlvl, String path)
     {
-    	String value = getString(path);
+    	String value = getCachedString(path);
     	value = value.replaceAll("%lvl%", enchlvl.toString());
-	    return eval(value);
+    	Map<Integer, Double> map = cachedAutofills.get(path);
+    	if (map == null)
+    	{
+    		Map<Integer, Double> newMap = new HashMap<Integer, Double>();
+    		cachedAutofills.put(path, newMap);
+    		map = newMap;
+    	}
+    	Double d = map.get(enchlvl);
+    	double eval = eval(value);
+    	if (d == null)
+    	{
+    		map.put(enchlvl, eval);
+    		d = eval;
+    	}
+	    return d;
     }
 	
 	/**
@@ -89,9 +105,9 @@ public class EPSConfiguration extends YamlConfiguration {
 	 * @param path The path you want to search for.
 	 * @return Returns the Integer value of the specified path.
 	 */
-	public Integer getAutofilledInt(Integer enchlvl, String path)
+	public int getAutofilledInt(Integer enchlvl, String path)
     {
-    	return getAutofilledDouble(enchlvl, path).intValue();
+    	return (int)getAutofilledDouble(enchlvl, path);
     }
 	
 	/** Sets the path to the specified value if it isn't already set.
@@ -130,7 +146,7 @@ public class EPSConfiguration extends YamlConfiguration {
     {
     	setDefault("maxlevel", 10);
     	setDefault("scrapvalue", cost/2);
-    	setDefault("upgradeicon", Material.BOOK);
+    	setDefault("upgradeicon", Material.BOOK.name());
     	setDefault("upgradedesc", desc);
     	setDefault("cost.type", "linear");
     	setDefault("cost.startvalue", cost);
@@ -167,15 +183,24 @@ public class EPSConfiguration extends YamlConfiguration {
 				Bukkit.getConsoleSender().sendMessage(msg.replaceAll("%enchant%", enchname));
 			File file = new File(Main.EnchantsFolder, enchname+".yml");
 			if (!file.exists())
-				Main.createNewFile(file);
-			EPSConfiguration config1 = EPSConfiguration.loadConfiguration(file);
-			config1.autoFillEnchantConfig(dictionary.getDefaultDescription(enchant), dictionary.getDefaultCost(enchant));
-			try {
-				config1.save(file);
-			} catch (IOException e) {
-				e.printStackTrace();
+			{
+				EPSConfiguration config1 = EPSConfiguration.loadConfiguration(file);
+				fgMap.put(enchant, config1);
+				return config1;
 			}
-			return config1;
+			else
+			{
+				Main.createNewFile(file);
+				EPSConfiguration config1 = EPSConfiguration.loadConfiguration(file);
+				config1.autoFillEnchantConfig(dictionary.getDefaultDescription(enchant), dictionary.getDefaultCost(enchant));
+				try {
+					config1.save(file);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				fgMap.put(enchant, config1);
+				return config1;
+			}
 		}
 	}
     
@@ -300,4 +325,55 @@ public class EPSConfiguration extends YamlConfiguration {
 		Material m = getMaterial(path);
 		return m == null ? def : m;
 	}
+	
+	/**
+	 * Gets the requested Enchantment by path. 
+	 *
+     * If the Enchantment does not exist but a default value has been specified, this will return the default value. If the Enchantment does not exist and no default value was specified, this will return null.
+	 * 
+	 * @param path Path of the Enchantment to get.
+	 * 
+	 * @return Requested Enchantment.
+	 */
+	public Enchantment getEnchantment(String path)
+	{
+		return EPS.getDictionary().findEnchant(getString(path));
+	}
+	
+	/**
+	 * Gets the requested Enchantment by path. 
+	 *
+     * If the Enchantment does not exist but a default value has been specified, this will return the default value. If the Enchantment does not exist and no default value was specified, this will return null.
+	 * 
+	 * @param path Path of the Enchantment to get.
+	 * 
+	 * @return Requested Enchantment.
+	 */
+	public Enchantment getEnchantment(String path, Enchantment def)
+	{
+		Enchantment e = EPS.getDictionary().findEnchant(getString(path));
+		return e == null ? def : e;
+	}
+	
+	private String getCachedString(String path)
+	{
+		String cachedString = cachedStrings.get(path);
+		if (cachedString == null)
+		{
+			cachedString = getString(path);
+			cachedStrings.put(path, cachedString);
+		}
+		return cachedString;
+	}
+	
+	public class EPSConfigReloader implements Reloadable {
+
+		@Override
+		public void reload() {
+			EPSConfiguration.reloadConfigs();
+		}
+		
+	}
 }
+
+

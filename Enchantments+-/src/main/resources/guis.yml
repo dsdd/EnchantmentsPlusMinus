@@ -14,10 +14,16 @@ guis:
     - explosive
     - excavate
     - diamond
+    - boosted
     - autosmelt
     - telepathy
     - tokenblocks
     - tokencharity
+    - vein_miner
+    - fly
+    - repair
+    - soulbound
+    - experience
     items:
     - WOODEN_PICKAXE
     - STONE_PICKAXE
@@ -37,6 +43,13 @@ guis:
     - momentum
     - beheading
     - last_resort
+    - powerhouse
+    - melting
+    - fly
+    - repair
+    - soulbound
+    - experience
+    - soul_destruction
     items:
     - WOODEN_SWORD
     - STONE_SWORD
@@ -52,6 +65,14 @@ guis:
     - efficiency
     - retaliate
     - beheading
+    - powerhouse
+    - melting
+    - overhealed
+    - fly
+    - repair
+    - soulbound
+    - experience
+    - soul_destruction
     items:
     - WOODEN_AXE
     - STONE_AXE
@@ -64,6 +85,10 @@ guis:
     - efficiency
     - unbreaking
     - mending
+    - fly
+    - repair
+    - soulbound
+    - experience
     items:
     - WOODEN_SHOVEL
     - STONE_SHOVEL
@@ -75,6 +100,10 @@ guis:
     enchants:
     - unbreaking
     - mending
+    - fly
+    - repair
+    - soulbound
+    - experience
     items:
     - WOODEN_HOE
     - STONE_HOE
@@ -93,6 +122,12 @@ guis:
     - machinery
     - energized
     - shockwave
+    - fireworks
+    - flammable
+    - fly
+    - repair
+    - soulbound
+    - experience
     items:
     - BOW
     - CROSSBOW
@@ -100,11 +135,18 @@ guis:
     enchants:
     - protection
     - unbreaking
+    - thorns
     - poisonous
     - volcanic
     - saturated
     - insatiable
     - stiffen
+    - overhealed
+    - evade
+    - fly
+    - repair
+    - soulbound
+    - experience
     items:
     - LEATHER_HELMET
     - LEATHER_CHESTPLATE
@@ -130,3 +172,15 @@ guis:
     - NETHERITE_CHESTPLATE
     - NETHERITE_LEGGINGS
     - NETHERITE_BOOTS
+  fishing_rod:
+    enchants:
+    - unbreaking
+    - mending
+    - lure
+    - luck_of_the_sea
+    - fly
+    - repair
+    - soulbound
+    - experience
+    items:
+    - FISHING_ROD

@@ -14,7 +14,6 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -35,37 +34,18 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 	private static boolean show_enchant_descriptions_in_lore = Main.Config.getBoolean("show-enchant-descriptions-in-lore");
 	private static Map<Enchantment, ArrayList<String>> descriptionMap = new HashMap<>();
 	private static List<String> allDescriptionLines = new ArrayList<String>();
-	private static ChatColor prefix = show_enchant_descriptions_in_lore ? ChatColor.BLUE : ChatColor.GRAY;
+	private static String prefix = Main.Config.getString("enchant-lore-color").replaceAll("&", "§");
+	private static File loreExemptions = new File(Main.plugin.getDataFolder(), "lore_exemptions.yml");
+	private static EPSConfiguration loreExemptionsConfig = null;
+	private static List<Material> exemptions = new ArrayList<Material>();
 	private static final Dictionary dictionary = EPS.getDictionary();
 	
 	public EnchantMetaWriter()
 	{
-		for (Enchantment enchant : Enchantment.values())
-		{
-			String configdesc = EPSConfiguration.loadConfiguration(new File(Main.EnchantsFolder, dictionary.getName(enchant)+".yml")).getString("upgradedesc");
-			final String desc = configdesc == null ? dictionary.getDefaultDescription(enchant) : configdesc;
-			
-			descriptionMap.put(enchant, new ArrayList<String>() {
-				private static final long serialVersionUID = -5686650364578005499L;
-				{
-			        add("");
-			        if (desc.length() > 120)
-			            for (int i=0;i<=(desc.length() / 90);i++)
-			            {
-			            	String str = ChatColor.GRAY+desc.substring(45*i, 45*i+45 > desc.length() ? desc.length() : 45*i+45);
-			            	add(str);
-			            	allDescriptionLines.add(str);
-			            }
-			        else
-			        {
-			        	add(ChatColor.GRAY+desc);
-			        	allDescriptionLines.add(ChatColor.GRAY+desc);
-			        }
-			        add("");
-		    	}
-			}
-			);
-		}
+		Main.saveDefaultFile("/lore_exemptions.yml", loreExemptions);
+		loreExemptionsConfig = EPSConfiguration.loadConfiguration(loreExemptions);
+		for (String s : loreExemptionsConfig.getStringList("blacklist"))
+			exemptions.add(Material.matchMaterial(s));
 	}
 	
 	private static List<String> getWrittenEnchantLore(ItemStack item)
@@ -80,13 +60,12 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 		Collection<Enchantment> enchants = ve ? new ArrayList<Enchantment>(Arrays.asList(Enchantment.values())) : Label.values();
 		
 		for (Enchantment enchant : enchants)
-		{
+		{	
 			for (int i=0;i<list.size();i++)
 			{
 				String s = list.get(i);
 				if (s.split(" ").length > 1)
-					if (s.startsWith(ChatColor.GRAY+enchantnames.get(enchant)) ||
-						s.startsWith(ChatColor.BLUE+enchantnames.get(enchant)))
+					if (s.contains(enchantnames.get(enchant)))
 						list.remove(i);
 				if (allDescriptionLines.contains(s) || s.equals(ChatColor.BLACK+"-"))
 					list.remove(i);
@@ -98,7 +77,9 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 			if (enchants.contains(entry.getKey()))
 			{
 				String name = enchantnames.get(entry.getKey());
-				String lore = prefix+name+" "+ getNumber(entry.getValue());
+				String lore = name+" "+ getNumber(entry.getValue());
+				String s = Main.Config.getString("custom-lore-color."+dictionary.getName(entry.getKey()));
+				lore = s == null ? prefix + lore : s.replaceAll("&", "§") + lore;
 			    if (show_enchant_descriptions_in_lore)
 			    {
 				    List<String> l = getDescription(entry.getKey());
@@ -128,9 +109,11 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 		ItemMeta meta = item.getItemMeta();
 		if (meta != null)
 		if (lore != null)
-		meta.setLore(lore);
-		if (ve)
-			meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+		{
+			meta.setLore(lore);
+			if (ve)
+				meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+		}
 		return meta;
 	}
 	
@@ -205,12 +188,6 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 		}
 	}
 	
-	public static void registerEnchantNames()
-	{
-		for (Enchantment enchant : Enchantment.values())
-			enchantnames.put(enchant, WordUtils.capitalizeFully(dictionary.getName(enchant).replaceAll("_", " ")));
-	}
-	
 	public static List<String> getWrittenEnchantLoreBook(ItemStack item)
 	{
 		EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
@@ -230,7 +207,7 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 			{
 				String s = list.get(i);
 				if (s.split(" ").length > 1)
-				if (s.startsWith(prefix+enchantnames.get(enchant)))
+				if (s.startsWith(ChatColor.GRAY+enchantnames.get(enchant)))
 					list.remove(i);
 				if (allDescriptionLines.contains(s))
 					list.remove(i);
@@ -242,7 +219,7 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 			if (enchants.contains(entry.getKey()))
 			{
 				String name = enchantnames.get(entry.getKey());
-				String lore = prefix+name+" "+ getNumber(entry.getValue());
+				String lore = ChatColor.GRAY+name+" "+ getNumber(entry.getValue());
 			    list.add(0, lore);
 			}
 		}
@@ -274,26 +251,42 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 	{
 		if (item == null) return;
 		if (item.getType().equals(Material.ENCHANTED_BOOK)) return;
+		if (exemptions.contains(item.getType())) return;
 		ItemMeta meta = getWrittenMeta(item);
 		if (meta == null) return;
 		if (meta.getLore() != item.getItemMeta().getLore())
 			item.setItemMeta(meta);
 	}
 	
-	@EventHandler
-	public void onInventoryClick(InventoryClickEvent e)
+	public static void init(Enchantment enchant)
 	{
-		refreshItem(e.getCurrentItem());
+		String configdesc = EPSConfiguration.loadConfiguration(new File(Main.EnchantsFolder, dictionary.getName(enchant)+".yml")).getString("upgradedesc");
+		final String desc = configdesc == null ? dictionary.getDefaultDescription(enchant) : configdesc;
+		enchantnames.put(enchant, WordUtils.capitalizeFully(dictionary.getName(enchant).replaceAll("_", " ")));
+		descriptionMap.put(enchant, new ArrayList<String>() {
+			private static final long serialVersionUID = -5686650364578005499L;
+			{
+		        add("");
+		        if (desc.length() > 120)
+		            for (int i=0;i<=(desc.length() / 90);i++)
+		            {
+		            	String str = ChatColor.GRAY+desc.substring(45*i, 45*i+45 > desc.length() ? desc.length() : 45*i+45);
+		            	add(str);
+		            	allDescriptionLines.add(str);
+		            }
+		        else
+		        {
+		        	add(ChatColor.GRAY+desc);
+		        	allDescriptionLines.add(ChatColor.GRAY+desc);
+		        }
+		        add("");
+	    	}
+		}
+		);
 	}
 	
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent e)
-	{
-		refreshItem(e.getPlayer().getInventory().getItemInMainHand());
-	}
-	
-	@EventHandler
-	public void onInventoryOpen(InventoryOpenEvent e)
 	{
 		refreshItem(e.getPlayer().getInventory().getItemInMainHand());
 	}
@@ -303,5 +296,35 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 		ve = Main.Config.getBoolean("show-vanilla-enchants-in-lore");
 		show_enchant_lore = Main.Config.getBoolean("show-enchant-lore");
 		show_enchant_descriptions_in_lore = Main.Config.getBoolean("show-enchant-descriptions-in-lore");
+		loreExemptionsConfig = EPSConfiguration.loadConfiguration(loreExemptions);
+		prefix = Main.Config.getString("enchant-lore-color").replaceAll("&", "§");
+		for (String s : loreExemptionsConfig.getStringList("blacklist"))
+			exemptions.add(Material.matchMaterial(s));
+		for (Enchantment enchant : Enchantment.values())
+		{
+			String configdesc = EPSConfiguration.loadConfiguration(new File(Main.EnchantsFolder, dictionary.getName(enchant)+".yml")).getString("upgradedesc");
+			final String desc = configdesc == null ? dictionary.getDefaultDescription(enchant) : configdesc;
+			
+			descriptionMap.put(enchant, new ArrayList<String>() {
+				private static final long serialVersionUID = -5686650364578005499L;
+				{
+			        add("");
+			        if (desc.length() > 120)
+			            for (int i=0;i<=(desc.length() / 90);i++)
+			            {
+			            	String str = ChatColor.GRAY+desc.substring(45*i, 45*i+45 > desc.length() ? desc.length() : 45*i+45);
+			            	add(str);
+			            	allDescriptionLines.add(str);
+			            }
+			        else
+			        {
+			        	add(ChatColor.GRAY+desc);
+			        	allDescriptionLines.add(ChatColor.GRAY+desc);
+			        }
+			        add("");
+		    	}
+			}
+			);
+		}
 	}
 }

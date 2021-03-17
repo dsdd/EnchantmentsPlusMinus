@@ -57,3 +57,7 @@ cost:
   value: 200
 chance: '%lvl%/10'
 money: '%lvl%*350'
+random-range: '%lvl%'
+# The random range of tokens you can get
+# If your money value is set to 10 and your random range is 2, you can get money from 8 - 12!
+

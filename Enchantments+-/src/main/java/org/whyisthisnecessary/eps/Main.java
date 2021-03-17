@@ -2,15 +2,18 @@ package org.whyisthisnecessary.eps;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -22,6 +25,7 @@ import java.util.zip.ZipFile;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
@@ -70,7 +74,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor, Reloa
 	public static FileConfiguration UUIDDataStoreConfig;
 	public static FileConfiguration InCPTConfig;	
 	public static FileConfiguration GuisConfig;
-	public static FileConfiguration GuiLoreConfig;
+	public static YamlConfiguration GuiLoreConfig;
 	public static EnchantsCommand EnchantsCMD;
 	public static EnchantMetaWriter enchantMetaWriter;
 	
@@ -111,7 +115,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor, Reloa
 		// Create Gui Lore File
 		GuiLoreFile = new File(getDataFolder(), "gui_lore.yml");
 		saveDefaultFile("/gui_lore.yml", GuiLoreFile);
-		GuiLoreConfig = YamlConfiguration.loadConfiguration(GuiLoreFile);
+		GuiLoreConfig = loadUTF8Configuration(GuiLoreFile);
 		
 		// Create Data Files
 		UUIDDataStore = new File(DataFolder, "usernamestore.yml");
@@ -175,6 +179,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor, Reloa
 		EPS.registerReloader(new EPS());
 		EPS.registerReloader(enchantMetaWriter);
 		EPS.registerReloader(LangUtil.lang);
+		EPS.registerReloader(new EnchantGUI());
+		EPS.registerReloader((new EPSConfiguration()).new EPSConfigReloader());
 				
 		// Finalize loading
 		try 
@@ -187,17 +193,14 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor, Reloa
 		{ 
 			e.printStackTrace(); 
 		}
+		for (Enchantment enchant : Enchantment.values())
+			EnchantMetaWriter.init(enchant);
 		new PackLoader(this);
-		EnchantMetaWriter.registerEnchantNames();
 		DataUtil.saveConfig(Main.Config, Main.ConfigFile);
 		EPSConfiguration.reloadConfigs();
 		EnchantGUI.setupInCPTS();
 		for (Player p : Bukkit.getOnlinePlayers())
 			EnchantGUI.setupGUI(p);
-		
-		if (new File(getDataFolder(), "packs").exists())
-			new File(getDataFolder(), "packs").delete();
-
 		LangUtil.sendMessage(Bukkit.getConsoleSender(), "startup-message");
 	}
 	
@@ -444,6 +447,17 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor, Reloa
 		}
 		return (temp);
 	}
+	
+	public static YamlConfiguration loadUTF8Configuration(File file)
+	{
+		YamlConfiguration config = new YamlConfiguration();
+		try {
+			config.load(new InputStreamReader(new FileInputStream(file), Charset.forName("UTF-8")));
+		} catch (IOException | InvalidConfigurationException e) {
+			e.printStackTrace();
+		}
+		return config;
+	}
 
 	@Override
 	public void reload() 
@@ -454,6 +468,6 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor, Reloa
 		LangConfig = YamlConfiguration.loadConfiguration(LangFile);
 		InCPTConfig = YamlConfiguration.loadConfiguration(InCPTFile);
 		GuisConfig = YamlConfiguration.loadConfiguration(GuisFile);
-		GuiLoreConfig = YamlConfiguration.loadConfiguration(GuiLoreFile);
+		GuiLoreConfig = loadUTF8Configuration(GuiLoreFile);
 	}
 }

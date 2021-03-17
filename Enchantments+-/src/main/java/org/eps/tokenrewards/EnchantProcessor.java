@@ -65,14 +65,16 @@ public class EnchantProcessor implements Listener, Reloadable {
 	 {
 		 if (!mobKillTokensEnabled) 
 	    	 return;
+		 if (e.getEntity() instanceof Player)
+			 return;
 		 if (e.getEntity().getKiller() == null) 
 			 return;
 		 Player killer = e.getEntity().getKiller();
 		 if (killer instanceof Player)
 		 {
-			 Integer tokens = random.nextInt(mobKillTokensMax-mobKillTokensMin)+mobKillTokensMin+1;
+			 int tokens = random.nextInt(mobKillTokensMax-mobKillTokensMin)+mobKillTokensMin+1;
 			 String name = e.getEntityType().name();
-			 killer.sendMessage(mobKillGet.replaceAll("%tokens%", tokens.toString()).replaceAll("%mob%", WordUtils.capitalizeFully(name.replaceAll("_", " ").toLowerCase())));
+			 killer.sendMessage(mobKillGet.replaceAll("%tokens%", Integer.toString(tokens)).replaceAll("%mob%", WordUtils.capitalizeFully(name.replaceAll("_", " ").toLowerCase())));
 			 economy.changeBalance(killer, tokens);
 		 }
 	 }
@@ -87,8 +89,10 @@ public class EnchantProcessor implements Listener, Reloadable {
 		 if (killer instanceof Player)
 		 {
 		     Player killed = (Player) e.getEntity();
-		     Integer tokens = random.nextInt(playerKillTokensMax-playerKillTokensMin)+playerKillTokensMin+1;
-		     killer.sendMessage(playerKillGet.replaceAll("%tokens%", tokens.toString()).replaceAll("%victim%", killed.getName()));
+		     if (killer == killed)
+		    	 return;
+		     int tokens = random.nextInt(playerKillTokensMax-playerKillTokensMin)+playerKillTokensMin+1;
+		     killer.sendMessage(playerKillGet.replaceAll("%tokens%", Integer.toString(tokens)).replaceAll("%victim%", killed.getName()));
 		     economy.changeBalance(killer, tokens);
 		 }
 	 }
@@ -102,11 +106,11 @@ public class EnchantProcessor implements Listener, Reloadable {
 		 }
 	 }
 	 
-	 @EventHandler
+	 @EventHandler(ignoreCancelled = true)
 	 public void onBlockBreak(BlockBreakEvent e)
 	 {
-		 if (!miningTokensEnabled) 
-			 return;
+		if (!miningTokensEnabled) 
+			return;
 		if (blocklog.containsKey(e.getPlayer()))
 		{
 			blocklog.put(e.getPlayer(), blocklog.get(e.getPlayer())+1);

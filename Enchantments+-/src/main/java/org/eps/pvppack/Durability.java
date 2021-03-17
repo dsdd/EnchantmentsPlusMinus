@@ -8,8 +8,8 @@ import org.whyisthisnecessary.eps.legacy.LegacyUtil;
 public class Durability {
 	
 	private ItemStack item = null;
-	private Short maxdurability = 0;
-	private Short durability = 0;
+	private short maxdurability = 0;
+	private short durability = 0;
 
 	public Durability(ItemStack item)
 	{
@@ -20,16 +20,19 @@ public class Durability {
 			return;
 		if (item.getItemMeta() == null)
 			return;
+		maxdurability = item.getType().getMaxDurability();
 		if (LegacyUtil.isLegacy())
-		durability = item.getDurability();
+			durability = item.getDurability();
 		else
 		{
-			if (!(item instanceof org.bukkit.inventory.meta.Damageable))
+			if (!(item.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable))
+			{
+				durability = maxdurability;
 				return;
-			int i = item.getType().getMaxDurability()-((org.bukkit.inventory.meta.Damageable)item.getItemMeta()).getDamage();
+			}
+			int i = maxdurability-((org.bukkit.inventory.meta.Damageable)item.getItemMeta()).getDamage();
 			durability = (short)i;
 		}
-		maxdurability = item.getType().getMaxDurability();
 	}
 	
 	@Deprecated
@@ -38,7 +41,7 @@ public class Durability {
 		return maxdurability-durability;
 	}
 	
-	public Integer getDurability()
+	public int getDurability()
 	{
 		return Short.toUnsignedInt(durability);
 	}
@@ -58,17 +61,27 @@ public class Durability {
 		}
 	}
 	
-	public void setDurability(Integer durability)
+	public void setDurability(int durability)
 	{
 		if (item == null)
 			return;
 		if (LegacyUtil.isLegacy())
-			item.setDurability(durability.shortValue());
+			item.setDurability((short)durability);
 		else
 		{
 			org.bukkit.inventory.meta.Damageable dmg1 = ((org.bukkit.inventory.meta.Damageable)item.getItemMeta());
 			dmg1.setDamage(maxdurability-durability);
 			item.setItemMeta((ItemMeta) dmg1);
 		}
+	}
+	
+	public void incrementDurability(int durability)
+	{
+		setDurability(getDurability()+durability);
+	}
+	
+	public int getMaxDurability()
+	{
+		return maxdurability;
 	}
 }

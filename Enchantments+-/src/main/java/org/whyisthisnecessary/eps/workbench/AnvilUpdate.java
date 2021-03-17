@@ -2,6 +2,7 @@ package org.whyisthisnecessary.eps.workbench;
 
 import java.util.Map;
 
+import org.bukkit.Bukkit;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -10,20 +11,29 @@ import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.eps.pvppack.Durability;
+import org.whyisthisnecessary.eps.EPS;
 import org.whyisthisnecessary.eps.Main;
 import org.whyisthisnecessary.eps.api.EPSConfiguration;
+import org.whyisthisnecessary.eps.api.Reloadable;
 import org.whyisthisnecessary.eps.visual.EnchantMetaWriter;
 
-public class AnvilUpdate implements Listener {
+public class AnvilUpdate implements Listener, Reloadable {
 
+	private boolean ace = Main.Config.getBoolean("anvil-combining-enabled");
+	
+	public AnvilUpdate()
+	{
+		EPS.registerReloader(this);
+	}
+	
 	@EventHandler
 	public void onInventoryClick(PrepareAnvilEvent e)
 	{
-		if (Main.Config.getBoolean("anvil-combining-enabled") == false)
+		if (ace == false)
 			return;
 		AnvilInventory anvil = e.getInventory();
 		
-		if (anvil.getItem(0) == null || anvil.getRepairCost() == 0) return;
+		if (anvil.getItem(0) == null) return;
 		
 		ItemStack slot1 = anvil.getItem(0);
 		ItemStack slot2 = anvil.getItem(1);
@@ -38,16 +48,29 @@ public class AnvilUpdate implements Listener {
 		
 		Map<Enchantment, Integer> enchantments = slot2 == null ? CustomEnchantedBook.getEnchants(slot1) : CustomEnchantedBook.combineEnchants(slot1, slot2, false);
 
+		int cost = 1;
 		for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
 			int maxlevel = EPSConfiguration.getConfiguration(entry.getKey()).getInt("maxlevel");
 			if (maxlevel != 0 && entry.getValue() > maxlevel)
+			{
 				item.addUnsafeEnchantment(entry.getKey(), maxlevel);
+				cost = cost + maxlevel;
+			}
 			else
+			{
 				item.addUnsafeEnchantment(entry.getKey(), entry.getValue());
+				cost = cost + entry.getValue();
+			}
 		}
-		
+		final int cost1 = cost;
 		ItemMeta lore = EnchantMetaWriter.getWrittenMeta(item);
 		item.setItemMeta(lore);
 		e.setResult(item);
+		Bukkit.getServer().getScheduler().runTask(Main.plugin, () -> e.getInventory().setRepairCost(cost1));
+	}
+
+	@Override
+	public void reload() {
+		ace = Main.Config.getBoolean("anvil-combining-enabled");
 	}
 }

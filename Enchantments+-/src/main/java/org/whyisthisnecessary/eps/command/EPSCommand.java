@@ -1,6 +1,8 @@
 package org.whyisthisnecessary.eps.command;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
@@ -8,19 +10,20 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.whyisthisnecessary.eps.EPS;
-import org.whyisthisnecessary.eps.api.EPSConfiguration;
-import org.whyisthisnecessary.eps.api.Reloadable;
+import org.whyisthisnecessary.eps.api.CustomEnchant;
 import org.whyisthisnecessary.eps.item.TokenPouch;
 import org.whyisthisnecessary.eps.util.LangUtil;
-import org.whyisthisnecessary.eps.visual.EnchantGUI;
 import org.whyisthisnecessary.eps.visual.EnchantMetaWriter;
 import org.whyisthisnecessary.eps.workbench.CustomEnchantedBook;
 
-public class EPSCommand implements CommandExecutor {
+public class EPSCommand implements CommandExecutor, TabCompleter {
+	
+	private List<String> enchantTabList = new ArrayList<String>();
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
@@ -34,7 +37,6 @@ public class EPSCommand implements CommandExecutor {
 			sender.sendMessage(ChatColor.RED + "/eps give [plr] [amount]");
 			sender.sendMessage(ChatColor.RED + "/eps take [plr] [amount]");
 			sender.sendMessage(ChatColor.RED + "/eps enchant [enchant] [lvl]");
-			sender.sendMessage(ChatColor.RED + "/eps reloadpack [packname]");
 			sender.sendMessage(ChatColor.RED + "/eps book [player] [enchant:lvl]");
 			sender.sendMessage(ChatColor.RED + "/eps tokenpouch [player] [tokens]");
 			return false;
@@ -48,10 +50,7 @@ public class EPSCommand implements CommandExecutor {
 				LangUtil.sendMessage(sender, "insufficientpermission");
 				return false;
 			}
-			EnchantGUI.setupInCPTS();
-			EPSConfiguration.reloadConfigs();
-			for (Reloadable r : Reloadable.CLASSES)
-				r.reload();
+			EPS.reloadConfigs();
 			LangUtil.sendMessage(sender, "reloadconfig");
 			return false;
 		}
@@ -129,8 +128,13 @@ public class EPSCommand implements CommandExecutor {
 				}
 				if (p.getInventory().getItemInMainHand().getAmount() > 0)
 				{
-					Integer num = Integer.parseInt(args[2]);
-					Enchantment enchant = EPS.getDictionary().findEnchant(args[1]);
+					int num = Integer.parseInt(args[2]);
+					Enchantment enchant = EPS.getDictionary().findEnchant(args[1].toLowerCase());
+					if (enchant == null)
+					{
+						LangUtil.sendMessage(p, "invalid-enchant");
+						return true;
+					}
 					if (num != 0)
 						p.getInventory().getItemInMainHand().addUnsafeEnchantment(enchant, num);
 					else
@@ -156,11 +160,6 @@ public class EPSCommand implements CommandExecutor {
 			if (!sender.hasPermission("eps.admin.book"))
 			{
 				LangUtil.sendMessage(sender, "insufficientpermission");
-				return false;
-			}
-			if (!(sender instanceof Player))
-			{
-				LangUtil.sendMessage(sender, "invalidplayertype");
 				return false;
 			}
 			if (args.length == 0)
@@ -202,7 +201,6 @@ public class EPSCommand implements CommandExecutor {
 				if (enchant == null)
 				{
 					LangUtil.sendMessage(sender, ChatColor.RED+"Invalid enchant "+EPS.getDictionary().getName(enchant).toUpperCase()+"!");
-					LangUtil.sendMessage(sender, ChatColor.RED+"Invalid enchant level "+parts[1]+"!");
 					continue;
 				}
 				map.put(enchant, lvl);
@@ -217,11 +215,6 @@ public class EPSCommand implements CommandExecutor {
 			if (!sender.hasPermission("eps.admin.book"))
 			{
 				LangUtil.sendMessage(sender, "insufficientpermission");
-				return false;
-			}
-			if (!(sender instanceof Player))
-			{
-				LangUtil.sendMessage(sender, "invalidplayertype");
 				return false;
 			}
 			Player p = Bukkit.getPlayer(args[1]);
@@ -261,5 +254,20 @@ public class EPSCommand implements CommandExecutor {
 			onCommand(sender, cmd, label, t);
 		}
 		return false;
+	}
+
+	@Override
+	public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
+		if (!(cmd.getName() == "eps"))
+			return null;
+		
+		if (enchantTabList == null)
+			for (Enchantment e : CustomEnchant.registeredEnchants)
+				enchantTabList.add(EPS.getDictionary().getName(e));
+		
+		if (args[0].equalsIgnoreCase("enchant") || args[0].equalsIgnoreCase("book"))
+			return enchantTabList;
+		
+		return null;
 	}
 }

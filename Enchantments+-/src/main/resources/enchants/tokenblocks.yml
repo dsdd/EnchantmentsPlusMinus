@@ -57,3 +57,6 @@ cost:
   multi: 1.2
 chance: '%lvl%/10'
 tokens: '%lvl%'
+random-range: '%lvl%'
+# The random range of tokens you can get
+# If your token value is set to 10 and your random range is 2, you can get tokens from 8 - 12!

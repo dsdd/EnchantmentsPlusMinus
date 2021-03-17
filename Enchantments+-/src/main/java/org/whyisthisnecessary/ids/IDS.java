@@ -139,11 +139,6 @@ public class IDS {
 		return mappings.get(s).toString().charAt(0);
 	}
 	
-	public IDS getIDS(String s)
-	{
-		return (IDS)mappings.get(s);
-	}
-	
 	public List<Object> getList(String s)
 	{
 		String str = getString(s);

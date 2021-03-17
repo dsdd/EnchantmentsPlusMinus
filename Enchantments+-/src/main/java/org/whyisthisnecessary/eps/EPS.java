@@ -12,11 +12,10 @@ import org.whyisthisnecessary.eps.economy.Economy;
 
 public class EPS implements Reloadable {
 
-	private static TokenEconomy te = new TokenEconomy();
-	private static VaultEconomy ve = new VaultEconomy();
 	private static Dictionary dictionary = new Dictionary.Defaults();
 	private static boolean legacy = Material.getMaterial("BLACK_STAINED_GLASS_PANE") == null;
 	private static boolean umeiot = Main.Config.getBoolean("use-money-economy-instead-of-tokens");
+	private static Economy economy = umeiot ? new VaultEconomy() : new TokenEconomy();
 	
 	protected EPS() {}
 	
@@ -26,7 +25,16 @@ public class EPS implements Reloadable {
 	 */
 	public static Economy getEconomy()
 	{
-		return umeiot ? ve : te;
+		return economy;
+	}
+	
+	/** Sets the main economy of EPS.
+	 * 
+	 * @return The main economy of EPS
+	 */
+	public static void setEconomy(Economy economy)
+	{
+		EPS.economy = economy;
 	}
 	
 	/** Gets the plugin folder (/plugins/EnchantmentsPlusMinus)
@@ -65,6 +73,15 @@ public class EPS implements Reloadable {
 		return dictionary;
 	}
 	
+	/** Sets the main dictionary of EPS.
+	 * 
+	 * @return The main dictionary of EPS.
+	 */
+	public static void setDictionary(Dictionary dictionary)
+	{
+		EPS.dictionary = dictionary;
+	}
+	
 	/** Returns true if the MC server is 1.12 or below.
 	 * 
 	 * @return Returns true if the MC server is 1.12 or below.
@@ -82,6 +99,16 @@ public class EPS implements Reloadable {
 		Reloadable.addReloader(r);
 	}
 
+	
+	/**
+	 * Fires reload() in all registered Reloadable classes.
+	 */
+	public static void reloadConfigs()
+	{
+		for (Reloadable r : Reloadable.CLASSES)
+			r.reload();
+	}
+	
 	@Override
 	public void reload() {
 		umeiot = Main.Config.getBoolean("use-money-economy-instead-of-tokens");

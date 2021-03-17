@@ -47,7 +47,7 @@
 #            -- e.g. If you have a sword with enchantment level 2 on it
 #            --      and you want it to be level 3, it would be 9392 tokens
 
-maxlevel: 4
+maxlevel: 1
 scrapvalue: 65
 upgradeicon: FIRE_CHARGE
 upgradedesc: Burns anyone who gets hit by your arrows!

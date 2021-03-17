@@ -13,35 +13,56 @@ import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.whyisthisnecessary.eps.visual.EnchantMetaWriter;
-
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
 import org.whyisthisnecessary.eps.EPS;
+import org.whyisthisnecessary.eps.api.CountTracker;
 import org.whyisthisnecessary.eps.api.EPSConfiguration;
+import org.whyisthisnecessary.eps.api.Reloadable;
+import org.whyisthisnecessary.eps.api.TimeTracker;
 import org.whyisthisnecessary.eps.util.LangUtil;
 
-public class EnchantProcessor implements Listener {
+public class EnchantProcessor implements Listener, Reloadable {
 
 	public static Random rand = new Random();
-	private Map<Player, Long> phCooldown = new HashMap<Player, Long>();
+	private TimeTracker phCooldown = new TimeTracker();
+	private TimeTracker bsCooldown = new TimeTracker();
+	private CountTracker evadeCount = new CountTracker();
+	private CountTracker mCount = new CountTracker();
+	private EPSConfiguration jaggedConfig = EPSConfiguration.getConfiguration(CustomEnchants.JAGGED);
+	private EPSConfiguration lsConfig = EPSConfiguration.getConfiguration(CustomEnchants.LIFESTEAL);
+	private EPSConfiguration momentumConfig = EPSConfiguration.getConfiguration(CustomEnchants.MOMENTUM);
+	private EPSConfiguration lrConfig = EPSConfiguration.getConfiguration(CustomEnchants.LAST_RESORT);
+	private EPSConfiguration retaliateConfig = EPSConfiguration.getConfiguration(CustomEnchants.RETALIATE);
+	private EPSConfiguration beheadingConfig = EPSConfiguration.getConfiguration(CustomEnchants.BEHEADING);
+	private EPSConfiguration stiffenConfig = EPSConfiguration.getConfiguration(CustomEnchants.STIFFEN);
+	private EPSConfiguration phConfig = EPSConfiguration.getConfiguration(CustomEnchants.POWERHOUSE);
+	private EPSConfiguration meltingConfig = EPSConfiguration.getConfiguration(CustomEnchants.MELTING);
+	private EPSConfiguration bsConfig = EPSConfiguration.getConfiguration(CustomEnchants.BACKUP_SPELLS);
+	private EPSConfiguration evadeConfig = EPSConfiguration.getConfiguration(CustomEnchants.EVADE);
+	private String cooldownError = LangUtil.getLangMessage("cooldown-error");
 	
 	private static final Map<EntityType, String> mobHeads = new HashMap<EntityType, String>() {
 		private static final long serialVersionUID = 1L;
@@ -57,7 +78,7 @@ public class EnchantProcessor implements Listener {
 			put(EntityType.MUSHROOM_COW, "ewogICJ0aW1lc3RhbXAiIDogMTYxMTUyODc0NzAzNiwKICAicHJvZmlsZUlkIiA6ICJhNDY4MTdkNjczYzU0ZjNmYjcxMmFmNmIzZmY0N2I5NiIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfTXVzaHJvb21Db3ciLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTIzY2ZjNTU4MjQ1NGZjZjk5MDZmODQxZmRhMmNjNmFlODk2Y2Y0NTU4MjFjNGFkYTE5OThkZTcwODc3Y2M4NiIKICAgIH0KICB9Cn0="); // MHF_MushroomCow
 			put(EntityType.OCELOT, "ewogICJ0aW1lc3RhbXAiIDogMTYxMTUyODc3OTUwMywKICAicHJvZmlsZUlkIiA6ICIxYmVlOWRmNTRmNzE0MmEyYmY1MmQ5Nzk3MGQzZmVhMyIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfT2NlbG90IiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzExOGI2Yjc5NzgzMzY4ZGZlMDA0Mjk4NTExMGRhMzY2ZjljNzg4YjQ1MDk3YTNlYTZkMGQ5YTc1M2U5ZjQyYzYiCiAgICB9CiAgfQp9"); // MHF_Ocelot
 			put(EntityType.PIG, "ewogICJ0aW1lc3RhbXAiIDogMTYxMTUyODgyMDE4NywKICAicHJvZmlsZUlkIiA6ICI4YjU3MDc4YmYxYmQ0NWRmODNjNGQ4OGQxNjc2OGZiZSIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfUGlnIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2E1NjJhMzdiODcxZjk2NGJmYzNlMTMxMWVhNjcyYWFhMDM5ODRhNWRjNDcyMTU0YTM0ZGMyNWFmMTU3ZTM4MmIiCiAgICB9CiAgfQp9"); // MHF_Pig
-			//put(EntityType.PIG_ZOMBIE, "ewogICJ0aW1lc3RhbXAiIDogMTYxMTUyODg1NDMzMiwKICAicHJvZmlsZUlkIiA6ICIxOGEyYmI1MDMzNGE0MDg0OTE4NDJjMzgwMjUxYTI0YiIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfUGlnWm9tYmllIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzkxNmQxNjdjNTc0NGVkMTRlYmMwMmY0NDdmMzI2MTQwNTkzNjJiN2QyZWNiODA4ZmYwNjE2NWQyYzM0M2JlZjIiCiAgICB9CiAgfQp9"); // MHF_PigZombie
+			//put(EntityType.ZOMBIFIED_PIGLIN, "ewogICJ0aW1lc3RhbXAiIDogMTYxMTUyODg1NDMzMiwKICAicHJvZmlsZUlkIiA6ICIxOGEyYmI1MDMzNGE0MDg0OTE4NDJjMzgwMjUxYTI0YiIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfUGlnWm9tYmllIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzkxNmQxNjdjNTc0NGVkMTRlYmMwMmY0NDdmMzI2MTQwNTkzNjJiN2QyZWNiODA4ZmYwNjE2NWQyYzM0M2JlZjIiCiAgICB9CiAgfQp9"); // MHF_PigZombie
 			put(EntityType.SHEEP, "ewogICJ0aW1lc3RhbXAiIDogMTYxMTUyODk2MzMzMSwKICAicHJvZmlsZUlkIiA6ICJkZmFhZDU1MTRlN2U0NWExYTZmN2M2ZmM1ZWM4MjNhYyIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfU2hlZXAiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2NhMzhjY2Y0MTdlOTljYTlkNDdlZWIxNWE4YTMwZWRiMTUwN2FhNTJiNjc4YzIyMGM3MTdjNDc0YWE2ZmUzZSIKICAgIH0KICB9Cn0="); // MHF_Sheep
 			put(EntityType.SLIME, "ewogICJ0aW1lc3RhbXAiIDogMTYxMTUyOTA0NDM1MiwKICAicHJvZmlsZUlkIiA6ICI4NzBhYmE5MzQwZTg0OGIzODljNTMyZWNlMDBkNjYzMCIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfU2xpbWUiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODZjMjdiMDEzZjFiZjMzNDQ4NjllODFlNWM2MTAwMjdiYzQ1ZWM1Yjc5NTE0ZmRjOTZlMDFkZjFiN2UzYTM4NyIKICAgIH0KICB9Cn0="); // MHF_Slime
 			put(EntityType.SPIDER, "ewogICJ0aW1lc3RhbXAiIDogMTYxMTUyOTA5MTU4MCwKICAicHJvZmlsZUlkIiA6ICI1YWQ1NWYzNDQxYjY0YmQyOWMzMjE4OTgzYzYzNTkzNiIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfU3BpZGVyIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2Y2MWE0OTU0MWE4MzZhYThmNGY3NmUwZDRjYjJmZjA0ODg4YzYyZjk0MTFlYTEwY2JhY2YxZjJhNTQ0MjQyNDAiCiAgICB9CiAgfQp9"); // MHF_Spider
@@ -68,95 +89,128 @@ public class EnchantProcessor implements Listener {
 	};
 	private static Map<EntityType, ItemStack> mobSkulls = new HashMap<EntityType, ItemStack>();
 	
-	public EnchantProcessor(Plugin plugin) {
+	public EnchantProcessor(Plugin plugin) 
+	{
 		Bukkit.getPluginManager().registerEvents(this, plugin);
+		EPS.registerReloader(this);
 		
+		if (beheadingConfig.isSet("chance"))
+		{
+			String s = beheadingConfig.getString("chance");
+			beheadingConfig.set("mob-chance", s);
+			beheadingConfig.set("player-chance", s);
+			beheadingConfig.set("chance", null);
+			beheadingConfig.save();
+		}
+		
+		if (!EPS.onLegacy())
 		for (Map.Entry<EntityType, String> entry : mobHeads.entrySet())
 			mobSkulls.put(entry.getKey(), getCustomSkull(mobHeads.get(entry.getKey()), WordUtils.capitalizeFully(entry.getKey().name()) + " Head"));
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onEntityDamageByEntity(EntityDamageByEntityEvent e)
 	{
 		if (e.getDamager() instanceof Player)
 		{
 		
-		Player d = (Player) e.getDamager();
-		World world = d.getWorld();
-		ItemStack item = d.getInventory().getItemInMainHand();
-		ItemMeta meta = item.getItemMeta();
-		Durability dmg = new Durability(item);
-		if (item == null || meta == null) { return; }
-		ItemMeta meta1 = EnchantMetaWriter.getWrittenMeta(d.getInventory().getItemInMainHand());
-    	d.getInventory().getItemInMainHand().setItemMeta(meta1);
-		if (meta.hasEnchant(CustomEnchants.JAGGED))
-		{
-			Double dtp = EPSConfiguration.getConfiguration(CustomEnchants.JAGGED).getAutofilledDouble(meta.getEnchantLevel(CustomEnchants.JAGGED), "durabilitythresholdpercent");
-			Integer maxdur = (int) item.getType().getMaxDurability();
-			Integer durability = dmg.getDurability();
-			Double dp = (double) (durability/maxdur*100);
-			if (dp < dtp) {
-		    e.setDamage(e.getDamage() + meta.getEnchantLevel(CustomEnchants.JAGGED));
-		    if (!EPS.onLegacy())
-		    	world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1, new org.bukkit.Particle.DustOptions(Color.RED, 5));
-		    else
-		    	world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1);
-			}
-		}
-		
-		if (meta.hasEnchant(CustomEnchants.LIFESTEAL))
-		{
-			double hp = d.getHealth() + EPSConfiguration.getConfiguration(CustomEnchants.LIFESTEAL).getAutofilledDouble(meta.getEnchantLevel(CustomEnchants.LIFESTEAL), "hearts") * (e.getDamage() / 10);
-			if (hp > 20) hp = 20.0;
-			d.setHealth(hp);
-			world.spawnParticle(Particle.HEART, e.getEntity().getLocation(), 1);
-		}
-		
-		if (meta.hasEnchant(CustomEnchants.MOMENTUM))
-		{
-			double duration = EPSConfiguration.getConfiguration(CustomEnchants.MOMENTUM).getAutofilledDouble(meta.getEnchantLevel(CustomEnchants.MOMENTUM), "duration")*20;
-			int durationint = (int) duration;
-			d.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationint, meta.getEnchantLevel(CustomEnchants.MOMENTUM)-1));
-			world.spawnParticle(Particle.CLOUD, e.getEntity().getLocation(), 1);
-		}
-		
-		if (meta.hasEnchant(CustomEnchants.LAST_RESORT))
-		{
-			double healththreshold = EPSConfiguration.getConfiguration(CustomEnchants.LAST_RESORT).getAutofilledDouble(meta.getEnchantLevel(CustomEnchants.LAST_RESORT), "healththreshold");
-			if (((LivingEntity)e.getDamager()).getHealth() <= healththreshold)
-				e.setDamage(e.getDamage()*3);
-		}
-		
-		ItemStack[] armor = {d.getInventory().getHelmet(), d.getInventory().getChestplate(), d.getInventory().getLeggings(), d.getInventory().getBoots()};
-		for (ItemStack piece : armor)
-		{
-			if (piece != null)
+			Player d = (Player) e.getDamager();
+			World world = d.getWorld();
+			ItemStack item = d.getInventory().getItemInMainHand();
+			ItemMeta meta = item.getItemMeta();
+			if (item == null || meta == null)
+				return;
+			if (meta.hasEnchant(CustomEnchants.JAGGED))
 			{
-			if (piece.getItemMeta().hasEnchant(CustomEnchants.INSATIABLE))
+				Durability dmg = new Durability(item);
+				int enchlvl =  meta.getEnchantLevel(CustomEnchants.JAGGED);
+				double dtp = jaggedConfig.getAutofilledDouble(enchlvl, "durabilitythresholdpercent");
+				double dp = (double) (dmg.getMaxDurability()/dmg.getDurability()*100);
+				if (dp < dtp) 
+				{
+				    e.setDamage(e.getDamage() + enchlvl);
+				    if (!EPS.onLegacy())
+				    	world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1, new Particle.DustOptions(Color.RED, 5));
+				    else
+				    	world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1);
+				}
+			}
+			
+			if (meta.hasEnchant(CustomEnchants.LIFESTEAL))
 			{
-				double damage = EPSConfiguration.getConfiguration(CustomEnchants.INSATIABLE).getAutofilledDouble(piece.getItemMeta().getEnchantLevel(CustomEnchants.INSATIABLE), "extradamage");
-				e.setDamage(e.getDamage() + (damage - (damage*(d.getHealth()/20))));
-				if (!EPS.onLegacy())
-					world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1, new org.bukkit.Particle.DustOptions(Color.RED, 5));
-				else
-			    	world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1);
+				double hp = d.getHealth() + lsConfig.getAutofilledDouble(meta.getEnchantLevel(CustomEnchants.LIFESTEAL), "hearts") * (e.getDamage() / 10);
+				if (hp > 20) 
+					hp = 20.0;
+				d.setHealth(hp);
+				world.spawnParticle(Particle.HEART, e.getEntity().getLocation(), 1);
 			}
+			
+			if (meta.hasEnchant(CustomEnchants.MOMENTUM))
+			{
+				int enchlvl = meta.getEnchantLevel(CustomEnchants.MOMENTUM);
+				int duration = momentumConfig.getAutofilledInt(enchlvl, "duration")*20;
+				d.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration, enchlvl-1));
+				world.spawnParticle(Particle.CLOUD, e.getEntity().getLocation(), 1);
 			}
-		}
+			
+			if (meta.hasEnchant(CustomEnchants.LAST_RESORT))
+			{
+				double healththreshold = lrConfig.getAutofilledDouble(meta.getEnchantLevel(CustomEnchants.LAST_RESORT), "healththreshold");
+				if (d.getHealth() <= healththreshold)
+					e.setDamage(e.getDamage()*3);
+			}
+			
+			if (meta.hasEnchant(CustomEnchants.MELTING))
+			{
+				if (e.getEntity() instanceof LivingEntity)
+				{
+					int enchlvl = meta.getEnchantLevel(CustomEnchants.MELTING);
+					LivingEntity hit = (LivingEntity) e.getEntity();
+					hit.setFireTicks(hit.getFireTicks() + meltingConfig.getAutofilledInt(enchlvl, "fire-ticks"));
+					hit.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, meltingConfig.getAutofilledInt(enchlvl, "slowness-ticks"), meltingConfig.getAutofilledInt(enchlvl, "slowness-level")-1));
+					mCount.increase(d);
+					if (mCount.get(d) >= meltingConfig.getAutofilledInt(enchlvl, "freeze-hits"))
+					{
+						mCount.reset(d);
+						hit.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, meltingConfig.getAutofilledInt(enchlvl, "freeze-ticks"), 20));
+					}
+				}
+			}
+			
+			ItemStack[] armor = {d.getInventory().getHelmet(), d.getInventory().getChestplate(), d.getInventory().getLeggings(), d.getInventory().getBoots()};
+			for (ItemStack piece : armor)
+			{
+				if (piece != null)
+				{
+					if (piece.getItemMeta().hasEnchant(CustomEnchants.INSATIABLE))
+					{
+						double damage = EPSConfiguration.getConfiguration(CustomEnchants.INSATIABLE).getAutofilledDouble(piece.getItemMeta().getEnchantLevel(CustomEnchants.INSATIABLE), "extradamage");
+						e.setDamage(e.getDamage() + (damage - (damage*(d.getHealth()/20))));
+						if (!EPS.onLegacy())
+							world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1, new org.bukkit.Particle.DustOptions(Color.RED, 5));
+						else
+					    	world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1);
+					}
+				}
+			}
 		
 		}
 		
 		if (e.getEntity() instanceof Player)
 		{
 			Player p = (Player) e.getEntity();
+			Entity d = e.getDamager();
 			World world = p.getWorld();
 			ItemStack item = p.getInventory().getItemInMainHand();
 			ItemMeta meta = item.getItemMeta();
-			if (item == null || meta == null) { return; }
+			
+			if (item == null || meta == null) 
+				return;
 			if (meta.hasEnchant(CustomEnchants.RETALIATE))
 			{
-				int duration = EPSConfiguration.getConfiguration(CustomEnchants.RETALIATE).getAutofilledInt(meta.getEnchantLevel(CustomEnchants.RETALIATE), "duration")*20;
-				p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, meta.getEnchantLevel(CustomEnchants.RETALIATE)-1));
+				int enchlvl = meta.getEnchantLevel(CustomEnchants.RETALIATE);
+				int duration = retaliateConfig.getAutofilledInt(enchlvl, "duration")*20;
+				p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, enchlvl-1));
 			}
 			
 			ItemStack[] armor = {p.getInventory().getHelmet(), p.getInventory().getChestplate(), p.getInventory().getLeggings(), p.getInventory().getBoots()};
@@ -177,7 +231,7 @@ public class EnchantProcessor implements Listener {
 						if (pmeta.hasEnchant(CustomEnchants.VOLCANIC))
 						{
 							int ticks = EPSConfiguration.getConfiguration(CustomEnchants.VOLCANIC).getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.VOLCANIC), "ticks");
-		                    e.getDamager().setFireTicks(ticks);
+		                    d.setFireTicks(d.getFireTicks()+ticks);
 		                    world.spawnParticle(Particle.LAVA, e.getEntity().getLocation(), 1);
 						}
 						
@@ -189,12 +243,26 @@ public class EnchantProcessor implements Listener {
 						
 						if (pmeta.hasEnchant(CustomEnchants.STIFFEN))
 						{
-							EPSConfiguration config = EPSConfiguration.getConfiguration(CustomEnchants.STIFFEN);
-							double healththreshold = config.getAutofilledDouble(pmeta.getEnchantLevel(CustomEnchants.STIFFEN), "healththreshold");
-							int amplifier = config.getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.STIFFEN), "amplifier")-1;
+							double healththreshold = stiffenConfig.getAutofilledDouble(pmeta.getEnchantLevel(CustomEnchants.STIFFEN), "healththreshold");
+							int amplifier = stiffenConfig.getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.STIFFEN), "amplifier")-1;
 							LivingEntity l = ((LivingEntity)e.getEntity());
 							if (l.getHealth() <= healththreshold)
 		                    	PotionCombiner.addEffect(l, new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, amplifier-1));
+						}
+						if (pmeta.hasEnchant(CustomEnchants.EVADE))
+						{
+							evadeCount.increase(p);
+							int enchlvl = pmeta.getEnchantLevel(CustomEnchants.EVADE);
+							if (evadeConfig.getBoolean("luckbased"))
+								if (getNext() < evadeConfig.getAutofilledInt(enchlvl, "chance"))
+								{
+									e.setCancelled(true);
+								}
+							else
+								if (evadeCount.get(p) > evadeConfig.getAutofilledInt(enchlvl, "hits-to-activate"))
+								{
+									e.setCancelled(true);
+								}
 						}
 					}
 				}
@@ -202,15 +270,46 @@ public class EnchantProcessor implements Listener {
 	}
 	
 	@EventHandler
+	public void onPlayerMove(PlayerMoveEvent e)
+	{
+		if (e.getTo().getBlockX() == e.getFrom().getBlockX() && e.getTo().getBlockY() == e.getFrom().getBlockY())
+			return;
+		Player p = e.getPlayer();
+		ItemStack[] armor = {p.getInventory().getHelmet(), p.getInventory().getChestplate(), p.getInventory().getLeggings(), p.getInventory().getBoots()};
+		int overhealLvl = 0;
+		boolean heal = false;
+		boolean hpBoosted = p.hasPotionEffect(PotionEffectType.HEALTH_BOOST);
+		for (ItemStack piece : armor)
+		{
+			if (piece == null)
+				continue;
+			
+			ItemMeta pmeta = piece.getItemMeta();
+				if (pmeta.hasEnchant(CustomEnchants.OVERHEALED))
+				{
+					if (!hpBoosted)
+						overhealLvl++;
+					heal = true;
+				}
+		}
+		
+		if (heal)
+			p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, Integer.MAX_VALUE, overhealLvl-1));
+		else
+			p.removePotionEffect(PotionEffectType.HEALTH_BOOST);
+	}
+	
+	@EventHandler
 	public void onKill(EntityDeathEvent e)
 	{
-		if (e.getEntity().getKiller() == null) return;
+		if (e.getEntity().getKiller() == null) 
+			return;
 		ItemStack item = e.getEntity().getKiller().getInventory().getItemInMainHand();
 		ItemMeta meta = item.getItemMeta();
-		if (item.containsEnchantment(CustomEnchants.BEHEADING))
+		if (meta.hasEnchant(CustomEnchants.BEHEADING))
 		{
-			Integer lvl = meta.getEnchantLevel(CustomEnchants.BEHEADING);
-			double chance = EPSConfiguration.getConfiguration(CustomEnchants.BEHEADING).getAutofilledInt(lvl, "chance");
+			int enchlvl = meta.getEnchantLevel(CustomEnchants.BEHEADING);
+			double chance = beheadingConfig.getAutofilledInt(enchlvl, "mob-chance");
 			if (getNext() <= chance)
 			{
 				ItemStack head = getHead(e.getEntity());
@@ -223,22 +322,24 @@ public class EnchantProcessor implements Listener {
 	@EventHandler
 	public void onPlayerKill(PlayerDeathEvent e)
 	{
-		if (e.getEntity().getKiller() == null) return;
+		if (e.getEntity().getKiller() == null) 
+			return;
 		ItemStack item = e.getEntity().getKiller().getInventory().getItemInMainHand();
 		ItemMeta meta = item.getItemMeta();
-		if (item.containsEnchantment(CustomEnchants.BEHEADING))
-		{
-			Integer lvl = meta.getEnchantLevel(CustomEnchants.BEHEADING);
-			double chance = EPSConfiguration.getConfiguration(CustomEnchants.BEHEADING).getAutofilledInt(lvl, "chance");
-			if (getNext() <= chance)
+		if (meta != null)
+			if (meta.hasEnchant(CustomEnchants.BEHEADING))
 			{
-				ItemStack head = EPS.onLegacy() ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
-				SkullMeta skull = (SkullMeta) head.getItemMeta();
-				skull.setOwningPlayer(e.getEntity());
-				head.setItemMeta(skull);
-				e.getDrops().add(head);
+				int enchlvl = meta.getEnchantLevel(CustomEnchants.BEHEADING);
+				double chance = beheadingConfig.getAutofilledInt(enchlvl, "player-chance");
+				if (getNext() <= chance)
+				{
+					ItemStack head = EPS.onLegacy() ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
+					SkullMeta skull = (SkullMeta) head.getItemMeta();
+					skull.setOwningPlayer(e.getEntity());
+					head.setItemMeta(skull);
+					e.getDrops().add(head);
+				}
 			}
-		}
 	}
 	
 	@EventHandler
@@ -247,24 +348,43 @@ public class EnchantProcessor implements Listener {
 		if (e.getAction().equals(Action.RIGHT_CLICK_AIR) || e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
 		{
 			ItemMeta meta = e.getPlayer().getInventory().getItemInMainHand().getItemMeta();
-			if (meta != null)
+			if (meta == null)
+				return;
+			if (!e.getPlayer().isSneaking())
+				return;
 			if (meta.hasEnchant(CustomEnchants.POWERHOUSE))
 			{
-				EPSConfiguration config = EPSConfiguration.getConfiguration(CustomEnchants.POWERHOUSE);
-				double cooldown = config.getAutofilledDouble(meta.getEnchantLevel(CustomEnchants.POWERHOUSE), "cooldown")*1000;
-				long fulltime = System.currentTimeMillis();
-				if (phCooldown.get(e.getPlayer()) == null)
-					phCooldown.put(e.getPlayer(), (long)System.currentTimeMillis()-(long)cooldown);
-				long time = phCooldown.get(e.getPlayer());
+				int enchlvl = meta.getEnchantLevel(CustomEnchants.POWERHOUSE);
+				double cooldown = phConfig.getAutofilledDouble(enchlvl, "cooldown")*1000;
 				
-				// Check if cooldown is met
-				if (fulltime-time < cooldown)
-					e.getPlayer().sendMessage(LangUtil.getLangMessage("cooldown-error").replaceAll("%secs%", Double.toString(Math.floor(((cooldown-(fulltime-time))/1000)*10)/10)));
+				long lastuse = phCooldown.getLastUse(e.getPlayer());
+				if (lastuse < cooldown)
+					e.getPlayer().sendMessage(cooldownError.replaceAll("%secs%", Double.toString(Math.floor(((cooldown-lastuse)/1000)*10)/10)));
 				else
 				{
-					int duration = config.getAutofilledInt(meta.getEnchantLevel(CustomEnchants.POWERHOUSE), "duration");
-					int amplifier = config.getAutofilledInt(meta.getEnchantLevel(CustomEnchants.POWERHOUSE), "amplifier")-1;
+					phCooldown.use(e.getPlayer());
+					int duration = phConfig.getAutofilledInt(enchlvl, "duration");
+					int amplifier = phConfig.getAutofilledInt(enchlvl, "amplifier")-1;
 		            e.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, amplifier));
+				}
+			}
+			if (meta.hasEnchant(CustomEnchants.BACKUP_SPELLS))
+			{
+				int enchlvl = meta.getEnchantLevel(CustomEnchants.BACKUP_SPELLS);
+				double cooldown = bsConfig.getAutofilledDouble(enchlvl, "cooldown")*1000;
+				long lastuse = bsCooldown.getLastUse(e.getPlayer());
+				if (lastuse < cooldown)
+					e.getPlayer().sendMessage(cooldownError.replaceAll("%secs%", Double.toString(Math.floor(((cooldown-lastuse)/1000)*10)/10)));
+				else
+				{
+					bsCooldown.use(e.getPlayer());
+					ItemStack i = new ItemStack(Material.SPLASH_POTION);
+					PotionMeta pmeta = (PotionMeta) i.getItemMeta();
+					pmeta.addCustomEffect(new PotionEffect(randomEffect(), 20, 0), true);
+
+					i.setItemMeta(pmeta);
+					ThrownPotion tPotion = e.getPlayer().launchProjectile(ThrownPotion.class);
+					tPotion.setItem(i);
 				}
 			}
 		}
@@ -275,8 +395,30 @@ public class EnchantProcessor implements Listener {
 		return rand.nextDouble()*100;
 	}
 	
+	private static PotionEffectType randomEffect()
+	{
+		int i = rand.nextInt(5);
+		switch (i)
+		{
+			case 0:
+				return PotionEffectType.SLOW;
+			case 1:
+				return PotionEffectType.WEAKNESS;
+			case 2:
+				return PotionEffectType.BLINDNESS;
+			case 3:
+				return PotionEffectType.POISON;
+			case 4:
+				return PotionEffectType.WITHER;
+			case 5:
+				return PotionEffectType.SLOW_DIGGING;
+			default:
+				return null;
+		}
+	}
+	
 	@SuppressWarnings("deprecation")
-	public static ItemStack getHead(LivingEntity e)
+	private static ItemStack getHead(LivingEntity e)
 	{
 		switch (e.getType())
 		{
@@ -306,9 +448,9 @@ public class EnchantProcessor implements Listener {
 			else
 				return new ItemStack(Material.matchMaterial("SKULL_HEAD"), 1, (short) 5);
 		default:
-			if (mobHeads.containsKey(e.getType())) {
-				return mobSkulls.get(e.getType());
-			}
+			if (!EPS.onLegacy())
+				if (mobHeads.containsKey(e.getType()))
+					return mobSkulls.get(e.getType());
 			return null;
 		}
 	}
@@ -333,6 +475,21 @@ public class EnchantProcessor implements Listener {
 		head.setItemMeta(skull);
 		return head;
 	}
+
+	@Override
+	public void reload() {
+		jaggedConfig = EPSConfiguration.getConfiguration(CustomEnchants.JAGGED);
+		lsConfig = EPSConfiguration.getConfiguration(CustomEnchants.LIFESTEAL);
+		momentumConfig = EPSConfiguration.getConfiguration(CustomEnchants.MOMENTUM);
+		lrConfig = EPSConfiguration.getConfiguration(CustomEnchants.LAST_RESORT);
+		retaliateConfig = EPSConfiguration.getConfiguration(CustomEnchants.RETALIATE);
+		beheadingConfig = EPSConfiguration.getConfiguration(CustomEnchants.BEHEADING);
+		phConfig = EPSConfiguration.getConfiguration(CustomEnchants.POWERHOUSE);
+		meltingConfig = EPSConfiguration.getConfiguration(CustomEnchants.MELTING);
+		bsConfig = EPSConfiguration.getConfiguration(CustomEnchants.BACKUP_SPELLS);
+		evadeConfig = EPSConfiguration.getConfiguration(CustomEnchants.EVADE);
+		cooldownError = LangUtil.getLangMessage("cooldown-error");
+	}
 }
 
 class PotionCombiner {
@@ -347,5 +504,17 @@ class PotionCombiner {
 		}
 		
 		e.addPotionEffect(new PotionEffect(pe.getType(), pe.getDuration()+a.getDuration(), pe.getAmplifier()));
+	}
+	
+	public static void amplifyEffect(LivingEntity e, PotionEffect pe)
+	{
+		PotionEffect a = e.getPotionEffect(pe.getType());
+		if (a == null)
+		{
+			pe.apply(e);
+			return;
+		}
+		
+		e.addPotionEffect(new PotionEffect(pe.getType(), pe.getDuration(), pe.getAmplifier()+a.getAmplifier()));
 	}
 }

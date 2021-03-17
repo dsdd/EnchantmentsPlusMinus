@@ -55,4 +55,5 @@ cost:
   type: exponential
   startvalue: 250
   multi: 1.2
-chance: '%lvl%'
+player-chance: '%lvl%'
+mob-chance: '%lvl%'

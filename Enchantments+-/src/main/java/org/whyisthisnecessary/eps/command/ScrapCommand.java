@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.whyisthisnecessary.eps.EPS;
-import org.whyisthisnecessary.eps.Main;
+import org.whyisthisnecessary.eps.api.EPSConfiguration;
 import org.whyisthisnecessary.eps.util.LangUtil;
 
 public class ScrapCommand implements CommandExecutor {
@@ -29,19 +29,19 @@ public class ScrapCommand implements CommandExecutor {
         if (p.hasPermission("eps.scrap"))
         {  
         	ItemStack item = pinv.getItemInMainHand();
-        	Map<Enchantment, Integer> map = item.getEnchantments();
-        	Integer scrapvalue = 0;
+        	Map<Enchantment, Integer> map = item.getItemMeta().getEnchants();
+        	int scrapvalue = 0;
         	
         	for (Map.Entry<Enchantment,Integer> entry : map.entrySet())
         	{
-        		scrapvalue = scrapvalue + Main.Config.getInt("enchants."+EPS.getDictionary().getName(entry.getKey()).toLowerCase()+".scrapvalue");
+        		scrapvalue = scrapvalue + EPSConfiguration.getConfiguration(entry.getKey()).getInt("scrapvalue")*entry.getValue();
         	}
         	
         	if (scrapvalue > 0)
         	{
         	    EPS.getEconomy().changeBalance(p.getName(),scrapvalue);
         	    pinv.removeItem(pinv.getItemInMainHand());
-        	    p.sendMessage(LangUtil.getLangMessage("scrapsuccess").replaceAll("%tokens%", scrapvalue.toString()));
+        	    p.sendMessage(LangUtil.getLangMessage("scrapsuccess").replaceAll("%tokens%", Integer.toString(scrapvalue)));
         	}
         	else
         	{

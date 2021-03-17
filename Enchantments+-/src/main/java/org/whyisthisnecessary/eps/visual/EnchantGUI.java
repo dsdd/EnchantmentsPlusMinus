@@ -29,18 +29,46 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.whyisthisnecessary.eps.EPS;
 import org.whyisthisnecessary.eps.Main;
 import org.whyisthisnecessary.eps.api.EPSConfiguration;
+import org.whyisthisnecessary.eps.api.Reloadable;
 import org.whyisthisnecessary.eps.economy.Economy;
+import org.whyisthisnecessary.eps.util.DataUtil;
 import org.whyisthisnecessary.eps.util.Dictionary;
 import org.whyisthisnecessary.eps.util.LangUtil;
 
-public class EnchantGUI implements Listener {
+@SuppressWarnings("deprecation")
+public class EnchantGUI implements Listener, Reloadable {
 
 	public static Map<Player, Inventory> GUIs = new HashMap<Player, Inventory>();
 	public static Map<Player, String> guiNames = new HashMap<Player, String>();
 	public static Map<List<String>, List<Enchantment>> incpts = new HashMap<List<String>, List<Enchantment>>();
-	private static List<Material> hoes = new ArrayList<Material>(Arrays.asList(new Material[]{Material.WOODEN_HOE, Material.STONE_HOE, Material.IRON_HOE, Material.matchMaterial("GOLDEN_HOE"), Material.matchMaterial("GOLD_HOE"), Material.DIAMOND_HOE, Material.matchMaterial("NETHERITE_HOE")}));
+	private static List<Material> hoes = new ArrayList<Material>(Arrays.asList(new Material[]{Material.matchMaterial("WOODEN_HOE"), Material.matchMaterial("WOOD_HOE"), Material.STONE_HOE, Material.IRON_HOE, Material.matchMaterial("GOLDEN_HOE"), Material.matchMaterial("GOLD_HOE"), Material.DIAMOND_HOE, Material.matchMaterial("NETHERITE_HOE")}));
 	private static final Economy economy = EPS.getEconomy();
 	private static final Dictionary dictionary = EPS.getDictionary();
+	private static List<Player> disabled = new ArrayList<Player>();
+	private static Player modifying = null;
+	private static String nextPageName = LangUtil.getLangMessage("next-page");
+	private static String modifyGuiName = LangUtil.getLangMessage("modify-gui");
+	private static String modifyLore1 = LangUtil.getLangMessage("modify-lore-1");
+	private static String modifyLore2 = LangUtil.getLangMessage("modify-lore-2");
+	private static ItemStack filler = EPS.onLegacy() ? new ItemStack(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short)15) : new ItemStack(Material.matchMaterial("BLACK_STAINED_GLASS_PANE"), 1);
+	private static ItemStack modifyingBook = new ItemStack(Material.BOOK, 1);
+	private static ItemStack glasspane = EPS.onLegacy() ? new ItemStack(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short)13) : new ItemStack(Material.matchMaterial("GREEN_STAINED_GLASS_PANE"), 1);
+	private static boolean globalCostTypeEnabled = Main.Config.getBoolean("global-cost-type.enabled");
+	private static String globalCostType = Main.Config.getString("global-cost-type.type");
+	
+	public EnchantGUI()
+	{
+		ItemMeta fillermeta = filler.getItemMeta();
+		fillermeta.setDisplayName(" ");
+		filler.setItemMeta(fillermeta);
+		ItemMeta meta = glasspane.getItemMeta();
+		meta.setDisplayName(nextPageName);
+		glasspane.setItemMeta(meta);
+		ItemMeta baq = modifyingBook.getItemMeta();
+		baq.setDisplayName(modifyGuiName);
+		modifyingBook.setItemMeta(baq);
+	}
+	
 	public static void setupGUI(Player player)
 	{
 		Inventory inv = Bukkit.createInventory(player, 36, "Enchantments");
@@ -51,6 +79,13 @@ public class EnchantGUI implements Listener {
 	
 	public static void openInventory(Player player, String listname)
 	{
+		if (disabled.contains(player))
+		{
+			LangUtil.sendMessage(player, "cannot-open-gui");
+			return;
+		}
+		if (modifying == player)
+			modifying = null;
 		guiNames.put(player, listname);
 		player.openInventory(GUIs.get(player));
 		loadInventory(player, listname);
@@ -63,6 +98,16 @@ public class EnchantGUI implements Listener {
 		inv.clear();
 		createPanes(inv);
 		List<String> l = Main.GuisConfig.getStringList("guis."+guiname+".enchants");
+		if (l.size() > 14)
+		{
+			ItemStack i = glasspane.clone();
+			inv.setItem(35, i);
+		}
+		if (p.hasPermission("eps.admin.changegui"))
+		{
+			ItemStack i = modifyingBook.clone();
+			inv.setItem(8, i);
+		}
         for (String i : l)
         	add(p, inv, i);
 
@@ -74,14 +119,35 @@ public class EnchantGUI implements Listener {
         inv.setItem(31, i);
 	}
 	
-	@SuppressWarnings("deprecation")
+	public static void nextPage(Player p, List<String> list)
+	{
+		Inventory inv = GUIs.get(p);
+		ItemStack nextPage = inv.getItem(35);
+        if (nextPage.getAmount()*14>list.size())
+        	nextPage.setAmount(1);
+        else
+        	nextPage.setAmount(nextPage.getAmount()+1);
+		inv.clear();
+		createPanes(inv);
+		ItemStack item = new ItemStack(Material.GOLD_INGOT, 1);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(LangUtil.getLangMessage("balance-display-in-gui").replaceAll("%balance%", economy.getBalance(p.getName()).toString()));
+        item.setItemMeta(meta);
+        inv.setItem(4, item);
+        inv.setItem(31, item);
+        if (p.hasPermission("eps.admin.changegui"))
+		{
+			ItemStack i = modifyingBook.clone();
+			inv.setItem(8, i);
+		}
+        for (int i=nextPage.getAmount()*14-14;i<list.size();i++)
+	        add(p, inv, list.get(i));
+		inv.setItem(35, nextPage);
+	}
+	
 	public static void createPanes(Inventory gui)
     {
-		ItemStack slot = EPS.onLegacy() ? new ItemStack(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short)15) 
-										: new ItemStack(Material.matchMaterial("BLACK_STAINED_GLASS_PANE"), 1);
-    	ItemMeta meta = slot.getItemMeta();
-    	meta.setDisplayName("");
-    	slot.setItemMeta(meta);
+		ItemStack slot = filler.clone();
     	for (int i=0;i<9;i++)
     		gui.setItem(i, slot);
     	gui.setItem(9, slot);
@@ -94,6 +160,8 @@ public class EnchantGUI implements Listener {
 	
 	public static void add(Player p, Inventory inv, String name)
     {
+		if (inv.firstEmpty() == -1)
+			return;
 		ItemStack mainhand = p.getInventory().getItemInMainHand();
 		ItemMeta mainmeta = mainhand.getItemMeta();
     	String cost;
@@ -165,23 +233,46 @@ public class EnchantGUI implements Listener {
 	@EventHandler(priority = EventPriority.HIGH)
     public void onpickaxeinventoryClick(final InventoryClickEvent e) {
         if (e.getInventory().getHolder() != e.getWhoClicked()) return;
-        if (EPS.onLegacy())
-		{
-			if (!isSimilarInventory(e.getInventory(), GUIs.get(e.getWhoClicked()))) return;
-	        if (!compareInvs(e.getInventory(), GUIs.get(e.getWhoClicked()))) return;
-	          e.setCancelled(true);
-		}
-		else
-		{
-			if (e.getInventory() != GUIs.get(e.getWhoClicked())) return;
-				e.setCancelled(true);
-		}
-
+        
+        if (e.getClickedInventory() != e.getInventory()) return;
+        
         final ItemStack clickedItem = e.getCurrentItem();
 
         if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
 
         final Player p = (Player) e.getWhoClicked();
+        
+        if (EPS.onLegacy())
+		{
+			if (!isSimilarInventory(e.getInventory(), GUIs.get(p))) return;
+	        if (!compareInvs(e.getInventory(), GUIs.get(p))) return;
+	          e.setCancelled(true);
+		}
+		else
+		{
+			if (e.getInventory() != GUIs.get(p)) return;
+				e.setCancelled(true);
+		}
+
+        String displayName = clickedItem.getItemMeta().getDisplayName();
+        
+        if (displayName.equals(nextPageName))
+        {
+        	nextPage(p,  Main.GuisConfig.getStringList("guis."+guiNames.get(p)+".enchants"));
+        }
+        else if (displayName.equals(modifyGuiName))
+        {
+        	modifying = p;
+        	Inventory inv = e.getInventory();
+        	for (ItemStack i : inv.getContents())
+        	{
+        		ItemMeta meta = i.getItemMeta();
+        		if (meta.getDisplayName() != " ")
+        			meta.setLore(new ArrayList<String>(Arrays.asList(modifyLore1, modifyLore2)));
+        		i.setItemMeta(meta);
+        	}
+        }
+        
         Map<Enchantment, Integer> enchs = clickedItem.getItemMeta().getEnchants();
         Enchantment ench = null;
         
@@ -190,6 +281,23 @@ public class EnchantGUI implements Listener {
         
         if (ench == null) 
         	return;
+        
+        if (modifying == p)
+        {
+        	if (e.isRightClick())
+        	{
+        		String path = "guis."+guiNames.get(p)+".enchants";
+        		List<String> list = Main.GuisConfig.getStringList(path);
+        		list.remove(dictionary.getName(ench));
+        		Main.GuisConfig.set(path, list);
+        		DataUtil.saveConfig(Main.GuisConfig, Main.GuisFile);
+        		e.getInventory().remove(clickedItem);
+        		EPS.reloadConfigs();
+        	}
+        	else
+        		new EditEnchantGUI(p, ench);
+        	return;
+        }
         
         if (e.isLeftClick())
             UpgradeItem(ench, p, 1);
@@ -213,6 +321,8 @@ public class EnchantGUI implements Listener {
 	public static Integer getCost(String type, Enchantment enchant, Integer enchlvl, Integer multi)
     {
 		EPSConfiguration config = EPSConfiguration.getConfiguration(enchant);
+		if (globalCostTypeEnabled)
+			type = globalCostType;
     	if (type.equalsIgnoreCase("manual"))
     	{
     		Integer val = config.getInt("cost."+(enchlvl+1));
@@ -224,11 +334,11 @@ public class EnchantGUI implements Listener {
     	}
     	else if (type.equalsIgnoreCase("linear"))
     	{
-    		Integer startvalue = config.getInt("cost.startvalue");
-    		Integer value = config.getInt("cost.value");
-    		Integer fin = enchlvl == 0 ? 0 : startvalue;
-    		for (int i=enchlvl+1;i<=multi;i++)
-    			fin = fin + (value*multi);
+    		int startvalue = config.getInt("cost.startvalue");
+    		int value = config.getInt("cost.value");
+    		int fin = startvalue+value*enchlvl;
+    		for (int i=1;i<multi;i++)
+    			fin = fin + (startvalue+value*enchlvl+1);
     		return fin;
     	}
     	else if (type.equalsIgnoreCase("exponential"))
@@ -338,6 +448,8 @@ public class EnchantGUI implements Listener {
 	{
 		if (e.getAction().equals(Action.RIGHT_CLICK_AIR) || e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
 		{
+			if (e.getPlayer().isSneaking())
+				return;
 			PlayerInventory inv = e.getPlayer().getInventory();
 			Material m = inv.getItemInMainHand().getType();
 			if (m.equals(Material.BOW) ||
@@ -355,6 +467,7 @@ public class EnchantGUI implements Listener {
 	public static void setupInCPTS()
 	{
 		ConfigurationSection cs = Main.InCPTConfig.getConfigurationSection("incompatibilities");
+		incpts.clear();
 		
 		if (cs == null)
 		{
@@ -369,5 +482,30 @@ public class EnchantGUI implements Listener {
 					enchs.add(dictionary.findEnchant(s));
 			incpts.put(Main.InCPTConfig.getStringList("incompatibilities."+i+".items"), enchs);
 		}
+	}
+	
+	public static void setOpenable(Player p, boolean openable)
+	{
+		if (openable)
+			disabled.remove(p);
+		else
+			disabled.add(p);
+	}
+
+	@Override
+	public void reload() {
+		EnchantGUI.setupInCPTS();
+		nextPageName = LangUtil.getLangMessage("next-page");
+		modifyGuiName = LangUtil.getLangMessage("modify-gui");
+		modifyLore1 = LangUtil.getLangMessage("modify-lore-1");
+		modifyLore2 = LangUtil.getLangMessage("modify-lore-2");
+		ItemMeta meta = glasspane.getItemMeta();
+		meta.setDisplayName(nextPageName);
+		glasspane.setItemMeta(meta);
+		ItemMeta baq = modifyingBook.getItemMeta();
+		meta.setDisplayName(modifyGuiName);
+		modifyingBook.setItemMeta(baq);
+		globalCostTypeEnabled = Main.Config.getBoolean("global-cost-type.enabled");
+		globalCostType = Main.Config.getString("global-cost-type.type");
 	}
 }
