@@ -9,7 +9,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.vivi.eps.EPS;
-import org.vivi.eps.util.LangUtil;
+import org.vivi.eps.util.Language;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -25,11 +25,11 @@ public class TokenPouch extends ItemStack {
 	{
 		super(EPS.onLegacy() ? Material.matchMaterial("SKULL_ITEM") : Material.PLAYER_HEAD, 1);
 		SkullMeta meta = pouchSkullMeta;
-		meta.setDisplayName(LangUtil.getLangMessage("token-pouch"));
+		meta.setDisplayName(Language.getLangMessage("token-pouch"));
 		meta.setLore(Arrays.asList(new String[] {
 				ChatColor.BLACK+"T:"+Integer.toString(tokens),
-				LangUtil.getLangMessage("token-pouch-lore-1").replaceAll("%tokens%", Integer.toString(tokens)),
-				LangUtil.getLangMessage("token-pouch-lore-2")
+				Language.getLangMessage("token-pouch-lore-1").replaceAll("%tokens%", Integer.toString(tokens)),
+				Language.getLangMessage("token-pouch-lore-2")
 		}));
 		this.setItemMeta(meta);
 	}

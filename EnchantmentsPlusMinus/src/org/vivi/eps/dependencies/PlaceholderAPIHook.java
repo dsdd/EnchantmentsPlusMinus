@@ -4,7 +4,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.vivi.eps.EPS;
-import org.vivi.eps.Main;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 
@@ -39,7 +38,7 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
     
     @Override
     public String getVersion() {
-        return Main.plugin.getDescription().getVersion();
+        return EPS.plugin.getDescription().getVersion();
     }
    
    

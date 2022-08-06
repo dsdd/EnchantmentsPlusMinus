@@ -17,9 +17,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.vivi.eps.EPS;
-import org.vivi.eps.Main;
 import org.vivi.eps.api.EPSConfiguration;
-import org.vivi.eps.util.LangUtil;
+import org.vivi.eps.util.Language;
 
 public class EditEnchantGUI implements Listener {
 
@@ -31,7 +30,7 @@ public class EditEnchantGUI implements Listener {
 	
 	public EditEnchantGUI(Player p, Enchantment enchant)
 	{
-		Bukkit.getPluginManager().registerEvents(this, Main.plugin);
+		Bukkit.getPluginManager().registerEvents(this, EPS.plugin);
 		this.p = p;
         config = EPSConfiguration.getConfiguration(enchant);
 		Map<String, Object> entries = config.getValues(true);
@@ -68,7 +67,7 @@ public class EditEnchantGUI implements Listener {
 		
 		p.closeInventory();
 		key = clickedItem.getItemMeta().getLore().get(1).replace("�0", "");
-		p.sendMessage(LangUtil.getLangMessage("modifying-config").replace("%entry%", key));
+		p.sendMessage(Language.getLangMessage("modifying-config").replace("%entry%", key));
 		editing = true;
 	}
 	
@@ -82,8 +81,8 @@ public class EditEnchantGUI implements Listener {
 			config.set(key, o);
 			config.save();
 			EPS.reloadConfigs();
-			LangUtil.sendMessage(p, "modified-config");
-			Bukkit.getScheduler().runTask(Main.plugin, new Runnable()
+			Language.sendMessage(p, "modified-config");
+			Bukkit.getScheduler().runTask(EPS.plugin, new Runnable()
 					{
 						@Override
 						public void run() {

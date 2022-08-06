@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.vivi.eps.EPS;
 import org.vivi.eps.api.EPSConfiguration;
-import org.vivi.eps.util.LangUtil;
+import org.vivi.eps.util.Language;
 
 public class ScrapCommand implements CommandExecutor {
 
@@ -19,7 +19,7 @@ public class ScrapCommand implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) 
 	{
 		if (!(sender instanceof Player)) {
-        	sender.sendMessage(LangUtil.getLangMessage("invalidplayertype"));
+        	sender.sendMessage(Language.getLangMessage("invalidplayertype"));
         	return false;
         }
 		
@@ -41,16 +41,16 @@ public class ScrapCommand implements CommandExecutor {
         	{
         	    EPS.getEconomy().changeBalance(p.getName(),scrapvalue);
         	    pinv.removeItem(pinv.getItemInMainHand());
-        	    p.sendMessage(LangUtil.getLangMessage("scrapsuccess").replaceAll("%tokens%", Integer.toString(scrapvalue)));
+        	    p.sendMessage(Language.getLangMessage("scrapsuccess").replaceAll("%tokens%", Integer.toString(scrapvalue)));
         	}
         	else
         	{
-        		p.sendMessage(LangUtil.getLangMessage("cannotscrap"));
+        		p.sendMessage(Language.getLangMessage("cannotscrap"));
         	}
         }
         else
         {
-        	p.sendMessage(LangUtil.getLangMessage("insufficientpermission"));
+        	p.sendMessage(Language.getLangMessage("insufficientpermission"));
 			return false;
         }
 		return false;

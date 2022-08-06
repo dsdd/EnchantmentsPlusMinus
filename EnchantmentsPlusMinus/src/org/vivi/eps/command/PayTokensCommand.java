@@ -6,8 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.vivi.eps.EPS;
 import org.vivi.eps.economy.Economy;
-import org.vivi.eps.util.DataUtil;
-import org.vivi.eps.util.LangUtil;
+import org.vivi.eps.util.Language;
 
 public class PayTokensCommand implements CommandExecutor {
 
@@ -17,27 +16,27 @@ public class PayTokensCommand implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
 		if (!(sender instanceof Player)) {
-			LangUtil.sendMessage(sender, "invalidplayertype");
+			Language.sendMessage(sender, "invalidplayertype");
 			return false;
 		}
 		if (sender.hasPermission("eps.paytokens"))
 		{
 			if (args.length == 0) {
-			LangUtil.sendMessage(sender, "unspecifiedplayer");
+			Language.sendMessage(sender, "unspecifiedplayer");
 			return false;
 			}
 			if (args.length == 1)  {
-			LangUtil.sendMessage(sender, "unspecifiedtokenspay");
+			Language.sendMessage(sender, "unspecifiedtokenspay");
 			return false;
 			}
 			
-			if (DataUtil.playerExists(args[0]))
+			if (EPS.playerExists(args[0]))
 			{
 				try {
 				Integer tokens = Integer.parseInt(args[1]);
 				if (economy.getBalance((Player)sender) < tokens)
 				{
-					LangUtil.sendMessage(sender, "invalidtokenamountpay");
+					Language.sendMessage(sender, "invalidtokenamountpay");
 					return true;
 				}
 				economy.changeBalance((Player)sender, -tokens);
@@ -45,13 +44,13 @@ public class PayTokensCommand implements CommandExecutor {
 				return true;
 				}
 				catch (NumberFormatException e){
-					LangUtil.sendMessage(sender, "invalidtokenamountpay");
+					Language.sendMessage(sender, "invalidtokenamountpay");
 					return true;
 				}
 			}
 			else
 			{
-				LangUtil.sendMessage(sender, "invalidplayer");
+				Language.sendMessage(sender, "invalidplayer");
 				return false;
 			}
 		}

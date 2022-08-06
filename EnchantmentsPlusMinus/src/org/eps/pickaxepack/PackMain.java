@@ -1,7 +1,7 @@
 package org.eps.pickaxepack;
 
 import org.bukkit.Bukkit;
-import org.vivi.eps.Main;
+import org.vivi.eps.EPS;
 
 public class PackMain {
 
@@ -10,7 +10,7 @@ public class PackMain {
 	public void onEnable() 
 	{
 		CustomEnchants.register();
-		new EnchantProcessor(Main.plugin);
+		new EnchantProcessor(EPS.plugin);
 		if (Bukkit.getPluginManager().isPluginEnabled("Vault"))
 		{
 			VaultEnabled = true;

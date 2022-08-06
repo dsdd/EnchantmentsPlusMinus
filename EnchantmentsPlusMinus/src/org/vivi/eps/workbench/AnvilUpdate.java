@@ -12,14 +12,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.eps.pvppack.Durability;
 import org.vivi.eps.EPS;
-import org.vivi.eps.Main;
 import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.visual.EnchantMetaWriter;
 
 public class AnvilUpdate implements Listener, Reloadable {
 
-	private boolean ace = Main.Config.getBoolean("anvil-combining-enabled");
+	private boolean ace = EPS.configData.getBoolean("anvil-combining-enabled");
 	
 	public AnvilUpdate()
 	{
@@ -66,11 +65,11 @@ public class AnvilUpdate implements Listener, Reloadable {
 		ItemMeta lore = EnchantMetaWriter.getWrittenMeta(item);
 		item.setItemMeta(lore);
 		e.setResult(item);
-		Bukkit.getServer().getScheduler().runTask(Main.plugin, () -> e.getInventory().setRepairCost(cost1));
+		Bukkit.getServer().getScheduler().runTask(EPS.plugin, () -> e.getInventory().setRepairCost(cost1));
 	}
 
 	@Override
 	public void reload() {
-		ace = Main.Config.getBoolean("anvil-combining-enabled");
+		ace = EPS.configData.getBoolean("anvil-combining-enabled");
 	}
 }

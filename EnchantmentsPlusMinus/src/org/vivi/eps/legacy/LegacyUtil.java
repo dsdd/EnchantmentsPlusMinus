@@ -4,7 +4,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.vivi.eps.EPS;
-import org.vivi.eps.Main;
 
 import net.md_5.bungee.api.ChatColor;
 
@@ -23,7 +22,7 @@ public class LegacyUtil {
 	 * 
 	 * @param plugin The plugin to disable in case LegacyWrapper is not installed.
 	 */
-	public static void initialize(Main plugin)
+	public static void initialize(EPS plugin)
 	{
 		boolean check = Bukkit.getPluginManager().isPluginEnabled("LegacyWrapper");
 		if (!check && legacy == true) {

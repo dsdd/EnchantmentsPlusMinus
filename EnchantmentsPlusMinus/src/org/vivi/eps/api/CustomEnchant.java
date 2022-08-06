@@ -8,7 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.enchantments.Enchantment;
 import org.vivi.eps.EPS;
-import org.vivi.eps.Main;
 import org.vivi.eps.legacy.Label;
 import org.vivi.eps.util.Wrapper;
 import org.vivi.eps.visual.EnchantMetaWriter;
@@ -18,7 +17,7 @@ import org.whyisthisnecessary.legacywrapper.LegacyWrapper;
 public class CustomEnchant {
 
 	public static List<Enchantment> registeredEnchants = new ArrayList<Enchantment>(Arrays.asList());
-	private static List<String> disabledEnchants = Main.Config.getStringList("disabled-enchants");
+	private static List<String> disabledEnchants = EPS.configData.getStringList("disabled-enchants");
 	
 	/**Wraps a custom enchant with the specified namespace, name and max level and returns it
 	 * maxLvl only sets the maximum safe enchantment level for this enchant, and has no other use
@@ -66,7 +65,7 @@ public class CustomEnchant {
 		String name = EPS.onLegacy() ? enchant.getName() : enchant.getKey().getKey();
 		Label.addLabel(name, enchant);
 		registeredEnchants.add(enchant);
-		File enchantfile = new File(Main.EnchantsFolder, EPS.getDictionary().getName(enchant)+".yml");
+		File enchantfile = new File(EPS.enchantsFolder, EPS.getDictionary().getName(enchant)+".yml");
 		if (enchantfile.exists())
 			EPSConfiguration.fgMap.put(enchant, EPSConfiguration.loadConfiguration(enchantfile));
 		if (!Arrays.asList(Enchantment.values()).contains(enchant))

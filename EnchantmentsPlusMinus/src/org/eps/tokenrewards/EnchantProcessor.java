@@ -1,5 +1,6 @@
 package org.eps.tokenrewards;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -14,33 +15,31 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.vivi.eps.EPS;
-import org.vivi.eps.Main;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.economy.Economy;
-import org.vivi.eps.util.DataUtil;
-import org.vivi.eps.util.LangUtil;
+import org.vivi.eps.util.Language;
 
 public class EnchantProcessor implements Listener, Reloadable {
 
 	public Map<Player, Integer> blocklog = new HashMap<Player, Integer>();
 	private Random random = new Random();
 	private Economy economy = EPS.getEconomy();
-	private int blocksToBreak = Main.Config.getInt("miningtokens.blockstobreak");
-	private int miningTokensMin = Main.Config.getInt("miningtokens.min");
-	private int miningTokensMax = Main.Config.getInt("miningtokens.max");
-	private String miningTokensGet = LangUtil.getLangMessage("miningtokensget");
-	private boolean miningTokensEnabled = Main.Config.getBoolean("miningtokens.enabled");
-	private int playerKillTokensMin = Main.Config.getInt("playerkilltokens.min");
-	private int playerKillTokensMax = Main.Config.getInt("playerkilltokens.max");
-	private String playerKillGet = LangUtil.getLangMessage("playerkill");
-	private boolean playerKillTokensEnabled = Main.Config.getBoolean("playerkilltokens.enabled");
-	private int mobKillTokensMin = Main.Config.getInt("mobkilltokens.min");
-	private int mobKillTokensMax = Main.Config.getInt("mobkilltokens.max");
-	private String mobKillGet = LangUtil.getLangMessage("mobkill");
-	private boolean mobKillTokensEnabled = Main.Config.getBoolean("mobkilltokens.enabled");
+	private int blocksToBreak = EPS.configData.getInt("miningtokens.blockstobreak");
+	private int miningTokensMin = EPS.configData.getInt("miningtokens.min");
+	private int miningTokensMax = EPS.configData.getInt("miningtokens.max");
+	private String miningTokensGet = Language.getLangMessage("miningtokensget");
+	private boolean miningTokensEnabled = EPS.configData.getBoolean("miningtokens.enabled");
+	private int playerKillTokensMin = EPS.configData.getInt("playerkilltokens.min");
+	private int playerKillTokensMax = EPS.configData.getInt("playerkilltokens.max");
+	private String playerKillGet = Language.getLangMessage("playerkill");
+	private boolean playerKillTokensEnabled = EPS.configData.getBoolean("playerkilltokens.enabled");
+	private int mobKillTokensMin = EPS.configData.getInt("mobkilltokens.min");
+	private int mobKillTokensMax = EPS.configData.getInt("mobkilltokens.max");
+	private String mobKillGet = Language.getLangMessage("mobkill");
+	private boolean mobKillTokensEnabled = EPS.configData.getBoolean("mobkilltokens.enabled");
 	
 	
-	public EnchantProcessor(Main plugin) {
+	public EnchantProcessor(EPS plugin) {
 		Bukkit.getPluginManager().registerEvents(this, plugin);
 		EPS.registerReloader(this);
 
@@ -50,14 +49,14 @@ public class EnchantProcessor implements Listener, Reloadable {
 		setDefault("mobkilltokens.enabled", true);
 		setDefault("mobkilltokens.min", 5);
 		setDefault("mobkilltokens.max", 10);
-		LangUtil.setDefaultLangMessage("playerkill", "&aYou received %tokens% tokens for killing %victim%!");
-		LangUtil.setDefaultLangMessage("mobkill", "&aYou received %tokens% tokens for killing %mob%!");
+		Language.setDefaultLangMessage("playerkill", "&aYou received %tokens% tokens for killing %victim%!");
+		Language.setDefaultLangMessage("mobkill", "&aYou received %tokens% tokens for killing %mob%!");
 		
 		setDefault("miningtokens.enabled", true);
 		setDefault("miningtokens.min", 25);
 		setDefault("miningtokens.max", 50);
 		setDefault("miningtokens.blockstobreak", 1000);
-		LangUtil.setDefaultLangMessage("miningtokensget", "&aYou received %tokens% tokens for mining!");
+		Language.setDefaultLangMessage("miningtokensget", "&aYou received %tokens% tokens for mining!");
 	}	
 	
 	 @EventHandler
@@ -126,21 +125,25 @@ public class EnchantProcessor implements Listener, Reloadable {
 	 
 	 public static void setMiscToDef(String key)
 	 {
-		 if (Main.Config.isSet("misc."+key))
+		 if (EPS.configData.isSet("misc."+key))
 	    	{
-	    		Main.Config.set(key, Main.Config.get("misc."+key));
-	    		Main.Config.set("misc."+key, null);
+	    		EPS.configData.set(key, EPS.configData.get("misc."+key));
+	    		EPS.configData.set("misc."+key, null);
 	    	}
 	 }
 	 
 	 public static void setDefault(String path, Object replace)
      {
-		 if (!Main.Config.isSet(path))
+		 if (!EPS.configData.isSet(path))
 		 {
-			 Main.Config.set(path, replace);
-			 if (Main.ConfigFile.exists())
+			 EPS.configData.set(path, replace);
+			 if (EPS.configFile.exists())
 			 {
-				 DataUtil.saveConfig(Main.Config, Main.ConfigFile);
+					try {
+						EPS.configData.save(EPS.configFile);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 			 }
 		 }
      } 
@@ -148,19 +151,19 @@ public class EnchantProcessor implements Listener, Reloadable {
 	@Override
 	public void reload() 
 	{
-		blocksToBreak = Main.Config.getInt("miningtokens.blockstobreak");
-		miningTokensMin = Main.Config.getInt("miningtokens.min");
-		miningTokensMax = Main.Config.getInt("miningtokens.max");
-		miningTokensGet = LangUtil.getLangMessage("miningtokensget");
-		miningTokensEnabled = Main.Config.getBoolean("miningtokens.enabled");
-		playerKillTokensMin = Main.Config.getInt("playerkilltokens.min");
-		playerKillTokensMax = Main.Config.getInt("playerkilltokens.max");
-		playerKillGet = LangUtil.getLangMessage("playerkill");
-		playerKillTokensEnabled = Main.Config.getBoolean("playerkilltokens.enabled");
-		mobKillTokensMin = Main.Config.getInt("mobkilltokens.min");
-		mobKillTokensMax = Main.Config.getInt("mobkilltokens.max");
-		mobKillGet = LangUtil.getLangMessage("mobkill");
-		mobKillTokensEnabled = Main.Config.getBoolean("mobkilltokens.enabled");
+		blocksToBreak = EPS.configData.getInt("miningtokens.blockstobreak");
+		miningTokensMin = EPS.configData.getInt("miningtokens.min");
+		miningTokensMax = EPS.configData.getInt("miningtokens.max");
+		miningTokensGet = Language.getLangMessage("miningtokensget");
+		miningTokensEnabled = EPS.configData.getBoolean("miningtokens.enabled");
+		playerKillTokensMin = EPS.configData.getInt("playerkilltokens.min");
+		playerKillTokensMax = EPS.configData.getInt("playerkilltokens.max");
+		playerKillGet = Language.getLangMessage("playerkill");
+		playerKillTokensEnabled = EPS.configData.getBoolean("playerkilltokens.enabled");
+		mobKillTokensMin = EPS.configData.getInt("mobkilltokens.min");
+		mobKillTokensMax = EPS.configData.getInt("mobkilltokens.max");
+		mobKillGet = Language.getLangMessage("mobkill");
+		mobKillTokensEnabled = EPS.configData.getBoolean("mobkilltokens.enabled");
 	}
 	
 }

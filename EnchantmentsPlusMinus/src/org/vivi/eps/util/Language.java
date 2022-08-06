@@ -1,5 +1,6 @@
 package org.vivi.eps.util;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,17 +8,17 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.vivi.eps.Main;
+import org.vivi.eps.EPS;
 import org.vivi.eps.api.Reloadable;
 
 
-public class LangUtil implements Reloadable {
+public class Language implements Reloadable {
 	
 	private static Map<String, String> msgs = new HashMap<String, String>();
-	private static String prefix = Main.LangConfig.getString("prefix");
-	public static LangUtil lang = new LangUtil();
+	private static String prefix = EPS.languageData.getString("prefix");
+	public static Language lang = new Language();
 
-	private LangUtil() 
+	private Language() 
 	{
 		reload();
 	}
@@ -27,9 +28,19 @@ public class LangUtil implements Reloadable {
 	 * @param langkey The key that correlates to a defined message
 	 * @return Returns the language message defined in lang.yml
 	 */
+	public static String getLangMessage(String langkey, boolean includePrefix)
+	{	
+		return ChatColor.translateAlternateColorCodes('&',includePrefix ? prefix + msgs.get(langkey) : msgs.get(langkey));
+	}
+	
+	/**Returns the language message defined in lang.yml
+	 * 
+	 * @param langkey The key that correlates to a defined message
+	 * @return Returns the language message defined in lang.yml
+	 */
 	public static String getLangMessage(String langkey)
 	{	
-		return ChatColor.translateAlternateColorCodes('&',prefix + msgs.get(langkey));
+		return getLangMessage(langkey, true);
 	}
 	
 	/**Sets the language message defined in lang.yml
@@ -39,10 +50,15 @@ public class LangUtil implements Reloadable {
 	 */
 	public static void setLangMessage(String langkey, String message)
 	{
-		Main.LangConfig.set("messages."+langkey, message);
+		EPS.languageData.set("messages."+langkey, message);
 		msgs.put(langkey, message);
-		if (Main.LangFile.exists())
-            DataUtil.saveConfig(Main.LangConfig, Main.LangFile);
+		if (EPS.languageFile.exists())
+			try {
+				EPS.languageData.save(EPS.languageFile);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 	}
 	
 	/**Sets the language message defined in lang.yml if it does not already exist
@@ -77,7 +93,7 @@ public class LangUtil implements Reloadable {
 	@Override
 	public void reload() 
 	{
-		ConfigurationSection section = Main.LangConfig.getConfigurationSection("messages");
+		ConfigurationSection section = EPS.languageData.getConfigurationSection("messages");
 		for (Map.Entry<String, Object> entry : section.getValues(false).entrySet())
 			msgs.put(entry.getKey(), entry.getValue().toString());
 	}

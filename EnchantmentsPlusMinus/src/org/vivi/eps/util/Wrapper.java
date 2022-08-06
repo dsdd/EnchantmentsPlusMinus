@@ -20,19 +20,19 @@ public class Wrapper extends Enchantment {
 	@Override
 	public boolean canEnchantItem(ItemStack arg0) {
 		// TODO Auto-generated method stub
-		return canEnchantItem(arg0);
+		return false;
 	}
 
 	@Override
 	public boolean conflictsWith(Enchantment arg0) {
 		// TODO Auto-generated method stub
-		return conflictsWith(arg0);
+		return true;
 	}
 
 	@Override
 	public EnchantmentTarget getItemTarget() {
 		// TODO Auto-generated method stub
-		return getItemTarget();
+		return null;
 	}
 
 	@Override

@@ -20,7 +20,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.vivi.eps.EPS;
-import org.vivi.eps.Main;
 import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.legacy.Label;
@@ -29,20 +28,21 @@ import org.vivi.eps.util.Dictionary;
 public class EnchantMetaWriter implements Listener, Reloadable {
 	
 	protected static Map<Enchantment, String> enchantnames = new HashMap<Enchantment, String>();
-	private static boolean ve = Main.Config.getBoolean("show-vanilla-enchants-in-lore");
-	private static boolean show_enchant_lore = Main.Config.getBoolean("show-enchant-lore");
-	private static boolean show_enchant_descriptions_in_lore = Main.Config.getBoolean("show-enchant-descriptions-in-lore");
+	private static boolean ve = EPS.configData.getBoolean("show-vanilla-enchants-in-lore");
+	private static boolean show_enchant_lore = EPS.configData.getBoolean("show-enchant-lore");
+	private static boolean show_enchant_descriptions_in_lore = EPS.configData.getBoolean("show-enchant-descriptions-in-lore");
 	private static Map<Enchantment, ArrayList<String>> descriptionMap = new HashMap<>();
 	private static List<String> allDescriptionLines = new ArrayList<String>();
-	private static String prefix = Main.Config.getString("enchant-lore-color").replaceAll("&", "�");
-	private static File loreExemptions = new File(Main.plugin.getDataFolder(), "lore_exemptions.yml");
+	private static String prefix;
+	private static File loreExemptions = new File(EPS.plugin.getDataFolder(), "lore_exemptions.yml");
 	private static EPSConfiguration loreExemptionsConfig = null;
 	private static List<Material> exemptions = new ArrayList<Material>();
 	private static final Dictionary dictionary = EPS.getDictionary();
 	
 	public EnchantMetaWriter()
 	{
-		Main.saveDefaultFile("/lore_exemptions.yml", loreExemptions);
+		prefix = ChatColor.translateAlternateColorCodes('&', EPS.configData.getString("enchant-lore-color"));
+		EPS.saveDefaultFile("/lore_exemptions.yml", loreExemptions);
 		loreExemptionsConfig = EPSConfiguration.loadConfiguration(loreExemptions);
 		for (String s : loreExemptionsConfig.getStringList("blacklist"))
 			exemptions.add(Material.matchMaterial(s));
@@ -78,8 +78,8 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 			{
 				String name = enchantnames.get(entry.getKey());
 				String lore = name+" "+ getNumber(entry.getValue());
-				String s = Main.Config.getString("custom-lore-color."+dictionary.getName(entry.getKey()));
-				lore = s == null ? prefix + lore : s.replaceAll("&", "�") + lore;
+				String s = EPS.configData.getString("custom-lore-color."+dictionary.getName(entry.getKey()));
+				lore = s == null ? prefix + lore : s.replaceAll("&", "§") + lore;
 			    if (show_enchant_descriptions_in_lore)
 			    {
 				    List<String> l = getDescription(entry.getKey());
@@ -124,7 +124,7 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 	 */
 	public static String getNumber(Integer num)
 	{
-		return Main.Config.getBoolean("use-roman-numerals") ? getRomanNumeral(num) : num.toString();
+		return EPS.configData.getBoolean("use-roman-numerals") ? getRomanNumeral(num) : num.toString();
 	}
 	
 	/** Gets the roman numeral of the specified number.
@@ -260,7 +260,7 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 	
 	public static void init(Enchantment enchant)
 	{
-		String configdesc = EPSConfiguration.loadConfiguration(new File(Main.EnchantsFolder, dictionary.getName(enchant)+".yml")).getString("upgradedesc");
+		String configdesc = EPSConfiguration.loadConfiguration(new File(EPS.enchantsFolder, dictionary.getName(enchant)+".yml")).getString("upgradedesc");
 		final String desc = configdesc == null ? dictionary.getDefaultDescription(enchant) : configdesc;
 		enchantnames.put(enchant, WordUtils.capitalizeFully(dictionary.getName(enchant).replaceAll("_", " ")));
 		descriptionMap.put(enchant, new ArrayList<String>() {
@@ -293,16 +293,16 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 
 	@Override
 	public void reload() {
-		ve = Main.Config.getBoolean("show-vanilla-enchants-in-lore");
-		show_enchant_lore = Main.Config.getBoolean("show-enchant-lore");
-		show_enchant_descriptions_in_lore = Main.Config.getBoolean("show-enchant-descriptions-in-lore");
+		ve = EPS.configData.getBoolean("show-vanilla-enchants-in-lore");
+		show_enchant_lore = EPS.configData.getBoolean("show-enchant-lore");
+		show_enchant_descriptions_in_lore = EPS.configData.getBoolean("show-enchant-descriptions-in-lore");
 		loreExemptionsConfig = EPSConfiguration.loadConfiguration(loreExemptions);
-		prefix = Main.Config.getString("enchant-lore-color").replaceAll("&", "�");
+		prefix = EPS.configData.getString("enchant-lore-color").replaceAll("&", "§");
 		for (String s : loreExemptionsConfig.getStringList("blacklist"))
 			exemptions.add(Material.matchMaterial(s));
 		for (Enchantment enchant : Enchantment.values())
 		{
-			String configdesc = EPSConfiguration.loadConfiguration(new File(Main.EnchantsFolder, dictionary.getName(enchant)+".yml")).getString("upgradedesc");
+			String configdesc = EPSConfiguration.loadConfiguration(new File(EPS.enchantsFolder, dictionary.getName(enchant)+".yml")).getString("upgradedesc");
 			final String desc = configdesc == null ? dictionary.getDefaultDescription(enchant) : configdesc;
 			
 			descriptionMap.put(enchant, new ArrayList<String>() {

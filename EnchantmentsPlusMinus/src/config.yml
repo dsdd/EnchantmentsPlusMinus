@@ -33,7 +33,7 @@ global-cost-type:
    - Please note that this feature should only be used after all configurations have been converted.
    - When switching types, the plugin checks for different values in configurations, and without
    - those values, the plugin will be vulnerable to duplication glitches. (couldnt use comments because snakeyaml)
-enchant-lore-color: &9
+enchant-lore-color: "&9"
 applyfortuneon: 
   - COAL
   - LAPIS_LAZULI

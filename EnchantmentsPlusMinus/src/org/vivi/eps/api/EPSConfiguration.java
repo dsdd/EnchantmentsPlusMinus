@@ -15,10 +15,8 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.vivi.eps.EPS;
-import org.vivi.eps.Main;
-import org.vivi.eps.util.DataUtil;
 import org.vivi.eps.util.Dictionary;
-import org.vivi.eps.util.LangUtil;
+import org.vivi.eps.util.Language;
 
 /** An implementation of {@link Configuration}.
  * Meant for use for easy writing and reading of Enchantments+- configuration files.
@@ -43,7 +41,7 @@ public class EPSConfiguration extends YamlConfiguration {
     	Enchantment[] enchants = Enchantment.values();
     	for (Enchantment enchant : enchants)
     	{
-    		File enchantfile = new File(Main.EnchantsFolder, EPS.getDictionary().getName(enchant)+".yml");
+    		File enchantfile = new File(EPS.enchantsFolder, EPS.getDictionary().getName(enchant)+".yml");
     		if (enchantfile.exists())
     			fgMap.put(enchant, EPSConfiguration.loadConfiguration(enchantfile));
     	}
@@ -126,7 +124,7 @@ public class EPSConfiguration extends YamlConfiguration {
 		if (!isSet(path))
 		{
 			set(path, replace);
-			DataUtil.saveConfig(this, file);
+			save();
 		}
     }
     
@@ -178,10 +176,10 @@ public class EPSConfiguration extends YamlConfiguration {
 		else
 		{
 			String enchname = EPS.getDictionary().getName(enchant);
-			String msg = LangUtil.getLangMessage("no-enchant-config-found");
+			String msg = Language.getLangMessage("no-enchant-config-found");
 			if (msg != "")
 				Bukkit.getConsoleSender().sendMessage(msg.replaceAll("%enchant%", enchname));
-			File file = new File(Main.EnchantsFolder, enchname+".yml");
+			File file = new File(EPS.enchantsFolder, enchname+".yml");
 			if (!file.exists())
 			{
 				EPSConfiguration config1 = EPSConfiguration.loadConfiguration(file);
@@ -190,7 +188,7 @@ public class EPSConfiguration extends YamlConfiguration {
 			}
 			else
 			{
-				Main.createNewFile(file);
+				EPS.createNewFile(file);
 				EPSConfiguration config1 = EPSConfiguration.loadConfiguration(file);
 				config1.autoFillEnchantConfig(dictionary.getDefaultDescription(enchant), dictionary.getDefaultCost(enchant));
 				try {

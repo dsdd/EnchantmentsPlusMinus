@@ -1,13 +1,10 @@
 package org.vivi.eps.economy;
 
-
-import java.util.UUID;
-
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.vivi.eps.EPS;
 import org.vivi.eps.dependencies.VaultHook;
-import org.vivi.eps.util.DataUtil;
 
 import net.milkbowl.vault.economy.EconomyResponse;
 
@@ -18,7 +15,7 @@ public class VaultEconomy implements Economy {
 	@Override
 	public Integer changeBalance(String playername, Integer amount)
 	{
-		return changeBalance(Bukkit.getOfflinePlayer(UUID.fromString(DataUtil.getUUID(playername))), amount);
+		return changeBalance(Bukkit.getOfflinePlayer(EPS.getUUID(playername)), amount);
 	}
 
 	@Override
@@ -37,7 +34,7 @@ public class VaultEconomy implements Economy {
 	@Override
 	public Integer setBalance(String playername, Integer value)
 	{
-		return setBalance(Bukkit.getOfflinePlayer(UUID.fromString(DataUtil.getUUID(playername))), value);
+		return setBalance(Bukkit.getOfflinePlayer(EPS.getUUID(playername)), value);
 	}
 	
 	@Override
@@ -62,6 +59,6 @@ public class VaultEconomy implements Economy {
 	@Override
 	public Integer getBalance(String playername)
 	{
-		return (int)economy.getBalance(Bukkit.getOfflinePlayer(UUID.fromString(DataUtil.getUUID(playername))));
+		return (int)economy.getBalance(Bukkit.getOfflinePlayer(EPS.getUUID(playername)));
 	}
 }

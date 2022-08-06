@@ -69,7 +69,7 @@ incompatibilities:
       - GOLDEN_HOE
       - IRON_HOE
       - DIAMOND_HOE
-      - NETHERITE_HOEy
+      - NETHERITE_HOE
       
     armor:
       enchants:

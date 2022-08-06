@@ -1,7 +1,7 @@
 name: EnchantmentsPlusMinus
 version: 1.9r-5
 author: vivisan
-main: org.vivi.eps.Main
+main: org.vivi.eps.EPS
 description: Provides a unique way of obtaining custom enchantments for tools and armor
 api-version: 1.13
 softdepend: [PlaceholderAPI, Vault, LegacyWrapper, WorldGuard]

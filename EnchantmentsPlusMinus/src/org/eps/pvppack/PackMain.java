@@ -1,11 +1,11 @@
 package org.eps.pvppack;
 
-import org.vivi.eps.Main;
+import org.vivi.eps.EPS;
 
 public class PackMain {
 	
 	public void onEnable() {
 		CustomEnchants.register();
-		new EnchantProcessor(Main.plugin);		
+		new EnchantProcessor(EPS.plugin);		
 	}
 }

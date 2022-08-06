@@ -1,22 +1,28 @@
 package org.vivi.eps.economy;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.vivi.eps.util.DataUtil;
+import org.vivi.eps.EPS;
 
 public class TokenEconomy implements Economy {
 	
 	@Override
 	public Integer changeBalance(String playername, Integer amount)
 	{
-		File file = DataUtil.getUserDataFile(playername);
+		File file = EPS.getUserDataFile(playername);
 		FileConfiguration yaml = YamlConfiguration.loadConfiguration(file);
 		int redefine = yaml.getInt("tokens") + amount;
 		yaml.set("tokens", redefine);
-		DataUtil.saveConfig(yaml, file);
+		try {
+			yaml.save(file);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return redefine;
 	}
 
@@ -29,10 +35,15 @@ public class TokenEconomy implements Economy {
 	@Override
 	public Integer setBalance(String playername, Integer value)
 	{
-		File file = DataUtil.getUserDataFile(playername);
+		File file = EPS.getUserDataFile(playername);
 		FileConfiguration yaml = YamlConfiguration.loadConfiguration(file);
 		yaml.set("tokens", value);
-		DataUtil.saveConfig(yaml, file);
+		try {
+			yaml.save(file);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return value;
 	}
 	
@@ -51,7 +62,7 @@ public class TokenEconomy implements Economy {
 	@Override
 	public Integer getBalance(String playername)
 	{
-		File file = DataUtil.getUserDataFile(playername);
+		File file = EPS.getUserDataFile(playername);
 		return YamlConfiguration.loadConfiguration(file).getInt("tokens");
 	}
 }

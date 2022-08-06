@@ -17,17 +17,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.vivi.eps.Main;
+import org.vivi.eps.EPS;
 
 public class AutoUpdate {
 
 	public void onEnable()
 	{
-        if (Main.Config.getBoolean("auto-update") == false) return;
-		File file = downloadFile(Main.DataFolder.getPath()+"/version.txt", "https://raw.githubusercontent.com/dsdd/EnchantmentsPlusMinus/main/VERSION");
+        if (EPS.configData.getBoolean("auto-update") == false) return;
+		File file = downloadFile(EPS.dataFolder.getPath()+"/version.txt", "https://raw.githubusercontent.com/dsdd/EnchantmentsPlusMinus/main/VERSION");
 		String ver = readFile(file).substring(0, ((int)file.length())-1);
-		Plugin pl = Main.plugin;
-		JavaPlugin plugin = (JavaPlugin) Main.plugin;
+		Plugin pl = EPS.plugin;
+		JavaPlugin plugin = (JavaPlugin) EPS.plugin;
 		Method getFileMethod = null;
 		try {
 			getFileMethod = JavaPlugin.class.getDeclaredMethod("getFile");

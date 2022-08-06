@@ -39,7 +39,7 @@ import org.vivi.eps.api.CountTracker;
 import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.api.TimeTracker;
-import org.vivi.eps.util.LangUtil;
+import org.vivi.eps.util.Language;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -62,7 +62,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 	private EPSConfiguration meltingConfig = EPSConfiguration.getConfiguration(CustomEnchants.MELTING);
 	private EPSConfiguration bsConfig = EPSConfiguration.getConfiguration(CustomEnchants.BACKUP_SPELLS);
 	private EPSConfiguration evadeConfig = EPSConfiguration.getConfiguration(CustomEnchants.EVADE);
-	private String cooldownError = LangUtil.getLangMessage("cooldown-error");
+	private String cooldownError = Language.getLangMessage("cooldown-error");
 	
 	private static final Map<EntityType, String> mobHeads = new HashMap<EntityType, String>() {
 		private static final long serialVersionUID = 1L;
@@ -488,7 +488,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 		meltingConfig = EPSConfiguration.getConfiguration(CustomEnchants.MELTING);
 		bsConfig = EPSConfiguration.getConfiguration(CustomEnchants.BACKUP_SPELLS);
 		evadeConfig = EPSConfiguration.getConfiguration(CustomEnchants.EVADE);
-		cooldownError = LangUtil.getLangMessage("cooldown-error");
+		cooldownError = Language.getLangMessage("cooldown-error");
 	}
 }
 

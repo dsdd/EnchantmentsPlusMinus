@@ -14,12 +14,14 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Container;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -28,13 +30,12 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.vivi.eps.EPS;
-import org.vivi.eps.Main;
 import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.api.TimeTracker;
 import org.vivi.eps.dependencies.VaultHook;
 import org.vivi.eps.economy.Economy;
-import org.vivi.eps.util.LangUtil;
+import org.vivi.eps.util.Language;
 import org.vivi.eps.visual.EnchantGUI;
 
 import net.md_5.bungee.api.ChatMessageType;
@@ -42,16 +43,16 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 public class EnchantProcessor implements Listener, Reloadable {
 	
-	private boolean modified_by_enchant = false;
+	private boolean modifiedByEnchant = false;
 	private boolean looping = false;
 	private Collection<Location> saves = new ArrayList<Location>();
 	private Random temp = new Random();
 	private final Material endframe = EPS.onLegacy() ? Material.matchMaterial("ENDER_PORTAL_FRAME") : Material.matchMaterial("END_PORTAL_FRAME");
 	private final Economy economy = EPS.getEconomy();
-	private boolean use_action_bar = Main.Config.getBoolean("use-action-bar-instead-of-chat-inventory-full");
-	private String inventoryfull = LangUtil.getLangMessage("inventoryfull");
-	private boolean fortuneEnabled = Main.Config.getBoolean("use-custom-fortune");
-	private List<String> applyFortuneOn = Main.Config.getStringList("applyfortuneon");
+	private boolean use_action_bar = EPS.configData.getBoolean("use-action-bar-instead-of-chat-inventory-full");
+	private String inventoryfull = Language.getLangMessage("inventoryfull");
+	private boolean fortuneEnabled = EPS.configData.getBoolean("use-custom-fortune");
+	private List<String> applyFortuneOn = EPS.configData.getStringList("applyfortuneon");
 	private final Plugin plugin;
 	private EPSConfiguration hasteConfig = EPSConfiguration.getConfiguration(CustomEnchants.HASTE);
 	private EPSConfiguration tbConfig = EPSConfiguration.getConfiguration(CustomEnchants.TOKENBLOCKS);
@@ -99,11 +100,11 @@ public class EnchantProcessor implements Listener, Reloadable {
 			if (use_action_bar)
 				player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(inventoryfull));
 			else
-				LangUtil.sendMessage(player, "inventoryfull");
+				Language.sendMessage(player, "inventoryfull");
             return; }
 		if (e.getBlock().getState() instanceof Container)
             return;
-		modified_by_enchant = false;
+		modifiedByEnchant = false;
 		Collection<ItemStack> drops = getDrops(mainhand, e.getBlock(), player);
 		ItemMeta mainmeta = mainhand.getItemMeta();
 		
@@ -112,7 +113,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 			int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.HASTE);
 			if (getNext() < hasteConfig.getAutofilledDouble(enchlvl, "chance"))
 			{
-				LangUtil.sendMessage(player, "hasteactivate");
+				Language.sendMessage(player, "hasteactivate");
 				player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 60, enchlvl-1));
 			}
 		}
@@ -124,7 +125,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 			{
 				int randomrange = tbConfig.getAutofilledInt(enchlvl, "random-range");
 				int tokens = tbConfig.getAutofilledInt(enchlvl, "tokens")+temp.nextInt(randomrange*2)-randomrange;
-				String m = LangUtil.getLangMessage("tokenblocksactivate").replaceAll("%tokens%", Integer.toString(tokens));
+				String m = Language.getLangMessage("tokenblocksactivate").replaceAll("%tokens%", Integer.toString(tokens));
 				if (m != "")
 					player.sendMessage(m);
 				economy.changeBalance(player, tokens);
@@ -140,7 +141,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 				{
 					int randomrange = mbConfig.getAutofilledInt(enchlvl, "random-range");
 					int money = mbConfig.getAutofilledInt(enchlvl, "money")+temp.nextInt(randomrange*2)-randomrange;
-					String m = LangUtil.getLangMessage("moneyblocksactivate").replaceAll("%money%", Integer.toString(money));
+					String m = Language.getLangMessage("moneyblocksactivate").replaceAll("%money%", Integer.toString(money));
 					if (m != "")
 						player.sendMessage(m);
 					VaultHook.getEconomy().depositPlayer(player, money);
@@ -159,7 +160,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 				{
 					int randomrange = charityConfig.getAutofilledInt(enchlvl, "random-range");
 					int money = charityConfig.getAutofilledInt(enchlvl, "money")+temp.nextInt(randomrange*2)-randomrange;
-					String m = LangUtil.getLangMessage("charityactivate").replaceAll("%money%", Integer.toString(money)).replaceAll("%player%", player.getDisplayName());
+					String m = Language.getLangMessage("charityactivate").replaceAll("%money%", Integer.toString(money)).replaceAll("%player%", player.getDisplayName());
 					if (m != "")
 						Bukkit.broadcastMessage(m);
 					for (Player p : Bukkit.getOnlinePlayers())
@@ -179,7 +180,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 			{
 				int randomrange = tcConfig.getAutofilledInt(enchlvl, "random-range");
 				int tokens = tcConfig.getAutofilledInt(enchlvl, "tokens")+temp.nextInt(randomrange*2)-randomrange;
-				String m = LangUtil.getLangMessage("tokencharityactivate").replaceAll("%tokens%", Integer.toString(tokens)).replaceAll("%player%", player.getDisplayName());
+				String m = Language.getLangMessage("tokencharityactivate").replaceAll("%tokens%", Integer.toString(tokens)).replaceAll("%player%", player.getDisplayName());
 				if (m != "")
 					Bukkit.broadcastMessage(m);
 				for (Player p : Bukkit.getOnlinePlayers())
@@ -214,7 +215,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 					    block.setType(Material.AIR);
 					}
 					
-					modified_by_enchant = true;
+					modifiedByEnchant = true;
 			}
 		}
 		
@@ -249,7 +250,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 						block.setType(Material.AIR);
 					}
 					
-					modified_by_enchant = true;
+					modifiedByEnchant = true;
 			}
 		}
 		
@@ -280,7 +281,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 					    block.setType(Material.AIR);
 					}
 					
-					modified_by_enchant = true;
+					modifiedByEnchant = true;
 			}
 		}
 		
@@ -318,30 +319,16 @@ public class EnchantProcessor implements Listener, Reloadable {
 						block.setType(Material.AIR);
 					}
 					
-					modified_by_enchant = true;
+					modifiedByEnchant = true;
 			}
 		}
 		
 		looping = false;
-		if (mainmeta.hasEnchant(CustomEnchants.TELEPATHY))
-		{
-			if (!e.isCancelled())
-			{
-				int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.TELEPATHY);
-			    if (getNext() < tpConfig.getAutofilledDouble(enchlvl, "chance"))
-			    {
-		        	e.setDropItems(false);
-					player.getInventory().addItem(drops.toArray(new ItemStack[drops.size()]));
-					modified_by_enchant = true;
-		            return;
-		        }
-			}
-		}
 		
 		if (mainmeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS) && fortuneEnabled)
-			modified_by_enchant = true;
+			modifiedByEnchant = true;
 		
-		if (modified_by_enchant)
+		if (modifiedByEnchant)
 		{
 			e.setDropItems(false);
 			World world = e.getBlock().getWorld();
@@ -349,6 +336,33 @@ public class EnchantProcessor implements Listener, Reloadable {
 			for (ItemStack drop : drops)
 				if (!drop.getType().equals(Material.AIR) || drop.getType().equals(Material.CAVE_AIR) || drop.getType().equals(Material.VOID_AIR))
 				world.dropItemNaturally(loc, drop);
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onBlockDropItem(BlockDropItemEvent e)
+	{
+		Player player = e.getPlayer();
+		ItemStack mainhand = player.getInventory().getItemInMainHand();
+		if (mainhand == null)
+            return;
+		if (!mainhand.hasItemMeta())
+		    return;
+		if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR)
+			return;
+		if (e.getBlock().getState() instanceof Container)
+            return;
+		ItemMeta mainmeta = mainhand.getItemMeta();
+		
+		if (mainmeta.hasEnchant(CustomEnchants.TELEPATHY))
+		{
+			int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.TELEPATHY);
+			if (getNext() < tpConfig.getAutofilledDouble(enchlvl, "chance"))
+			{
+				for (Item item : e.getItems())
+					e.getPlayer().getInventory().addItem(item.getItemStack());
+				e.setCancelled(true);
+			}
 		}
 	}
 	
@@ -369,11 +383,11 @@ public class EnchantProcessor implements Listener, Reloadable {
 						double cooldown = boostedConfig.getAutofilledDouble(enchlvl, "cooldown")*50;
 						long lastuse = boostedCooldown.getLastUse(player);
 						if (lastuse <= cooldown)
-							player.sendMessage(LangUtil.getLangMessage("cooldown-error").replaceAll("%secs%", Double.toString(Math.floor(((cooldown-lastuse)/1000)*10)/10)));
+							player.sendMessage(Language.getLangMessage("cooldown-error").replaceAll("%secs%", Double.toString(Math.floor(((cooldown-lastuse)/1000)*10)/10)));
 						else
 						{
 							boostedCooldown.use(player);
-							LangUtil.sendMessage(player, "boosted-activate");
+							Language.sendMessage(player, "boosted-activate");
 							boosted.add(player);
 							EnchantGUI.setOpenable(player, false);
 							int duration = boostedConfig.getAutofilledInt(enchlvl, "duration");
@@ -515,10 +529,10 @@ public class EnchantProcessor implements Listener, Reloadable {
 
 	@Override
 	public void reload() {
-		use_action_bar = Main.Config.getBoolean("use-action-bar-instead-of-chat-inventory-full");
-		inventoryfull = LangUtil.getLangMessage("inventoryfull");
-		fortuneEnabled = Main.Config.getBoolean("use-custom-fortune");
-		applyFortuneOn = Main.Config.getStringList("applyfortuneon");
+		use_action_bar = EPS.configData.getBoolean("use-action-bar-instead-of-chat-inventory-full");
+		inventoryfull = Language.getLangMessage("inventoryfull");
+		fortuneEnabled = EPS.configData.getBoolean("use-custom-fortune");
+		applyFortuneOn = EPS.configData.getStringList("applyfortuneon");
 		fortuneapply.clear();
 		for (String i : applyFortuneOn)
 			fortuneapply.add(Material.matchMaterial(i));

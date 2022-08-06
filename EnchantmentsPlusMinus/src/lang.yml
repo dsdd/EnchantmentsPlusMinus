@@ -1,6 +1,6 @@
 # Language Config
 
-prefix: ''
+prefix: '&7[&a&lEPS&7] &r'
 messages:
     insufficientpermission: "&cYou do not have permission to use this command."
     invalidplayertype: "&cThis command can only be executed by a player."
@@ -11,7 +11,7 @@ messages:
     unspecifiedplayer: "&cYou must specify a player."
     unspecifiedtokenspay: "&cYou must specify the amount of tokens to give."
     invalidtokenamountpay: "&cYou must write a proper amount of tokens to give."
-    tokenbalance: "&aTokens: %tokens%"
+    tokenbalance: "&aYou currently have &e&l%tokens%&a tokens."
     insufficienttokens: "&cYou do not have enough tokens to buy this."
     upgradedpickaxe: "&aUpgraded successfully!"
     maxedupgrade: "&cYou already have the maximum level for this enchantment."
@@ -33,7 +33,7 @@ messages:
     startup-message: '&2Thank you for using Enchantments+-!'
     claimed-token-pouch: '&2You received %tokens% tokens from the token pouch!'
     no-enchant-config-found: '&cCould not find the config for %enchant%! Automatically making one...'
-    balance-display-in-gui: '&aYour Tokens » &e%balance%'
+    balance-display-in-gui: '&aYour Tokens Â» &e%balance%'
     invalid-enchant: '&cCould not find specified enchant. Try using /eps reload.'
     cannot-open-gui: '&cYou cannot open the GUI at this time.'
     boosted-activate: '&aBoosted fortune!'
@@ -43,3 +43,11 @@ messages:
     modify-lore-2: '&7Right-Click to remove this enchant'
     modifying-config: '&aType in the new value of %entry%.'
     modified-config: '&aChanged value!'
+eps-command-usage:
+- "&7-----------[ &a&lEnchantments+- &7]-----------"
+- "&7- &e/eps reload &7- Reloads all configuration files. Some settings may require a full plugin reload."
+- "&7- &e/eps setbal [player] [amount] &7- Sets a player's balance to the specified amount."
+- "&7- &e/eps changebal [player] [amount] &7- Changes a player's balance by the specified amount."
+- "&7- &e/eps enchant [enchant] [level] &7- Enchants the item you are holding with the specified enchant and level."
+- "&7- &e/eps book [player] [enchant:level] &7- Gives the player a book with the specified enchant and level. (e.g. /eps book efficiency:2)"
+- "&7- &e/eps tokenpouch [player] [amount] &7- Gives the player a token pouch with the specified amount."

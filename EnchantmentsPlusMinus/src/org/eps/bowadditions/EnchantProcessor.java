@@ -31,7 +31,7 @@ import org.vivi.eps.api.CountTracker;
 import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.api.TimeTracker;
-import org.vivi.eps.util.LangUtil;
+import org.vivi.eps.util.Language;
 
 public class EnchantProcessor implements Listener, Reloadable {
 	
@@ -49,8 +49,8 @@ public class EnchantProcessor implements Listener, Reloadable {
 	
 	public EnchantProcessor()
 	{
-		LangUtil.setDefaultLangMessage("cooldown-error", "&cYou must wait %secs% more seconds to use this again!");
-		LangUtil.setDefaultLangMessage("enderbow-radius-error", "&cYou cannot teleport further than %blocks% blocks!");
+		Language.setDefaultLangMessage("cooldown-error", "&cYou must wait %secs% more seconds to use this again!");
+		Language.setDefaultLangMessage("enderbow-radius-error", "&cYou cannot teleport further than %blocks% blocks!");
 		EPS.registerReloader(this);
 	}
 	
@@ -84,7 +84,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 				// Check if cooldown is met
 				long time = enderbowAbility.getLastUse(player);
 				if (time < cooldown)
-					player.sendMessage(LangUtil.getLangMessage("cooldown-error").replaceAll("%secs%", Double.toString(Math.floor(((cooldown-time)/1000)*10)/10)));
+					player.sendMessage(Language.getLangMessage("cooldown-error").replaceAll("%secs%", Double.toString(Math.floor(((cooldown-time)/1000)*10)/10)));
 				else
 				{
 					double radius = enderbowConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.ENDERBOW), "radius");
@@ -92,7 +92,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 					
 					// Check if distance from player exceeds limits
 					if (distance > radius)
-						player.sendMessage(LangUtil.getLangMessage("enderbow-radius-error").replaceAll("%blocks%", Double.toString(radius)));
+						player.sendMessage(Language.getLangMessage("enderbow-radius-error").replaceAll("%blocks%", Double.toString(radius)));
 					else
 					{
 						enderbowAbility.use(player);

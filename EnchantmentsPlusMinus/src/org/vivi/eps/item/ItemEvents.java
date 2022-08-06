@@ -9,7 +9,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.vivi.eps.EPS;
-import org.vivi.eps.util.LangUtil;
+import org.vivi.eps.util.Language;
 
 public class ItemEvents implements Listener {
 
@@ -30,7 +30,7 @@ public class ItemEvents implements Listener {
 					int tokens = Integer.parseInt(str.split(":")[1]);
 					EPS.getEconomy().changeBalance(p, tokens);
 					p.getInventory().remove(item);
-					p.sendMessage(LangUtil.getLangMessage("claimed-token-pouch").replaceAll("%tokens%", Integer.toString(tokens)));
+					p.sendMessage(Language.getLangMessage("claimed-token-pouch").replaceAll("%tokens%", Integer.toString(tokens)));
 				}
 			}
 		}

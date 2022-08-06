@@ -11,8 +11,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.vivi.eps.Main;
-import org.vivi.eps.util.LangUtil;
+import org.vivi.eps.EPS;
+import org.vivi.eps.util.Language;
 import org.vivi.eps.visual.EnchantGUI;
 
 public class EnchantsCommand implements CommandExecutor {
@@ -25,11 +25,11 @@ public class EnchantsCommand implements CommandExecutor {
 	 */
 	public static void setupGUIs()
 	{
-		guis = Main.GuisConfig.getConfigurationSection("guis").getKeys(false);
+		guis = EPS.guisData.getConfigurationSection("guis").getKeys(false);
 		for (String i : guis) 
 		{
 			List<Material> tlist = new ArrayList<Material>();
-			for (String i1 : Main.GuisConfig.getStringList("guis."+i+".items"))
+			for (String i1 : EPS.guisData.getStringList("guis."+i+".items"))
 			{
 				if (Material.matchMaterial(i1) != null)
 				tlist.add(Material.matchMaterial(i1));
@@ -43,7 +43,7 @@ public class EnchantsCommand implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
 		if (!(sender instanceof Player)) {
-        	LangUtil.sendMessage(sender, "invalidplayertype");
+        	Language.sendMessage(sender, "invalidplayertype");
         	return true;
         }
         Player p = (Player) sender;
@@ -55,7 +55,7 @@ public class EnchantsCommand implements CommandExecutor {
         		for (Map.Entry<List<Material>, String> entry : list.entrySet())
                 if (entry.getKey().contains(p.getInventory().getItemInMainHand().getType()))
                 {
-            	    LangUtil.sendMessage(sender, "openenchantsgui");
+            	    Language.sendMessage(sender, "openenchantsgui");
             	    EnchantGUI.openInventory(p, entry.getValue());
             	    return true;
                 }
@@ -63,11 +63,11 @@ public class EnchantsCommand implements CommandExecutor {
         	if (args.length > 0)
         	{
         	if (args[0] != "dontshow")
-        		LangUtil.sendMessage(sender, "invaliditem");
+        		Language.sendMessage(sender, "invaliditem");
         	}
         	else
         	{
-        		LangUtil.sendMessage(sender, "invaliditem");
+        		Language.sendMessage(sender, "invaliditem");
         	}
         	return false;
         }
@@ -76,10 +76,10 @@ public class EnchantsCommand implements CommandExecutor {
         	if (args.length > 0)
         	{
         	if (args[0] != "dontshow")
-        		LangUtil.sendMessage(sender, "insufficientpermission");
+        		Language.sendMessage(sender, "insufficientpermission");
         	}
         	else
-        		LangUtil.sendMessage(sender, "insufficientpermission");
+        		Language.sendMessage(sender, "insufficientpermission");
         }
 		return false;
 	}
