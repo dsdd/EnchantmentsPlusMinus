@@ -25,11 +25,11 @@ public class TokenPouch extends ItemStack {
 	{
 		super(EPS.onLegacy() ? Material.matchMaterial("SKULL_ITEM") : Material.PLAYER_HEAD, 1);
 		SkullMeta meta = pouchSkullMeta;
-		meta.setDisplayName(Language.getLangMessage("token-pouch"));
+		meta.setDisplayName(Language.getLangMessage("token-pouch", false));
 		meta.setLore(Arrays.asList(new String[] {
 				ChatColor.BLACK+"T:"+Integer.toString(tokens),
-				Language.getLangMessage("token-pouch-lore-1").replaceAll("%tokens%", Integer.toString(tokens)),
-				Language.getLangMessage("token-pouch-lore-2")
+				Language.getLangMessage("token-pouch-lore-1", false).replaceAll("%tokens%", Integer.toString(tokens)),
+				Language.getLangMessage("token-pouch-lore-2", false)
 		}));
 		this.setItemMeta(meta);
 	}
