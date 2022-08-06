@@ -1,0 +1,121 @@
+# If you need to restrict someone from getting an enchant if they have another, just modify this
+# To list an incompatibility, all you need to do is to list it in the enchant you do not want paired with.
+
+incompatibilities:
+    pickaxe:
+      enchants: 
+      - explosive # Which enchants cannot be grouped together
+      - excavate
+      - diamond
+      items:
+      - WOODEN_PICKAXE # Which tools this applies to
+      - STONE_PICKAXE
+      - GOLD_PICKAXE # In 1.13+ gold tools are renamed to golden
+      - GOLDEN_PICKAXE
+      - IRON_PICKAXE
+      - DIAMOND_PICKAXE
+      - NETHERITE_PICKAXE
+
+    axe_and_sword: 
+      enchants:
+      - sharpness
+      - smite
+      - bane_of_arthropods
+      - cleaving
+      items:
+      - WOODEN_AXE
+      - STONE_AXE
+      - GOLD_AXE
+      - GOLDEN_AXE
+      - IRON_AXE
+      - DIAMOND_AXE
+      - NETHERITE_AXE
+      - WOODEN_SWORD
+      - STONE_SWORD
+      - IRON_SWORD
+      - GOLDEN_SWORD
+      - DIAMOND_SWORD
+      - NETHERITE_SWORD
+      
+    tools:
+      enchants:
+      - fortune
+      - silk_touch
+      items:
+      - WOODEN_PICKAXE
+      - STONE_PICKAXE
+      - GOLD_PICKAXE
+      - GOLDEN_PICKAXE
+      - IRON_PICKAXE
+      - DIAMOND_PICKAXE
+      - NETHERITE_PICKAXE
+      - WOODEN_AXE
+      - STONE_AXE
+      - GOLD_AXE
+      - GOLDEN_AXE
+      - IRON_AXE
+      - DIAMOND_AXE
+      - NETHERITE_AXE
+      - WOODEN_SHOVEL
+      - STONE_SHOVEL
+      - GOLD_SHOVEL
+      - GOLDEN_SHOVEL
+      - IRON_SHOVEL
+      - DIAMOND_SHOVEL
+      - NETHERITE_SHOVEL
+      - WOODEN_HOE
+      - STONE_HOE
+      - GOLD_HOE
+      - GOLDEN_HOE
+      - IRON_HOE
+      - DIAMOND_HOE
+      - NETHERITE_HOEy
+      
+    armor:
+      enchants:
+      - protection
+      - projectile_protection
+      - fire_protection
+      - blast_protection
+      - depth_strider
+      - frost_walker
+      items:
+      - LEATHER_HELMET
+      - LEATHER_CHESTPLATE
+      - LEATHER_LEGGINGS
+      - LEATHER_BOOTS
+      - CHAINMAIL_HELMET
+      - CHAINMAIL_CHESTPLATE
+      - CHAINMAIL_LEGGINGS
+      - CHAINMAIL_BOOTS
+      - GOLDEN_HELMET
+      - GOLDEN_CHESTPLATE
+      - GOLDEN_LEGGINGS
+      - GOLDEN_BOOTS
+      - IRON_HELMET
+      - IRON_CHESTPLATE
+      - IRON_LEGGINGS
+      - IRON_BOOTS
+      - DIAMOND_HELMET
+      - DIAMOND_CHESTPLATE
+      - DIAMOND_LEGGINGS
+      - DIAMOND_BOOTS
+      - NETHERITE_HELMET
+      - NETHERITE_CHESTPLATE
+      - NETHERITE_LEGGINGS
+      - NETHERITE_BOOTS
+      
+    trident:
+      enchants:
+      - channeling
+      - loyalty
+      - riptide
+      items:
+      - TRIDENT
+      
+    crossbow:
+      enchants:
+      - piercing
+      - multishot
+      items:
+      - CROSSBOW

@@ -1,0 +1,11 @@
+# GUI lore customization for EPS.
+# Keep in mind that you can't customize how the description looks due to compatibility issues.
+
+lore:
+- "&aCost » &e%cost%"
+- "&aMax Level » &e%maxlevel%"
+- "&aCurrent Level » &e%currentlevel%"
+- ""
+- "&7» Left-Click to upgrade once"
+- "&7» Right-Click to upgrade 5 times"
+- "&7» Shift-Right-Click to upgrade 50 times"

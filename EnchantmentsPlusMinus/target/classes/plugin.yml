@@ -1,0 +1,43 @@
+name: EnchantmentsPlusMinus
+version: 1.9r-5
+author: vivisan
+main: org.vivi.eps.Main
+description: Provides a unique way of obtaining custom enchantments for tools and armor
+api-version: 1.13
+softdepend: [PlaceholderAPI, Vault, LegacyWrapper, WorldGuard]
+
+commands:
+    eps:
+      description: EPS admin commands
+      permission: eps.admin.*
+    enchants: 
+      aliases: [enchantments]
+      description: Opens the enchantment GUI to apply enchants to tools and armor
+      permission: eps.enchants
+    tokens:
+      aliases: [token]
+      description: Tells you how many tokens you have
+      permission: eps.tokens
+    scrap:
+      description: Scraps your current tool for tokens.
+      permission: eps.scrap
+    paytokens:
+      description: Pays the specified player a specified amount of tokens
+      permission: eps.paytokens
+        
+permissions:
+  eps.enchants:
+    description: Gives access to /enchants.
+    default: true
+  eps.tokens:
+    description: Gives access to /tokens.
+    default: true
+  eps.scrap:
+    description: Gives access to /scrap.
+    default: true
+  eps.paytokens:
+    description: Gives access to /paytokens.
+    default: true
+  eps.admin.*:
+    description: Gives access to admin commands.
+    default: op

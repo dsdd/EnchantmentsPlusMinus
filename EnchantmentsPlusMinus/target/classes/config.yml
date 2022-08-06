@@ -1,0 +1,60 @@
+# +-------------------------+
+# | +---------------------+ |
+# | |    Enchantments+-   | |
+# | +---------------------+ |
+# +-------------------------+
+#                                                                                     -#-
+# This is the configuration file for Enchantments+-.
+# Need help? Check the GitHub wiki: https://github.com/dsdd/EnchantmentsPlusMinus
+#
+# +------------------------+
+# |                        |
+# |     Configuration      |
+# |                        |
+# +------------------------+
+#        
+# Enchant configuration has been moved to the /enchants/ folder!
+#                                                                             -#-
+
+auto-update: false
+show-enchant-lore: true
+use-roman-numerals: false
+open-enchant-gui-on-right-click: true
+anvil-combining-enabled: true
+use-money-economy-instead-of-tokens: false
+show-vanilla-enchants-in-lore: true
+show-enchant-descriptions-in-lore: true
+use-action-bar-instead-of-chat-inventory-full: true
+use-custom-fortune: true
+global-cost-type:
+   enabled: false
+   type: exponential
+   just-a-notice: 
+   - Please note that this feature should only be used after all configurations have been converted.
+   - When switching types, the plugin checks for different values in configurations, and without
+   - those values, the plugin will be vulnerable to duplication glitches. (couldnt use comments because snakeyaml)
+enchant-lore-color: &9
+applyfortuneon: 
+  - COAL
+  - LAPIS_LAZULI
+  - REDSTONE
+  - DIAMOND  
+  - EMERALD
+  - QUARTZ
+playerkilltokens: 
+  enabled: true
+  min: 25
+  max: 50
+mobkilltokens:
+  enabled: true
+  min: 5
+  max: 10
+miningtokens:
+  enabled: true
+  min: 25
+  max: 50
+  blockstobreak: 1000
+custom-lore-color:
+  depth_strider: &2
+disabled-enchants:
+- an enchant you don't like
