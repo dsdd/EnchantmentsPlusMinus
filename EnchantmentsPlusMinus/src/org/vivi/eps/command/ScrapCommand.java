@@ -13,6 +13,11 @@ import org.vivi.eps.EPS;
 import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.util.Language;
 
+/** Planned for removal. Though, this concept may still be improved on.
+ * 
+ * @author vivisan
+ *
+ */
 public class ScrapCommand implements CommandExecutor {
 
 	@Override

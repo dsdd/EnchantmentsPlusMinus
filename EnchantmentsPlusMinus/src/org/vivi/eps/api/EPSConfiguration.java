@@ -32,7 +32,7 @@ public class EPSConfiguration extends YamlConfiguration {
 	private Map<String, Map<Integer, Double>> cachedAutofills = new HashMap<String, Map<Integer, Double>>();
 	
 	// This map is used to improve efficiency of getting values from each enchant config
-	protected static Map<Enchantment, EPSConfiguration> fgMap = new HashMap<Enchantment, EPSConfiguration>();
+	public static Map<Enchantment, EPSConfiguration> fgMap = new HashMap<Enchantment, EPSConfiguration>();
 	
 	/** Reloads all enchant configurations
      */
@@ -137,15 +137,15 @@ public class EPSConfiguration extends YamlConfiguration {
      *  specified cost.
      * 
      * @param enchant The enchant to fill
-     * @param desc The description to fill
+     * @param description The description to fill
      * @param cost The cost you want to set
      */
-    public void autoFillEnchantConfig(String desc, Integer cost)
+    public void autoFillEnchantConfig(String description, int cost)
     {
     	setDefault("maxlevel", 10);
     	setDefault("scrapvalue", cost/2);
     	setDefault("upgradeicon", Material.BOOK.name());
-    	setDefault("upgradedesc", desc);
+    	setDefault("upgradedesc", description);
     	setDefault("cost.type", "linear");
     	setDefault("cost.startvalue", cost);
     	setDefault("cost.value", cost);

@@ -17,14 +17,14 @@ messages:
     maxedupgrade: "&cYou already have the maximum level for this enchantment."
     exceedmaxlvl: "&cYou can't exceed the maximum level for this enchantment."
     cannotscrap: "&cThis item has no scrap value."
-    scrapsuccess: "&aYou scrapped this item for %tokens% tokens!"
+    scrapsuccess: "&aYou scrapped this item for &e&l%tokens%&a tokens!"
     lockedupgrade: "&cYou may not upgrade this enchant as it is locked."
     inventoryfull: "&cYour inventory is full!"
     hasteactivate: "&aHaste has been activated!"
-    tokenblocksactivate: "&aYou received %tokens% tokens from TokenBlocks!"
-    moneyblocksactivate: "&aYou received $%money% from MoneyBlocks!"
-    tokencharityactivate: "&aYou received %tokens% tokens from a token charity run by %player%&a!"
-    charityactivate: "&aYou received $%money% from a charity by %player%&a!"
+    tokenblocksactivate: "&aYou received &e&l%tokens%&a tokens from TokenBlocks!"
+    moneyblocksactivate: "&aYou received &e&l$%money%&a from MoneyBlocks!"
+    tokencharityactivate: "&aYou received &e&l%tokens%&a tokens from a token charity run by %player%&a!"
+    charityactivate: "&aYou received &e&l$%money%&a from a charity by %player%&a!"
     cooldown-error: '&cYou must wait %secs% more seconds to use this again!'
     enderbow-radius-error: '&cYou cannot teleport further than %blocks% blocks!'
     token-pouch: '&eToken Pouch'
@@ -51,3 +51,4 @@ eps-command-usage:
 - "&7- &e/eps enchant [enchant] [level] &7- Enchants the item you are holding with the specified enchant and level."
 - "&7- &e/eps book [player] [enchant:level] &7- Gives the player a book with the specified enchant and level. (e.g. /eps book efficiency:2)"
 - "&7- &e/eps tokenpouch [player] [amount] &7- Gives the player a token pouch with the specified amount."
+- "&7- &e/eps baltop &7- Shows the baltop. Can be useful for statistical data"

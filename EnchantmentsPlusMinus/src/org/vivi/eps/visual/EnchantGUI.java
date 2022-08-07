@@ -30,9 +30,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.vivi.eps.EPS;
 import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.api.Reloadable;
-import org.vivi.eps.economy.Economy;
 import org.vivi.eps.util.Dictionary;
 import org.vivi.eps.util.Language;
+import org.vivi.eps.util.economy.Economy;
 
 @SuppressWarnings("deprecation")
 public class EnchantGUI implements Listener, Reloadable {

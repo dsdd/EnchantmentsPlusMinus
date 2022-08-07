@@ -22,15 +22,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.vivi.eps.EPS;
 import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.api.Reloadable;
-import org.vivi.eps.legacy.Label;
+import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Dictionary;
 
 public class EnchantMetaWriter implements Listener, Reloadable {
 	
 	protected static Map<Enchantment, String> enchantnames = new HashMap<Enchantment, String>();
-	private static boolean ve = EPS.configData.getBoolean("show-vanilla-enchants-in-lore");
-	private static boolean show_enchant_lore = EPS.configData.getBoolean("show-enchant-lore");
-	private static boolean show_enchant_descriptions_in_lore = EPS.configData.getBoolean("show-enchant-descriptions-in-lore");
 	private static Map<Enchantment, ArrayList<String>> descriptionMap = new HashMap<>();
 	private static List<String> allDescriptionLines = new ArrayList<String>();
 	private static String prefix;
@@ -41,7 +38,7 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 	
 	public EnchantMetaWriter()
 	{
-		prefix = ChatColor.translateAlternateColorCodes('&', EPS.configData.getString("enchant-lore-color"));
+		prefix = ChatColor.translateAlternateColorCodes('&', ConfigSettings.getEnchantLoreColor());
 		EPS.saveDefaultFile("/lore_exemptions.yml", loreExemptions);
 		loreExemptionsConfig = EPSConfiguration.loadConfiguration(loreExemptions);
 		for (String s : loreExemptionsConfig.getStringList("blacklist"))
@@ -53,11 +50,11 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 		ItemMeta meta = item.getItemMeta();
 		if (meta == null)
 			return (new ArrayList<String>());
-		if (!show_enchant_lore)
+		if (!ConfigSettings.isShowEnchants())
 			return meta.getLore();
 		Map<Enchantment, Integer> map = meta.getEnchants();
 		List<String> list = meta.getLore() == null ? new ArrayList<String>() : meta.getLore();
-		Collection<Enchantment> enchants = ve ? new ArrayList<Enchantment>(Arrays.asList(Enchantment.values())) : Label.values();
+		Collection<Enchantment> enchants = Arrays.asList(Enchantment.values());
 		
 		for (Enchantment enchant : enchants)
 		{	
@@ -78,9 +75,9 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 			{
 				String name = enchantnames.get(entry.getKey());
 				String lore = name+" "+ getNumber(entry.getValue());
-				String s = EPS.configData.getString("custom-lore-color."+dictionary.getName(entry.getKey()));
-				lore = s == null ? prefix + lore : s.replaceAll("&", "§") + lore;
-			    if (show_enchant_descriptions_in_lore)
+				String colorPrefix = ConfigSettings.getEnchantSpecificLoreColors().get(dictionary.getName(entry.getKey()));
+				lore = colorPrefix == null ? prefix + lore : ChatColor.translateAlternateColorCodes('&', colorPrefix) + lore;
+			    if (ConfigSettings.isShowEnchantDescriptions())
 			    {
 				    List<String> l = getDescription(entry.getKey());
 				    for (int i=l.size()-1;i>-1;i--)
@@ -88,7 +85,7 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 				    	list.add(0, l.get(i));
 			    }
 			    list.add(0, lore);
-			    if (show_enchant_descriptions_in_lore)
+			    if (ConfigSettings.isShowEnchantDescriptions())
 			    	list.add(0, ChatColor.BLACK+"-");
 			}
 		}
@@ -103,7 +100,7 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 	 */
 	public static ItemMeta getWrittenMeta(ItemStack item)
 	{
-		if (!show_enchant_lore) 
+		if (!ConfigSettings.isShowEnchants()) 
 			return item.getItemMeta();
 		List<String> lore = EnchantMetaWriter.getWrittenEnchantLore(item);
 		ItemMeta meta = item.getItemMeta();
@@ -111,8 +108,7 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 		if (lore != null)
 		{
 			meta.setLore(lore);
-			if (ve)
-				meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+			meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 		}
 		return meta;
 	}
@@ -124,7 +120,7 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 	 */
 	public static String getNumber(Integer num)
 	{
-		return EPS.configData.getBoolean("use-roman-numerals") ? getRomanNumeral(num) : num.toString();
+		return ConfigSettings.isUseRomanNumerals() ? getRomanNumeral(num) : num.toString();
 	}
 	
 	/** Gets the roman numeral of the specified number.
@@ -196,10 +192,10 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 		Map<Enchantment, Integer> map = meta.getStoredEnchants();
 		List<String> list = meta.getLore() == null ? new ArrayList<String>() : meta.getLore();
 		
-		if (show_enchant_lore == false)
+		if (!ConfigSettings.isShowEnchants())
 			return list;
 
-		Collection<Enchantment> enchants = ve ? new ArrayList<Enchantment>(Arrays.asList(Enchantment.values())) : Label.values();
+		Collection<Enchantment> enchants = Arrays.asList(Enchantment.values());
 		
 		for (Enchantment enchant : enchants)
 		{
@@ -228,15 +224,14 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 	
 	public static EnchantmentStorageMeta getWrittenMetaBook(ItemStack item)
 	{
-		if (!show_enchant_lore) 
+		if (!ConfigSettings.isShowEnchants()) 
 			return (EnchantmentStorageMeta)item.getItemMeta();
 		List<String> lore = EnchantMetaWriter.getWrittenEnchantLoreBook(item);
 		EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
 		if (meta != null)
 		if (lore != null)
 		meta.setLore(lore);
-		if (ve)
-			meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+		meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
 		return meta;
 	}
 	
@@ -293,11 +288,7 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 
 	@Override
 	public void reload() {
-		ve = EPS.configData.getBoolean("show-vanilla-enchants-in-lore");
-		show_enchant_lore = EPS.configData.getBoolean("show-enchant-lore");
-		show_enchant_descriptions_in_lore = EPS.configData.getBoolean("show-enchant-descriptions-in-lore");
 		loreExemptionsConfig = EPSConfiguration.loadConfiguration(loreExemptions);
-		prefix = EPS.configData.getString("enchant-lore-color").replaceAll("&", "§");
 		for (String s : loreExemptionsConfig.getStringList("blacklist"))
 			exemptions.add(Material.matchMaterial(s));
 		for (Enchantment enchant : Enchantment.values())

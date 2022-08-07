@@ -3,7 +3,6 @@ package org.vivi.eps.util;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.vivi.eps.EPS;
-import org.vivi.eps.legacy.Label;
 
 public interface Dictionary {
 
@@ -202,7 +201,7 @@ public interface Dictionary {
 		@Override
 		public Enchantment findEnchant(String enchantName) {
 			Enchantment enchant =  EPS.onLegacy() ? Enchantment.getByName(bukkitNaming(enchantName)) : Enchantment.getByKey(NamespacedKey.minecraft(enchantName));
-			return enchant == null ? Label.getEnchant(enchantName) : enchant;
+			return enchant;
 		}	
 		
 		public String bukkitNaming(String minecraftNaming)

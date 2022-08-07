@@ -1,14 +1,20 @@
 package org.vivi.eps.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.inventory.ItemStack;
+import org.vivi.eps.EPS;
 
 public class Wrapper extends Enchantment {
 	
+	private static final Dictionary dictionary = EPS.getDictionary();
 	private final String name;
 	private final int maxLvl;
+	private final List<Enchantment> incompatibilities = new ArrayList<Enchantment>();
 	
 	public Wrapper(String namespace, String name, int lvl) 
 	{
@@ -17,16 +23,41 @@ public class Wrapper extends Enchantment {
 		this.maxLvl = lvl;
 	}
 
+	// Defaults to true for now.
 	@Override
-	public boolean canEnchantItem(ItemStack arg0) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean canEnchantItem(ItemStack arg0) 
+	{
+		return true;
 	}
 
 	@Override
-	public boolean conflictsWith(Enchantment arg0) {
-		// TODO Auto-generated method stub
-		return true;
+	public boolean conflictsWith(Enchantment arg0) 
+	{
+		for (Enchantment enchant : incompatibilities)
+			if (enchant.equals(arg0))
+				return true;
+		
+		for (String key : EPS.incompatibilitiesData.getKeys(false))
+		{
+			List<String> incompatibilities = EPS.incompatibilitiesData.getStringList(key);
+			boolean contains = false;
+			for (String enchantName : incompatibilities)
+				if (enchantName.equalsIgnoreCase(dictionary.getName(this)))
+				{
+					contains = true;
+					break;
+				}
+			if (contains)
+				for (String enchantName : incompatibilities)
+					if (enchantName.equalsIgnoreCase(dictionary.getName(arg0)))
+					{
+						this.incompatibilities.add(arg0);
+						return true;
+					}
+						
+			
+		}
+		return false;
 	}
 
 	@Override

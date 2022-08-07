@@ -15,11 +15,10 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.vivi.eps.EPS;
-import org.vivi.eps.api.CustomEnchant;
-import org.vivi.eps.item.TokenPouch;
+import org.vivi.eps.items.CustomEnchantedBook;
+import org.vivi.eps.items.TokenPouch;
 import org.vivi.eps.util.Language;
 import org.vivi.eps.visual.EnchantMetaWriter;
-import org.vivi.eps.workbench.CustomEnchantedBook;
 
 public class EPSCommand implements CommandExecutor, TabCompleter {
 	
@@ -47,8 +46,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter {
 			Language.sendMessage(sender, "reloadconfig");
 			return false;
 		}
-		
-		if (args[0].equalsIgnoreCase("setbal"))
+		else if (args[0].equalsIgnoreCase("setbal"))
 		{
 			String perm = "eps.admin.setbal";
 			if (!sender.hasPermission(perm))
@@ -73,8 +71,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter {
 			}
 			return false;
 		}
-		
-		if (args[0].equalsIgnoreCase("changebal"))
+		else if (args[0].equalsIgnoreCase("changebal"))
 		{
 			String perm = "eps.admin.changebal";
 			if (!sender.hasPermission(perm))
@@ -99,8 +96,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter {
 			}
 			return false;
 		}
-		
-		if (args[0].equalsIgnoreCase("enchant"))
+		else if (args[0].equalsIgnoreCase("enchant"))
 		{
 			String perm = "eps.admin.enchant";
 			
@@ -148,7 +144,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter {
 				return false;
 			}
 		}
-		if (args[0].equalsIgnoreCase("book"))
+		else if (args[0].equalsIgnoreCase("book"))
 		{
 			if (!sender.hasPermission("eps.admin.book"))
 			{
@@ -203,7 +199,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter {
 			book.setItemMeta(EnchantMetaWriter.getWrittenMetaBook(book));
 			p.getInventory().addItem(book);
 		}
-		if (args[0].equalsIgnoreCase("tokenpouch"))
+		else if (args[0].equalsIgnoreCase("tokenpouch"))
 		{
 			if (!sender.hasPermission("eps.admin.book"))
 			{
@@ -223,6 +219,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter {
 			}
 			p.getInventory().addItem(new TokenPouch(Integer.parseInt(args[2])));
 		}
+		
 		return false;
 	}
 
@@ -232,7 +229,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter {
 			return null;
 		
 		if (enchantTabList == null)
-			for (Enchantment e : CustomEnchant.registeredEnchants)
+			for (Enchantment e : EPS.registeredEnchants)
 				enchantTabList.add(EPS.getDictionary().getName(e));
 		
 		if (args[0].equalsIgnoreCase("enchant") || args[0].equalsIgnoreCase("book"))

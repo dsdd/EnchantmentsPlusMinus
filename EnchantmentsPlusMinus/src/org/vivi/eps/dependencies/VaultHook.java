@@ -7,7 +7,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import net.milkbowl.vault.economy.Economy;
 
 public class VaultHook {
-	private static Economy Economy;
+	private static Economy economy;
 	
 	/**Sets up the Economy class for Vault.
 	 * Does not do anything if Vault is not installed.
@@ -23,9 +23,9 @@ public class VaultHook {
         if (rsp == null) {
             return null;
         }
-        Economy = rsp.getProvider();
+        economy = rsp.getProvider();
         Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN+"Successfully hooked into Vault!");
-        return Economy;
+        return economy;
     }
 	
 	/**Returns the Economy class for Vault. 
@@ -36,6 +36,6 @@ public class VaultHook {
 	 */
 	public static Economy getEconomy()
 	{
-		return Economy;
+		return economy;
 	}
 }

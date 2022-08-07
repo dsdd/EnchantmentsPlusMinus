@@ -14,18 +14,17 @@
 # +------------------------+
 #        
 # Enchant configuration has been moved to the /enchants/ folder!
+#
 #                                                                             -#-
 
 auto-update: false
-show-enchant-lore: true
+show-enchants: true
+show-enchant-descriptions: true
 use-roman-numerals: false
 open-enchant-gui-on-right-click: true
 anvil-combining-enabled: true
-use-money-economy-instead-of-tokens: false
-show-vanilla-enchants-in-lore: true
-show-enchant-descriptions-in-lore: true
-use-action-bar-instead-of-chat-inventory-full: true
-use-custom-fortune: true
+use-vault-economy: false
+use-action-bar-instead-of-chat-when-inventory-full: true
 global-cost-type:
    enabled: false
    type: exponential
@@ -34,27 +33,27 @@ global-cost-type:
    - When switching types, the plugin checks for different values in configurations, and without
    - those values, the plugin will be vulnerable to duplication glitches. (couldnt use comments because snakeyaml)
 enchant-lore-color: "&9"
-applyfortuneon: 
+apply-fortune-on: 
   - COAL
   - LAPIS_LAZULI
   - REDSTONE
   - DIAMOND  
   - EMERALD
   - QUARTZ
-playerkilltokens: 
+player-kill-reward: 
   enabled: true
   min: 25
   max: 50
-mobkilltokens:
+mob-kill-reward:
   enabled: true
   min: 5
   max: 10
-miningtokens:
+mining-reward:
   enabled: true
   min: 25
   max: 50
   blockstobreak: 1000
-custom-lore-color:
+enchant-specific-lore-color:
   depth_strider: &2
 disabled-enchants:
 - an enchant you don't like

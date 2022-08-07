@@ -23,7 +23,7 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
     
     @Override
     public String getAuthor() {
-        return "whyisthisnecessary";
+        return "vivisan";
     }
     
     @Override

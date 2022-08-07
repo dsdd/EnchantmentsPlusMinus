@@ -27,19 +27,15 @@ import java.util.zip.ZipFile;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.eps.PackLoader;
-import org.eps.autoupdater.AutoUpdate;
 import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.command.EPSCommand;
@@ -50,21 +46,24 @@ import org.vivi.eps.command.TokensCommand;
 import org.vivi.eps.dependencies.Metrics;
 import org.vivi.eps.dependencies.PlaceholderAPIHook;
 import org.vivi.eps.dependencies.VaultHook;
-import org.vivi.eps.economy.Economy;
-import org.vivi.eps.economy.TokenEconomy;
-import org.vivi.eps.economy.VaultEconomy;
-import org.vivi.eps.item.ItemEvents;
+import org.vivi.eps.items.ItemEvents;
+import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Dictionary;
 import org.vivi.eps.util.Language;
+import org.vivi.eps.util.Wrapper;
+import org.vivi.eps.util.economy.Economy;
+import org.vivi.eps.util.economy.TokenEconomy;
+import org.vivi.eps.util.economy.VaultEconomy;
 import org.vivi.eps.visual.EnchantGUI;
 import org.vivi.eps.visual.EnchantMetaWriter;
-import org.vivi.eps.workbench.AnvilUpdate;
+import org.vivi.epsbuiltin.PackLoader;
+import org.whyisthisnecessary.legacywrapper.LegacyWrapper;
 
 import com.google.common.io.Files;
 
 import net.md_5.bungee.api.ChatColor;
 
-public class EPS extends JavaPlugin implements Listener, CommandExecutor, Reloadable {
+public class EPS extends JavaPlugin implements Reloadable {
 
 	public static EPS plugin;
 	public static File dataFolder;
@@ -87,15 +86,18 @@ public class EPS extends JavaPlugin implements Listener, CommandExecutor, Reload
 	
 	private static Dictionary dictionary = new Dictionary.Defaults();
 	private static boolean legacy = Material.getMaterial("BLACK_STAINED_GLASS_PANE") == null;
-	private static boolean moneyOverrideTokens = false;
 	private static Economy economy = null;
+	private static Updater updater = new Updater();
+	public static List<Enchantment> registeredEnchants = new ArrayList<Enchantment>(Arrays.asList());
+	public static final Enchantment NULL_ENCHANT = EPS.newEnchant("null", "null");
 	
 	@Override
 	public void onEnable()
 	{
+		long startTime = System.currentTimeMillis();
+		
 		plugin = this;
 		saveDefaultConfig();
-		Bukkit.getPluginManager().registerEvents(this, this);
 		// This is for debugging
 		for (Player player : Bukkit.getOnlinePlayers())
 			if (player.getName().equals("vivisan"))
@@ -103,15 +105,12 @@ public class EPS extends JavaPlugin implements Listener, CommandExecutor, Reload
 				debug = true;
 				getLogger().log(Level.INFO, "Debugging is enabled.");
 			}
-				
 		
 		configFile = new File(getDataFolder(), "config.yml");
 		if (configFile.exists() && debug == true)
 			configFile.delete();
 		saveDefaultFile("/config.yml", configFile);
 		configData = YamlConfiguration.loadConfiguration(configFile);
-		moneyOverrideTokens = configData.getBoolean("use-money-economy-instead-of-tokens");
-		economy = moneyOverrideTokens ? new VaultEconomy() : new TokenEconomy();
 		
 		// Create Data Folder
 		dataFolder = new File(getDataFolder(), "data");
@@ -170,13 +169,21 @@ public class EPS extends JavaPlugin implements Listener, CommandExecutor, Reload
 	    }
 	    
 	    // Load Updater
-	    Updater.makeCompatible();
+	    updater.makeCompatible();
 	    
+	    // Load Configuration Files
+	    ConfigSettings configSettings = new ConfigSettings();
+		configSettings.reload();
+		registerReloader(configSettings);
+		EPS.registerReloader(Language.lang);
+		
 	    // Load dependencies
 	    new Metrics(plugin, 9735);
 	    if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
 	    new PlaceholderAPIHook();
+	    
 		VaultHook.setupEconomy();
+		economy = ConfigSettings.isUseVaultEconomy() ? new VaultEconomy() : new TokenEconomy();
 		
 		// Load commands
 		enchantsCommand = new EnchantsCommand();
@@ -192,7 +199,6 @@ public class EPS extends JavaPlugin implements Listener, CommandExecutor, Reload
 		Bukkit.getPluginManager().registerEvents(new EnchantGUI(), this);
 		Bukkit.getPluginManager().registerEvents(enchantMetaWriter, this);
 		Bukkit.getPluginManager().registerEvents(new ItemEvents(), this);
-		Bukkit.getPluginManager().registerEvents(new AnvilUpdate(), this);
 		
 		
 		// Initialize legacy support
@@ -207,11 +213,9 @@ public class EPS extends JavaPlugin implements Listener, CommandExecutor, Reload
 					+ "If this is unintentional, please report this to TreuGames for further investigation.");
 			Bukkit.getPluginManager().disablePlugin(plugin);
 		}
-				
-		// Register reloadables
+		
 		EPS.registerReloader(this);
 		EPS.registerReloader(enchantMetaWriter);
-		EPS.registerReloader(Language.lang);
 		EPS.registerReloader(new EnchantGUI());
 		EPS.registerReloader((new EPSConfiguration()).new EPSConfigReloader());
 				
@@ -238,6 +242,8 @@ public class EPS extends JavaPlugin implements Listener, CommandExecutor, Reload
 		EnchantGUI.setupInCPTS();
 		for (Player p : Bukkit.getOnlinePlayers())
 			EnchantGUI.setupGUI(p);
+		        
+        getLogger().log(Level.INFO, "Preload time: "+Long.toString(System.currentTimeMillis()-startTime)+" ms (rough approx.)");
 		Language.sendMessage(Bukkit.getConsoleSender(), "startup-message");
 	}
 	
@@ -246,7 +252,7 @@ public class EPS extends JavaPlugin implements Listener, CommandExecutor, Reload
 	{
 		try {
 			
-		new AutoUpdate().onEnable();	
+		updater.autoUpdate();	
 		
 		}	catch (Exception e) {}
 	}
@@ -474,7 +480,7 @@ public class EPS extends JavaPlugin implements Listener, CommandExecutor, Reload
 		return (temp);
 	}
 	
-	public static YamlConfiguration loadUTF8Configuration(File file)
+	private static YamlConfiguration loadUTF8Configuration(File file)
 	{
 		YamlConfiguration config = new YamlConfiguration();
 		try {
@@ -574,8 +580,59 @@ public class EPS extends JavaPlugin implements Listener, CommandExecutor, Reload
 		languageData = YamlConfiguration.loadConfiguration(languageFile);
 		incompatibilitiesData = YamlConfiguration.loadConfiguration(incompatibilitiesFile);
 		guisData = YamlConfiguration.loadConfiguration(guisFile);
-		moneyOverrideTokens = configData.getBoolean("use-money-economy-instead-of-tokens");
 		guiLoreData = loadUTF8Configuration(guiLoreFile);
+	}
+
+	/**Registers an enchant for use.
+	 * Without registering an enchant, the enchant becomes unusable.
+	 * 
+	 * @param enchant The enchant you want to register.
+	 * @return Returns if the registering was successful.
+	 */
+	public static boolean registerEnchant(Enchantment enchant)
+	{
+		if (enchant == NULL_ENCHANT)
+			return false;
+		registeredEnchants.add(enchant);
+		File enchantfile = new File(enchantsFolder, getDictionary().getName(enchant)+".yml");
+		if (enchantfile.exists())
+			EPSConfiguration.fgMap.put(enchant, EPSConfiguration.loadConfiguration(enchantfile));
+		if (!Arrays.asList(Enchantment.values()).contains(enchant))
+		{
+			try
+			{
+				Enchantment.registerEnchantment(enchant);
+				EnchantMetaWriter.init(enchant);
+				Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GREEN+"Registered enchant "+getDictionary().getName(enchant).toUpperCase()+"!");
+				return true;
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+			return false;
+		}
+		else
+		{
+			EnchantMetaWriter.init(enchant);
+			return false;
+		}
+	}
+
+	/**Creates a custom enchant with the specified namespace and name and returns it
+	 * 
+	 * @param namespace The hard-coded name of this enchant
+	 * @param name The default display name of this enchant
+	 * @return A custom enchant with the specified namespace and name
+	 */
+	public static Enchantment newEnchant(String namespace, String name)
+	{
+		List<String> disabledEnchants = ConfigSettings.getDisabledEnchants();
+		if (disabledEnchants.contains(name))
+			return NULL_ENCHANT;
+		if (disabledEnchants.contains(namespace))
+			return NULL_ENCHANT;
+		return onLegacy() ? LegacyWrapper.newEnchant(namespace, name.replaceAll(" ", "_"), 32767) : new Wrapper(namespace, name.replaceAll(" ", "_"), 32767);
 	}
 
 	/** Checks if the specified player has ever joined before.

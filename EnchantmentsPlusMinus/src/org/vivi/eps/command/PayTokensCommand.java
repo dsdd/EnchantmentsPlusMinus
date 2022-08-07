@@ -5,8 +5,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.vivi.eps.EPS;
-import org.vivi.eps.economy.Economy;
 import org.vivi.eps.util.Language;
+import org.vivi.eps.util.economy.Economy;
 
 public class PayTokensCommand implements CommandExecutor {
 
