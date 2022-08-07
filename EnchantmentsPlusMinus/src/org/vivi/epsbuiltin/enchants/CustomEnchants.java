@@ -35,7 +35,7 @@ public class CustomEnchants {
 	public static final Enchantment FLAMMABLE = EPS.newEnchant("flammable", "Flammable");
 	public static final Enchantment HASTE = EPS.newEnchant("haste", "Haste");
 	public static final Enchantment EXPLOSIVE = EPS.newEnchant("explosive", "Explosive");
-	public static final Enchantment AUTOSMELT = EPS.newEnchant("autosmelt", "AutoSmelt");
+	public static final Enchantment AUTOSMELT = EPS.newEnchant("autosmelt", "Autosmelt");
 	public static final Enchantment TELEPATHY = EPS.newEnchant("telepathy", "Telepathy");
 	public static final Enchantment TOKENBLOCKS = EPS.newEnchant("tokenblocks", "TokenBlocks");
 	public static final Enchantment MONEYBLOCKS = EPS.newEnchant("moneyblocks", "MoneyBlocks");
@@ -43,7 +43,7 @@ public class CustomEnchants {
 	public static final Enchantment CHARITY = EPS.newEnchant("charity", "Charity");
 	public static final Enchantment EXCAVATE = EPS.newEnchant("excavate", "Excavate");
 	public static final Enchantment DIAMOND = EPS.newEnchant("diamond", "Diamond");
-	public static final Enchantment VEIN_MINER = EPS.newEnchant("vein_miner", "Vein_Miner");
+	public static final Enchantment VEIN_MINER = EPS.newEnchant("vein_miner", "Vein Miner");
 	public static final Enchantment BOOSTED = EPS.newEnchant("boosted", "Boosted");
 	
 	public static void register()
@@ -88,5 +88,8 @@ public class CustomEnchants {
 		EPS.registerEnchant(DIAMOND);
 		EPS.registerEnchant(VEIN_MINER);
 		EPS.registerEnchant(BOOSTED);
+		
+		// Right now, there are only 40 custom enchants available.
+		// There are no plans to add more enchants.
 	}
 }

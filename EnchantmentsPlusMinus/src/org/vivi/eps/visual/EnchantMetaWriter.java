@@ -12,9 +12,6 @@ import org.apache.commons.lang.WordUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -25,7 +22,7 @@ import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Dictionary;
 
-public class EnchantMetaWriter implements Listener, Reloadable {
+public class EnchantMetaWriter implements Reloadable {
 	
 	protected static Map<Enchantment, String> enchantnames = new HashMap<Enchantment, String>();
 	private static Map<Enchantment, ArrayList<String>> descriptionMap = new HashMap<>();
@@ -242,7 +239,7 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 		return o == null ? new ArrayList<String>() : (ArrayList<String>) o.clone();
 	}
 	
-	private static void refreshItem(ItemStack item)
+	public static void refreshItem(ItemStack item)
 	{
 		if (item == null) return;
 		if (item.getType().equals(Material.ENCHANTED_BOOK)) return;
@@ -278,12 +275,6 @@ public class EnchantMetaWriter implements Listener, Reloadable {
 	    	}
 		}
 		);
-	}
-	
-	@EventHandler
-	public void onPlayerInteract(PlayerInteractEvent e)
-	{
-		refreshItem(e.getPlayer().getInventory().getItemInMainHand());
 	}
 
 	@Override

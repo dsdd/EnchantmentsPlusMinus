@@ -1,9 +1,13 @@
-package org.vivi.eps.items;
+package org.vivi.eps.util;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -12,17 +16,18 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.vivi.eps.EPS;
 import org.vivi.eps.api.EPSConfiguration;
-import org.vivi.eps.util.ConfigSettings;
-import org.vivi.eps.util.Language;
+import org.vivi.eps.items.CustomEnchantedBook;
+import org.vivi.eps.visual.EnchantGUI;
 import org.vivi.eps.visual.EnchantMetaWriter;
 import org.vivi.epsbuiltin.enchants.Durability;
 
-public class ItemEvents implements Listener {
+public class Events implements Listener {
 
 	@EventHandler
 	public void onInteract(PlayerInteractEvent e)
@@ -105,5 +110,32 @@ public class ItemEvents implements Listener {
 		item.setItemMeta(lore);
 		e.setResult(item);
 		Bukkit.getServer().getScheduler().runTask(EPS.plugin, () -> e.getInventory().setRepairCost(cost1));
+	}
+	
+	@EventHandler
+	public void onPlayerInteract(PlayerInteractEvent e)
+	{
+		EnchantMetaWriter.refreshItem(e.getPlayer().getInventory().getItemInMainHand());
+	}
+	
+	@EventHandler
+	public void onJoin(PlayerJoinEvent e) throws IOException
+	{
+		Player p = e.getPlayer();
+		File dataFile = new File(EPS.dataFolder, p.getUniqueId().toString()+".yml");
+		EPS.uuidDataStoreData.set(p.getName(), p.getUniqueId().toString());
+		try {
+			EPS.uuidDataStoreData.save(EPS.uuidDataStore);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		
+		if (!dataFile.exists())
+			EPS.createNewFile(dataFile);
+		
+		FileConfiguration dataConfig = YamlConfiguration.loadConfiguration(dataFile);
+		dataConfig.set("tokens", dataConfig.get("tokens", 0));
+		dataConfig.save(dataFile);
+		EnchantGUI.setupGUI(e.getPlayer());
 	}
 }

@@ -32,8 +32,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.vivi.eps.api.EPSConfiguration;
@@ -46,9 +44,9 @@ import org.vivi.eps.command.TokensCommand;
 import org.vivi.eps.dependencies.Metrics;
 import org.vivi.eps.dependencies.PlaceholderAPIHook;
 import org.vivi.eps.dependencies.VaultHook;
-import org.vivi.eps.items.ItemEvents;
 import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Dictionary;
+import org.vivi.eps.util.Events;
 import org.vivi.eps.util.Language;
 import org.vivi.eps.util.Wrapper;
 import org.vivi.eps.util.economy.Economy;
@@ -197,8 +195,7 @@ public class EPS extends JavaPlugin implements Reloadable {
 		// Load events
 		enchantMetaWriter = new EnchantMetaWriter();
 		Bukkit.getPluginManager().registerEvents(new EnchantGUI(), this);
-		Bukkit.getPluginManager().registerEvents(enchantMetaWriter, this);
-		Bukkit.getPluginManager().registerEvents(new ItemEvents(), this);
+		Bukkit.getPluginManager().registerEvents(new Events(), this);
 		
 		
 		// Initialize legacy support
@@ -257,27 +254,6 @@ public class EPS extends JavaPlugin implements Reloadable {
 		}	catch (Exception e) {}
 	}
 	
-	@EventHandler
-	public void onJoin(PlayerJoinEvent e) throws IOException
-	{
-		Player p = e.getPlayer();
-		File dataFile = new File(dataFolder, p.getUniqueId().toString()+".yml");
-		uuidDataStoreData.set(p.getName(), p.getUniqueId().toString());
-		try {
-			uuidDataStoreData.save(uuidDataStore);
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		
-		if (!dataFile.exists())
-		    createNewFile(dataFile);
-		
-		FileConfiguration dataConfig = YamlConfiguration.loadConfiguration(dataFile);
-		dataConfig.set("tokens", dataConfig.get("tokens", 0));
-		dataConfig.save(dataFile);
-		EnchantGUI.setupGUI(e.getPlayer());
-	}
-	
 	/** Saves a file to the specified destination
 	 * if it does not exist
 	 * 
@@ -290,20 +266,21 @@ public class EPS extends JavaPlugin implements Reloadable {
         {
             try {
 				dest.createNewFile();
-		        copyFile(resource, dest);
+		        copyResource(resource, dest);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
         }
 	}
 	
-	/** Copies a file from the specified file path
+	/** Copies a resource from the specified file path
 	 * to the specified file
 	 * 
 	 * @param str The file path to copy from
 	 * @param dest The file to paste into
 	 */
-	private static void copyFile(String str, File dest) {
+	private static void copyResource(String str, File dest) 
+	{
 		try {
 	    InputStream is = null;
 	    OutputStream os = null;
@@ -328,12 +305,6 @@ public class EPS extends JavaPlugin implements Reloadable {
 	catch(IOException e) {}
 	}
 	
-	/** Creates a new file without having to add try/catch statement to reduce lines.
-	 * For convenience and readability, really.
-	 * 
-	 * @param file
-	 * @return Result of file creation
-	 */
 	public static boolean createNewFile(File file)
 	{
 		try {
@@ -584,7 +555,7 @@ public class EPS extends JavaPlugin implements Reloadable {
 	}
 
 	/**Registers an enchant for use.
-	 * Without registering an enchant, the enchant becomes unusable.
+	 * Without registering an enchant, the enchant will stay unusable.
 	 * 
 	 * @param enchant The enchant you want to register.
 	 * @return Returns if the registering was successful.
@@ -617,6 +588,21 @@ public class EPS extends JavaPlugin implements Reloadable {
 			EnchantMetaWriter.init(enchant);
 			return false;
 		}
+	}
+	
+	/**Register enchants for use.
+	 * Without registering an enchant, the enchant will stay unusable.
+	 * 
+	 * @param enchants The enchants you want to register.
+	 * @return Returns if the all enchantments were successfully registered.
+	 */
+	public static boolean registerEnchants(Enchantment... enchants)
+	{
+		boolean success = true;
+		for (Enchantment enchant : enchants)
+			if (registerEnchant(enchant) == false)
+				success = false;
+		return success;
 	}
 
 	/**Creates a custom enchant with the specified namespace and name and returns it

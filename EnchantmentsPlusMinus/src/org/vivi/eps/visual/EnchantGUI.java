@@ -68,12 +68,13 @@ public class EnchantGUI implements Listener, Reloadable {
 		modifyingBook.setItemMeta(baq);
 	}
 	
-	public static void setupGUI(Player player)
+	public static Inventory setupGUI(Player player)
 	{
 		Inventory inv = Bukkit.createInventory(player, 36, "Enchantments");
 		createPanes(inv);
 		GUIs.put(player, inv);
 		guiNames.put(player, "null");
+		return inv;
 	}
 	
 	public static void openInventory(Player player, String listname)
@@ -86,7 +87,11 @@ public class EnchantGUI implements Listener, Reloadable {
 		if (modifying == player)
 			modifying = null;
 		guiNames.put(player, listname);
-		player.openInventory(GUIs.get(player));
+		Inventory gui = GUIs.get(player);
+		if (gui == null)
+			gui = setupGUI(player);
+		
+		player.openInventory(gui);
 		loadInventory(player, listname);
 		
 	}
