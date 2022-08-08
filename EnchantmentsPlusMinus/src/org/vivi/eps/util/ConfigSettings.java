@@ -15,13 +15,14 @@ public class ConfigSettings implements Reloadable {
 	private static boolean isAutoUpdating = false;
 	private static boolean showEnchants = true;
 	private static boolean showEnchantDescriptions = true;
+	private static boolean abbreviateLargeNumbers = true;
 	private static boolean useRomanNumerals = false;
 	private static boolean openEnchantGuiOnRightClick = true;
 	private static boolean anvilCombiningEnabled = true;
 	private static boolean useVaultEconomy = true;
 	private static boolean useActionBar = true;
-	private static boolean globalCostTypeEnabled = false;
-	private static String globalCostType = "exponential";
+	private static boolean globalCostEnabled = false;
+	private static Object globalCost = "69420*%lvl%";
 	private static String enchantLoreColor = "&9";
 	private static List<Material> applyFortuneOn = new ArrayList<Material>();
 	private static boolean playerKillRewardEnabled = true;
@@ -35,6 +36,7 @@ public class ConfigSettings implements Reloadable {
 	private static int miningRewardMax = 50;
 	private static int miningRewardBlocksToBreak = 1000;
 	private static Map<String, String> enchantSpecificLoreColors = new HashMap<String, String>();
+	private static List<String> loreExemptions = new ArrayList<String>();
 	private static List<String> disabledEnchants = new ArrayList<String>();
 	
 	@Override
@@ -43,13 +45,14 @@ public class ConfigSettings implements Reloadable {
 		isAutoUpdating = EPS.configData.getBoolean("auto-update");
 		showEnchants = EPS.configData.getBoolean("show-enchants");
 		showEnchantDescriptions = EPS.configData.getBoolean("show-enchant-descriptions");
+		abbreviateLargeNumbers = EPS.configData.getBoolean("abbreviate-large-numbers");
 		useRomanNumerals = EPS.configData.getBoolean("use-roman-numerals");
 		openEnchantGuiOnRightClick = EPS.configData.getBoolean("open-enchant-gui-on-right-click");
 		anvilCombiningEnabled = EPS.configData.getBoolean("anvil-combining-enabled");
 		useVaultEconomy = EPS.configData.getBoolean("use-vault-economyy");
 		useActionBar = EPS.configData.getBoolean("use-action-bar-instead-of-chat-when-inventory-full");
-		globalCostTypeEnabled = EPS.configData.getBoolean("global-cost-type.enabled");
-		globalCostType = EPS.configData.getString("global-cost-type.type");
+		globalCostEnabled = EPS.configData.getBoolean("global-cost.enabled");
+		globalCost = EPS.configData.get("global-cost.cost");
 		enchantLoreColor = EPS.configData.getString("enchant-lore-color");
 		
 		getApplyFortuneOn().clear();
@@ -77,6 +80,7 @@ public class ConfigSettings implements Reloadable {
 		for (String key : enchantSpecificLoreColors.getKeys(false))
 			getEnchantSpecificLoreColors().put(key, enchantSpecificLoreColors.getString(key));
 		
+		loreExemptions = EPS.configData.getStringList("do-not-add-lore-to");
 		disabledEnchants = EPS.configData.getStringList("disabled-enchants");
 	}
 
@@ -93,6 +97,10 @@ public class ConfigSettings implements Reloadable {
 	public static boolean isShowEnchantDescriptions() 
 	{
 		return showEnchantDescriptions;
+	}
+
+	public static boolean isAbbreviateLargeNumbers() {
+		return abbreviateLargeNumbers;
 	}
 
 	public static boolean isUseRomanNumerals() 
@@ -120,14 +128,14 @@ public class ConfigSettings implements Reloadable {
 		return useActionBar;
 	}
 
-	public static boolean isGlobalCostTypeEnabled() 
+	public static boolean isGlobalCostEnabled() 
 	{
-		return globalCostTypeEnabled;
+		return globalCostEnabled;
 	}
 
-	public static String getGlobalCostType() 
+	public static Object getGlobalCost() 
 	{
-		return globalCostType;
+		return globalCost;
 	}
 
 	public static String getEnchantLoreColor()
@@ -198,6 +206,11 @@ public class ConfigSettings implements Reloadable {
 	public static List<String> getDisabledEnchants() 
 	{
 		return disabledEnchants;
+	}
+
+	public static List<String> getLoreExemptions() 
+	{
+		return loreExemptions;
 	}
 
 }

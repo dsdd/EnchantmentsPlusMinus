@@ -11,11 +11,11 @@ import org.vivi.eps.EPS;
 public class TokenEconomy implements Economy {
 	
 	@Override
-	public Integer changeBalance(String playername, Integer amount)
+	public double changeBalance(String playername, double amount)
 	{
 		File file = EPS.getUserDataFile(playername);
 		FileConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-		int redefine = yaml.getInt("tokens") + amount;
+		double redefine = yaml.getDouble("tokens") + amount;
 		yaml.set("tokens", redefine);
 		try {
 			yaml.save(file);
@@ -27,13 +27,13 @@ public class TokenEconomy implements Economy {
 	}
 
 	@Override
-	public Integer changeBalance(Player player, Integer amount)
+	public double changeBalance(Player player, double amount)
 	{
 		return changeBalance(player.getName(), amount);
 	}
 
 	@Override
-	public Integer setBalance(String playername, Integer value)
+	public double setBalance(String playername, double value)
 	{
 		File file = EPS.getUserDataFile(playername);
 		FileConfiguration yaml = YamlConfiguration.loadConfiguration(file);
@@ -48,21 +48,21 @@ public class TokenEconomy implements Economy {
 	}
 	
 	@Override
-	public Integer setBalance(Player player, Integer value)
+	public double setBalance(Player player, double value)
 	{
 		return setBalance(player.getName(), value);
 	}
 
 	@Override
-	public Integer getBalance(Player player)
+	public double getBalance(Player player)
 	{
 		return getBalance(player.getName());
 	}
 
 	@Override
-	public Integer getBalance(String playername)
+	public double getBalance(String playername)
 	{
 		File file = EPS.getUserDataFile(playername);
-		return YamlConfiguration.loadConfiguration(file).getInt("tokens");
+		return YamlConfiguration.loadConfiguration(file).getDouble("tokens");
 	}
 }

@@ -105,39 +105,6 @@ public class EnchantProcessor implements Listener, Reloadable {
 	private final static Economy economy = EPS.getEconomy();
 	private static Map<Material, Material> smeltResults = new HashMap<Material, Material>();
 	
-	private static EPSConfiguration flyConfig = EPSConfiguration.getConfiguration(CustomEnchants.FLY);
-	private static EPSConfiguration experienceConfig = EPSConfiguration.getConfiguration(CustomEnchants.EXPERIENCE);
-	private static EPSConfiguration soulDestructionConfig = EPSConfiguration.getConfiguration(CustomEnchants.SOUL_DESTRUCTION);
-	private static EPSConfiguration jaggedConfig = EPSConfiguration.getConfiguration(CustomEnchants.JAGGED);
-	private static EPSConfiguration lifeStealConfig = EPSConfiguration.getConfiguration(CustomEnchants.LIFESTEAL);
-	private static EPSConfiguration momentumConfig = EPSConfiguration.getConfiguration(CustomEnchants.MOMENTUM);
-	private static EPSConfiguration lastResortConfig = EPSConfiguration.getConfiguration(CustomEnchants.LAST_RESORT);
-	private static EPSConfiguration retaliateConfig = EPSConfiguration.getConfiguration(CustomEnchants.RETALIATE);
-	private static EPSConfiguration beheadingConfig = EPSConfiguration.getConfiguration(CustomEnchants.BEHEADING);
-	private static EPSConfiguration stiffenConfig = EPSConfiguration.getConfiguration(CustomEnchants.STIFFEN);
-	private static EPSConfiguration powerhouseConfig = EPSConfiguration.getConfiguration(CustomEnchants.POWERHOUSE);
-	private static EPSConfiguration meltingConfig = EPSConfiguration.getConfiguration(CustomEnchants.MELTING);
-	private static EPSConfiguration backupSpellsConfig = EPSConfiguration.getConfiguration(CustomEnchants.BACKUP_SPELLS);
-	private static EPSConfiguration evadeConfig = EPSConfiguration.getConfiguration(CustomEnchants.EVADE);
-	private static EPSConfiguration enderbowConfig = EPSConfiguration.getConfiguration(CustomEnchants.ENDERBOW);
-	private static EPSConfiguration machineryConfig = EPSConfiguration.getConfiguration(CustomEnchants.MACHINERY);
-	private static EPSConfiguration thunderingBlowConfig = EPSConfiguration.getConfiguration(CustomEnchants.THUNDERING_BLOW);
-	private static EPSConfiguration energizedConfig = EPSConfiguration.getConfiguration(CustomEnchants.ENERGIZED);
-	private static EPSConfiguration shockwaveConfig = EPSConfiguration.getConfiguration(CustomEnchants.SHOCKWAVE);
-	private static EPSConfiguration fireworksConfig = EPSConfiguration.getConfiguration(CustomEnchants.FIREWORKS);
-	private static EPSConfiguration hasteConfig = EPSConfiguration.getConfiguration(CustomEnchants.HASTE);
-	private static EPSConfiguration tokenBlocksConfig = EPSConfiguration.getConfiguration(CustomEnchants.TOKENBLOCKS);
-	private static EPSConfiguration moneyBlocksConfig = EPSConfiguration.getConfiguration(CustomEnchants.MONEYBLOCKS);
-	private static EPSConfiguration charityConfig = EPSConfiguration.getConfiguration(CustomEnchants.CHARITY);
-	private static EPSConfiguration tokenCharityConfig = EPSConfiguration.getConfiguration(CustomEnchants.TOKENCHARITY);
-	private static EPSConfiguration explosiveConfig = EPSConfiguration.getConfiguration(CustomEnchants.EXPLOSIVE);
-	private static EPSConfiguration excavateConfig = EPSConfiguration.getConfiguration(CustomEnchants.EXCAVATE);
-	private static EPSConfiguration diamondConfig = EPSConfiguration.getConfiguration(CustomEnchants.DIAMOND);
-	private static EPSConfiguration veinMinerConfig = EPSConfiguration.getConfiguration(CustomEnchants.VEIN_MINER);
-	private static EPSConfiguration telepathyConfig = EPSConfiguration.getConfiguration(CustomEnchants.TELEPATHY);
-	private static EPSConfiguration autosmeltConfig = EPSConfiguration.getConfiguration(CustomEnchants.AUTOSMELT);
-	private static EPSConfiguration boostedConfig = EPSConfiguration.getConfiguration(CustomEnchants.BOOSTED);
-	
 	private static final Map<EntityType, String> mobHeads = new HashMap<EntityType, String>() {
 		private static final long serialVersionUID = 1L;
 		{
@@ -170,13 +137,13 @@ public class EnchantProcessor implements Listener, Reloadable {
 		Language.setDefaultLangMessage("enderbow-radius-error", "&cYou cannot teleport further than %blocks% blocks!");
 		EPS.registerReloader(this);
 		
-		if (beheadingConfig.isSet("chance"))
+		if (CustomEnchants.beheadingConfig.isSet("chance"))
 		{
-			final String s = beheadingConfig.getString("chance");
-			beheadingConfig.set("mob-chance", s);
-			beheadingConfig.set("player-chance", s);
-			beheadingConfig.set("chance", null);
-			beheadingConfig.save();
+			final String s = CustomEnchants.beheadingConfig.getString("chance");
+			CustomEnchants.beheadingConfig.set("mob-chance", s);
+			CustomEnchants.beheadingConfig.set("player-chance", s);
+			CustomEnchants.beheadingConfig.set("chance", null);
+			CustomEnchants.beheadingConfig.save();
 		}
 		
 		if (!EPS.onLegacy())
@@ -200,7 +167,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 			{
 				final Durability dmg = new Durability(item);
 				final int enchlvl =  meta.getEnchantLevel(CustomEnchants.JAGGED);
-				final double dtp = jaggedConfig.getAutofilledDouble(enchlvl, "durabilitythresholdpercent");
+				final double dtp = CustomEnchants.jaggedConfig.getAutofilledDouble(enchlvl, "durabilitythresholdpercent");
 				final double dp = (double) (dmg.getMaxDurability()/dmg.getDurability()*100);
 				if (dp < dtp) 
 				{
@@ -214,7 +181,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 			
 			if (meta.hasEnchant(CustomEnchants.LIFESTEAL))
 			{
-				double hp = d.getHealth() + lifeStealConfig.getAutofilledDouble(meta.getEnchantLevel(CustomEnchants.LIFESTEAL), "hearts") * (e.getDamage() / 10);
+				double hp = d.getHealth() + CustomEnchants.lifeStealConfig.getAutofilledDouble(meta.getEnchantLevel(CustomEnchants.LIFESTEAL), "hearts") * (e.getDamage() / 10);
 				if (hp > 20) 
 					hp = 20.0;
 				d.setHealth(hp);
@@ -224,14 +191,14 @@ public class EnchantProcessor implements Listener, Reloadable {
 			if (meta.hasEnchant(CustomEnchants.MOMENTUM))
 			{
 				final int enchlvl = meta.getEnchantLevel(CustomEnchants.MOMENTUM);
-				final int duration = momentumConfig.getAutofilledInt(enchlvl, "duration")*20;
+				final int duration = CustomEnchants.momentumConfig.getAutofilledInt(enchlvl, "duration-seconds")*20;
 				d.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration, enchlvl-1));
 				world.spawnParticle(Particle.CLOUD, e.getEntity().getLocation(), 1);
 			}
 			
 			if (meta.hasEnchant(CustomEnchants.LAST_RESORT))
 			{
-				final double healththreshold = lastResortConfig.getAutofilledDouble(meta.getEnchantLevel(CustomEnchants.LAST_RESORT), "healththreshold");
+				final double healththreshold = CustomEnchants.lastResortConfig.getAutofilledDouble(meta.getEnchantLevel(CustomEnchants.LAST_RESORT), "healththreshold");
 				if (d.getHealth() <= healththreshold)
 					e.setDamage(e.getDamage()*3);
 			}
@@ -242,13 +209,13 @@ public class EnchantProcessor implements Listener, Reloadable {
 				{
 					final int enchlvl = meta.getEnchantLevel(CustomEnchants.MELTING);
 					final LivingEntity hit = (LivingEntity) e.getEntity();
-					hit.setFireTicks(hit.getFireTicks() + meltingConfig.getAutofilledInt(enchlvl, "fire-ticks"));
-					hit.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, meltingConfig.getAutofilledInt(enchlvl, "slowness-ticks"), meltingConfig.getAutofilledInt(enchlvl, "slowness-level")-1));
+					hit.setFireTicks(hit.getFireTicks() + CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "fire-ticks"));
+					hit.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "slowness-ticks"), CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "slowness-level")-1));
 					meltingCount.increase(d);
-					if (meltingCount.get(d) >= meltingConfig.getAutofilledInt(enchlvl, "freeze-hits"))
+					if (meltingCount.get(d) >= CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "freeze-hits"))
 					{
 						meltingCount.reset(d);
-						hit.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, meltingConfig.getAutofilledInt(enchlvl, "freeze-ticks"), 20));
+						hit.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "freeze-ticks"), 20));
 					}
 				}
 			}
@@ -260,8 +227,8 @@ public class EnchantProcessor implements Listener, Reloadable {
 				{
 					if (piece.getItemMeta().hasEnchant(CustomEnchants.INSATIABLE))
 					{
-						final double damage = EPSConfiguration.getConfiguration(CustomEnchants.INSATIABLE).getAutofilledDouble(piece.getItemMeta().getEnchantLevel(CustomEnchants.INSATIABLE), "extradamage");
-						e.setDamage(e.getDamage() + (damage - (damage*(d.getHealth()/20))));
+						final double damage = CustomEnchants.insatiableConfig.getAutofilledDouble(piece.getItemMeta().getEnchantLevel(CustomEnchants.INSATIABLE), "extradamage");
+						e.setDamage(e.getDamage() + (damage - (damage*(d.getHealth()*0.05))));
 						if (!EPS.onLegacy())
 							world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1, new org.bukkit.Particle.DustOptions(Color.RED, 5));
 						else
@@ -284,9 +251,9 @@ public class EnchantProcessor implements Listener, Reloadable {
 				return;
 			if (meta.hasEnchant(CustomEnchants.RETALIATE))
 			{
-				final int enchlvl = meta.getEnchantLevel(CustomEnchants.RETALIATE);
-				final int duration = retaliateConfig.getAutofilledInt(enchlvl, "duration")*20;
-				p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, enchlvl-1));
+				final int retaliateLevel = meta.getEnchantLevel(CustomEnchants.RETALIATE);
+				final int duration = CustomEnchants.retaliateConfig.getAutofilledInt(retaliateLevel, "duration-seconds")*20;
+				p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, retaliateLevel-1));
 			}
 			
 			final ItemStack[] armor = {p.getInventory().getHelmet(), p.getInventory().getChestplate(), p.getInventory().getLeggings(), p.getInventory().getBoots()};
@@ -300,27 +267,27 @@ public class EnchantProcessor implements Listener, Reloadable {
 						{
 							
 							final LivingEntity en = (LivingEntity) e.getDamager();
-							final int duration = EPSConfiguration.getConfiguration(CustomEnchants.POISONOUS).getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.POISONOUS), "ticks");
+							final int duration = CustomEnchants.poisonousConfig.getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.POISONOUS), "ticks");
 							PotionCombiner.addEffect(en, new PotionEffect(PotionEffectType.POISON, duration, pmeta.getEnchantLevel(CustomEnchants.POISONOUS)-1));
 						}
 						
 						if (pmeta.hasEnchant(CustomEnchants.VOLCANIC))
 						{
-							final int ticks = EPSConfiguration.getConfiguration(CustomEnchants.VOLCANIC).getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.VOLCANIC), "ticks");
+							final int ticks = CustomEnchants.volcanicConfig.getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.VOLCANIC), "ticks");
 		                    d.setFireTicks(d.getFireTicks()+ticks);
 		                    world.spawnParticle(Particle.LAVA, e.getEntity().getLocation(), 1);
 						}
 						
 						if (pmeta.hasEnchant(CustomEnchants.SATURATED))
 						{
-							final int duration = EPSConfiguration.getConfiguration(CustomEnchants.SATURATED).getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.SATURATED), "ticks");
+							final int duration = CustomEnchants.saturatedConfig.getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.SATURATED), "ticks");
 							PotionCombiner.addEffect(p, new PotionEffect(PotionEffectType.SATURATION, duration, pmeta.getEnchantLevel(CustomEnchants.SATURATED)-1));
 						}
 						
 						if (pmeta.hasEnchant(CustomEnchants.STIFFEN))
 						{
-							final double healththreshold = stiffenConfig.getAutofilledDouble(pmeta.getEnchantLevel(CustomEnchants.STIFFEN), "healththreshold");
-							final int amplifier = stiffenConfig.getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.STIFFEN), "amplifier")-1;
+							final double healththreshold = CustomEnchants.stiffenConfig.getAutofilledDouble(pmeta.getEnchantLevel(CustomEnchants.STIFFEN), "healththreshold");
+							final int amplifier = CustomEnchants.stiffenConfig.getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.STIFFEN), "amplifier")-1;
 							final LivingEntity l = ((LivingEntity)e.getEntity());
 							if (l.getHealth() <= healththreshold)
 		                    	PotionCombiner.addEffect(l, new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, amplifier-1));
@@ -328,14 +295,14 @@ public class EnchantProcessor implements Listener, Reloadable {
 						if (pmeta.hasEnchant(CustomEnchants.EVADE))
 						{
 							evadeCount.increase(p);
-							final int enchlvl = pmeta.getEnchantLevel(CustomEnchants.EVADE);
-							if (evadeConfig.getBoolean("luckbased"))
-								if (getNext() < evadeConfig.getAutofilledInt(enchlvl, "chance"))
+							final int evadeLevel = pmeta.getEnchantLevel(CustomEnchants.EVADE);
+							if (CustomEnchants.evadeConfig.getBoolean("luckbased"))
+								if (getNext() < CustomEnchants.evadeConfig.getAutofilledInt(evadeLevel, "chance"))
 								{
 									e.setCancelled(true);
 								}
 							else
-								if (evadeCount.get(p) > evadeConfig.getAutofilledInt(enchlvl, "hits-to-activate"))
+								if (evadeCount.get(p) > CustomEnchants.evadeConfig.getAutofilledInt(evadeLevel, "hits-to-activate"))
 								{
 									e.setCancelled(true);
 								}
@@ -364,8 +331,8 @@ public class EnchantProcessor implements Listener, Reloadable {
 			if (piece == null)
 				continue;
 			
-			final ItemMeta pmeta = piece.getItemMeta();
-				if (pmeta.hasEnchant(CustomEnchants.OVERHEALED))
+			final ItemMeta pieceMeta = piece.getItemMeta();
+				if (pieceMeta.hasEnchant(CustomEnchants.OVERHEALED))
 				{
 					if (!hpBoosted)
 						overhealLvl++;
@@ -378,8 +345,8 @@ public class EnchantProcessor implements Listener, Reloadable {
 		else
 			p.removePotionEffect(PotionEffectType.HEALTH_BOOST);
 
-		if (mainHandItem != null)
-			if (repairDebounce && mainHandItem.containsEnchantment(CustomEnchants.REPAIR))
+		if (mainHandItem != null && mainHandItem.getItemMeta() != null)
+			if (repairDebounce && mainHandItem.getItemMeta().hasEnchant(CustomEnchants.REPAIR))
 				new Durability(mainHandItem).incrementDurability(1);
 
 		repairDebounce = !repairDebounce;
@@ -395,7 +362,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 		if (meta.hasEnchant(CustomEnchants.BEHEADING))
 		{
 			final int enchlvl = meta.getEnchantLevel(CustomEnchants.BEHEADING);
-			final double chance = beheadingConfig.getAutofilledInt(enchlvl, "mob-chance");
+			final double chance = CustomEnchants.beheadingConfig.getAutofilledInt(enchlvl, "mob-chance");
 			if (getNext() <= chance)
 			{
 				final ItemStack head = getHead(e.getEntity());
@@ -416,7 +383,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 			if (meta.hasEnchant(CustomEnchants.BEHEADING))
 			{
 				final int enchlvl = meta.getEnchantLevel(CustomEnchants.BEHEADING);
-				final double chance = beheadingConfig.getAutofilledInt(enchlvl, "player-chance");
+				final double chance = CustomEnchants.beheadingConfig.getAutofilledInt(enchlvl, "player-chance");
 				if (getNext() <= chance)
 				{
 					final ItemStack head = EPS.onLegacy() ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
@@ -441,7 +408,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 			if (meta.hasEnchant(CustomEnchants.POWERHOUSE))
 			{
 				final int enchlvl = meta.getEnchantLevel(CustomEnchants.POWERHOUSE);
-				final double cooldown = powerhouseConfig.getAutofilledDouble(enchlvl, "cooldown")*1000;
+				final double cooldown = CustomEnchants.powerhouseConfig.getAutofilledDouble(enchlvl, "cooldown-seconds")*1000;
 				
 				final long lastuse = powerhouseCooldown.getLastUse(e.getPlayer());
 				if (lastuse < cooldown)
@@ -449,15 +416,15 @@ public class EnchantProcessor implements Listener, Reloadable {
 				else
 				{
 					powerhouseCooldown.use(e.getPlayer());
-					final int duration = powerhouseConfig.getAutofilledInt(enchlvl, "duration");
-					final int amplifier = powerhouseConfig.getAutofilledInt(enchlvl, "amplifier")-1;
-		            e.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, amplifier));
+					final int duration = CustomEnchants.powerhouseConfig.getAutofilledInt(enchlvl, "duration-seconds");
+					final int amplifier = CustomEnchants.powerhouseConfig.getAutofilledInt(enchlvl, "amplifier")-1;
+		            e.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration*20, amplifier));
 				}
 			}
 			if (meta.hasEnchant(CustomEnchants.BACKUP_SPELLS))
 			{
 				final int enchlvl = meta.getEnchantLevel(CustomEnchants.BACKUP_SPELLS);
-				final double cooldown = backupSpellsConfig.getAutofilledDouble(enchlvl, "cooldown")*1000;
+				final double cooldown = CustomEnchants.backupSpellsConfig.getAutofilledDouble(enchlvl, "cooldown-seconds")*1000;
 				final long lastuse = backupSpellsCooldown.getLastUse(e.getPlayer());
 				if (lastuse < cooldown)
 					e.getPlayer().sendMessage(cooldownError.replaceAll("%secs%", Double.toString(Math.floor(((cooldown-lastuse)/1000)*10)/10)));
@@ -479,23 +446,23 @@ public class EnchantProcessor implements Listener, Reloadable {
 				if (player.isSneaking())
 				{
 					final int enchlvl = meta.getEnchantLevel(CustomEnchants.BOOSTED);
-					final double cooldown = boostedConfig.getAutofilledDouble(enchlvl, "cooldown")*50;
+					final double cooldown = CustomEnchants.boostedConfig.getAutofilledDouble(enchlvl, "cooldown-seconds")*1000;
 					final long lastuse = boostedCooldown.getLastUse(player);
 					if (lastuse <= cooldown)
-						player.sendMessage(Language.getLangMessage("cooldown-error").replaceAll("%secs%", Double.toString(Math.floor(((cooldown-lastuse)/1000)*10)/10)));
+						player.sendMessage(Language.getLangMessage("cooldown-error").replaceAll("%secs%", Double.toString(Math.floor(((cooldown-lastuse)*0.001)*10)*0.1)));
 					else
 					{
 						boostedCooldown.use(player);
 						Language.sendMessage(player, "boosted-activate");
 						boosted.add(player);
 						EnchantGUI.setOpenable(player, false);
-						final int duration = boostedConfig.getAutofilledInt(enchlvl, "duration");
+						final int duration = CustomEnchants.boostedConfig.getAutofilledInt(enchlvl, "duration-seconds");
 						Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(EPS.plugin, new Runnable(){
 					         public void run()
 					         {
 					        	 boosted.remove(player);
 					         }
-					     }, (long)duration);
+					     }, (long)(duration*20));
 					}
 				}
 			}
@@ -522,7 +489,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 			return;
 		
 		final ItemMeta meta = item.getItemMeta();
-		if (flyConfig.getBoolean("enabled", false))
+		if (CustomEnchants.flyConfig.getBoolean("enabled", false))
 			if (meta.hasEnchant(CustomEnchants.FLY))
 			{
 				p.setAllowFlight(true);
@@ -542,7 +509,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 		for (final ItemStack i : e.getDrops())
 			if (i.getItemMeta().hasEnchant(CustomEnchants.SOULBOUND))
 				if (lvl > 0)
-					if (getNext() < soulDestructionConfig.getAutofilledDouble(lvl, "chance"))
+					if (getNext() < CustomEnchants.soulDestructionConfig.getAutofilledDouble(lvl, "chance"))
 						continue;
 					else
 						soulbound.add(i);
@@ -585,7 +552,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 		{
 			if (player.isSneaking())
 			{
-				final double cooldown = enderbowConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.ENDERBOW), "cooldown")*1000;
+				final double cooldown = CustomEnchants.enderbowConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.ENDERBOW), "cooldown-seconds")*1000;
 				
 				// Check if cooldown is met
 				final long time = enderbowCooldown.getLastUse(player);
@@ -593,11 +560,11 @@ public class EnchantProcessor implements Listener, Reloadable {
 					player.sendMessage(Language.getLangMessage("cooldown-error").replaceAll("%secs%", Double.toString(Math.floor(((cooldown-time)/1000)*10)/10)));
 				else
 				{
-					final double radius = enderbowConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.ENDERBOW), "radius");
-					final double distance = player.getLocation().distance(arrow.getLocation());
+					final double radius = CustomEnchants.enderbowConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.ENDERBOW), "radius");
+					final double distance = player.getLocation().distanceSquared(arrow.getLocation());
 					
 					// Check if distance from player exceeds limits
-					if (distance > radius)
+					if (distance > radius*radius)
 						player.sendMessage(Language.getLangMessage("enderbow-radius-error").replaceAll("%blocks%", Double.toString(radius)));
 					else
 					{
@@ -611,13 +578,13 @@ public class EnchantProcessor implements Listener, Reloadable {
 		
 		if (mainmeta.hasEnchant(CustomEnchants.MACHINERY))
 		{
-			final int shotstoactivate = machineryConfig.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "shots-to-activate");
+			final int shotstoactivate = CustomEnchants.machineryConfig.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "shots-to-activate");
 			final int shots = machineryCount.increase(player);
 			if (shots >= shotstoactivate)
 			{
 				machineryCount.reset(player);
-				final int radius = machineryConfig.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "radius");
-				final int arrows = machineryConfig.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "arrows");
+				final int radius = CustomEnchants.machineryConfig.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "radius");
+				final int arrows = CustomEnchants.machineryConfig.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "arrows");
 				final Location loc = arrow.getLocation();
 				for (int i=0;i<arrows;i++)
 				{
@@ -629,7 +596,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 		
 		if (mainmeta.hasEnchant(CustomEnchants.THUNDERING_BLOW))
 		{
-			final int shotstoactivate = thunderingBlowConfig.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.THUNDERING_BLOW), "shots-to-activate");
+			final int shotstoactivate = CustomEnchants.thunderingBlowConfig.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.THUNDERING_BLOW), "shots-to-activate");
 			final int shots = thunderingBlowCount.increase(player);
 			if (shots >= shotstoactivate)
 			{
@@ -650,10 +617,10 @@ public class EnchantProcessor implements Listener, Reloadable {
 			{
 				final LivingEntity entity = (LivingEntity) a;
 				final int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.ENERGIZED);
-				final int speed_amplifier = energizedConfig.getAutofilledInt(enchlvl, "speed-amplifier");
-				final int speed_duration = energizedConfig.getAutofilledInt(enchlvl, "speed-duration");
-				final int regeneration_amplifier = energizedConfig.getAutofilledInt(enchlvl, "regeneration-amplifier");
-				final int regeneration_duration = energizedConfig.getAutofilledInt(enchlvl, "regeneration-duration");
+				final int speed_amplifier = CustomEnchants.energizedConfig.getAutofilledInt(enchlvl, "speed-amplifier");
+				final int speed_duration = CustomEnchants.energizedConfig.getAutofilledInt(enchlvl, "speed-duration");
+				final int regeneration_amplifier = CustomEnchants.energizedConfig.getAutofilledInt(enchlvl, "regeneration-amplifier");
+				final int regeneration_duration = CustomEnchants.energizedConfig.getAutofilledInt(enchlvl, "regeneration-duration");
 			
 				entity.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, speed_duration*20, speed_amplifier-1));
 				entity.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, regeneration_duration*20, regeneration_amplifier-1));
@@ -662,8 +629,8 @@ public class EnchantProcessor implements Listener, Reloadable {
 		
 		if (mainmeta.hasEnchant(CustomEnchants.SHOCKWAVE))
 		{
-			final int r = shockwaveConfig.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.SHOCKWAVE), "radius");
-			final double dmg = shockwaveConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.SHOCKWAVE), "damage");
+			final int r = CustomEnchants.shockwaveConfig.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.SHOCKWAVE), "radius");
+			final double dmg = CustomEnchants.shockwaveConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.SHOCKWAVE), "damage");
 			final Collection<Entity> list = world.getNearbyEntities(arrow.getLocation(), r, r, r);
 			for (final Entity entity : list)
 			{
@@ -683,7 +650,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 		
 		if (mainmeta.hasEnchant(CustomEnchants.FIREWORKS))
 		{
-			final double dmg = fireworksConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.FIREWORKS), "damage");
+			final double dmg = CustomEnchants.fireworksConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.FIREWORKS), "damage");
 			world.createExplosion(arrow.getLocation(), 0F);
 			final Collection<Entity> list = world.getNearbyEntities(arrow.getLocation(), 2, 2, 2);
 			for (final Entity entity : list)
@@ -742,7 +709,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 			final int exp = e.getExpToDrop();
 			if (exp > 0)
 			{
-				final double multi = experienceConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.EXPERIENCE), "exp-multi");
+				final double multi = CustomEnchants.experienceConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.EXPERIENCE), "exp-multi");
 				e.setExpToDrop((int) (e.getExpToDrop()*multi));
 			}
 		}
@@ -750,7 +717,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 		if (mainmeta.hasEnchant(CustomEnchants.HASTE))
 		{
 			final int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.HASTE);
-			if (getNext() < hasteConfig.getAutofilledDouble(enchlvl, "chance"))
+			if (getNext() < CustomEnchants.hasteConfig.getAutofilledDouble(enchlvl, "chance"))
 			{
 				Language.sendMessage(player, "hasteactivate");
 				player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 60, enchlvl-1));
@@ -760,10 +727,10 @@ public class EnchantProcessor implements Listener, Reloadable {
 		if (mainmeta.hasEnchant(CustomEnchants.TOKENBLOCKS))
 		{
 			final int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.TOKENBLOCKS);
-			if (getNext() < tokenBlocksConfig.getAutofilledDouble(enchlvl, "chance"))
+			if (getNext() < CustomEnchants.tokenBlocksConfig.getAutofilledDouble(enchlvl, "chance"))
 			{
-				final int randomrange = tokenBlocksConfig.getAutofilledInt(enchlvl, "random-range");
-				final int tokens = tokenBlocksConfig.getAutofilledInt(enchlvl, "tokens")+random.nextInt(randomrange*2)-randomrange;
+				final int randomrange = CustomEnchants.tokenBlocksConfig.getAutofilledInt(enchlvl, "random-range");
+				final int tokens = CustomEnchants.tokenBlocksConfig.getAutofilledInt(enchlvl, "tokens")+random.nextInt(randomrange*2)-randomrange;
 				final String m = Language.getLangMessage("tokenblocksactivate").replaceAll("%tokens%", Integer.toString(tokens));
 				if (m != "")
 					player.sendMessage(m);
@@ -774,12 +741,12 @@ public class EnchantProcessor implements Listener, Reloadable {
 		if (mainmeta.hasEnchant(CustomEnchants.MONEYBLOCKS))
 		{
 			final int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.MONEYBLOCKS);
-			if (getNext() < moneyBlocksConfig.getAutofilledDouble(enchlvl, "chance"))
+			if (getNext() < CustomEnchants.moneyBlocksConfig.getAutofilledDouble(enchlvl, "chance"))
 			{
-				if (PackMain.vaultEnabled)
+				if (BuiltInEnchantsLoader.vaultEnabled)
 				{
-					final int randomrange = moneyBlocksConfig.getAutofilledInt(enchlvl, "random-range");
-					final int money = moneyBlocksConfig.getAutofilledInt(enchlvl, "money")+random.nextInt(randomrange*2)-randomrange;
+					final int randomrange = CustomEnchants.moneyBlocksConfig.getAutofilledInt(enchlvl, "random-range");
+					final int money = CustomEnchants.moneyBlocksConfig.getAutofilledInt(enchlvl, "money")+random.nextInt(randomrange*2)-randomrange;
 					final String m = Language.getLangMessage("moneyblocksactivate").replaceAll("%money%", Integer.toString(money));
 					if (m != "")
 						player.sendMessage(m);
@@ -792,13 +759,13 @@ public class EnchantProcessor implements Listener, Reloadable {
 		
 		if (mainmeta.hasEnchant(CustomEnchants.CHARITY))
 		{
-			if (PackMain.vaultEnabled)
+			if (BuiltInEnchantsLoader.vaultEnabled)
 			{
 				final int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.CHARITY);
-				if (getNext() < charityConfig.getAutofilledDouble(enchlvl, "chance"))
+				if (getNext() < CustomEnchants.charityConfig.getAutofilledDouble(enchlvl, "chance"))
 				{
-					final int randomrange = charityConfig.getAutofilledInt(enchlvl, "random-range");
-					final int money = charityConfig.getAutofilledInt(enchlvl, "money")+random.nextInt(randomrange*2)-randomrange;
+					final int randomrange = CustomEnchants.charityConfig.getAutofilledInt(enchlvl, "random-range");
+					final int money = CustomEnchants.charityConfig.getAutofilledInt(enchlvl, "money")+random.nextInt(randomrange*2)-randomrange;
 					final String m = Language.getLangMessage("charityactivate").replaceAll("%money%", Integer.toString(money)).replaceAll("%player%", player.getDisplayName());
 					if (m != "")
 						Bukkit.broadcastMessage(m);
@@ -815,10 +782,10 @@ public class EnchantProcessor implements Listener, Reloadable {
 		if (mainmeta.hasEnchant(CustomEnchants.TOKENCHARITY))
 		{
 			final int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.TOKENCHARITY);
-			if (getNext() < tokenCharityConfig.getAutofilledDouble(enchlvl, "chance"))
+			if (getNext() < CustomEnchants.tokenCharityConfig.getAutofilledDouble(enchlvl, "chance"))
 			{
-				final int randomrange = tokenCharityConfig.getAutofilledInt(enchlvl, "random-range");
-				final int tokens = tokenCharityConfig.getAutofilledInt(enchlvl, "tokens")+random.nextInt(randomrange*2)-randomrange;
+				final int randomrange = CustomEnchants.tokenCharityConfig.getAutofilledInt(enchlvl, "random-range");
+				final int tokens = CustomEnchants.tokenCharityConfig.getAutofilledInt(enchlvl, "tokens")+random.nextInt(randomrange*2)-randomrange;
 				final String m = Language.getLangMessage("tokencharityactivate").replaceAll("%tokens%", Integer.toString(tokens)).replaceAll("%player%", player.getDisplayName());
 				if (m != "")
 					Bukkit.broadcastMessage(m);
@@ -831,7 +798,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 		{
 			final int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.EXPLOSIVE);
 		    
-		    if (getNext() < explosiveConfig.getAutofilledDouble(enchlvl, "chance"))
+		    if (getNext() < CustomEnchants.explosiveConfig.getAutofilledDouble(enchlvl, "chance"))
 			{
 					final Location loc = e.getBlock().getLocation();
 					final int radius = (int) (Math.floor(enchlvl/2)+1);
@@ -863,7 +830,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 			final int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.EXCAVATE);
 		    
 		    
-			if (getNext() < excavateConfig.getAutofilledDouble(enchlvl, "chance"))
+			if (getNext() < CustomEnchants.excavateConfig.getAutofilledDouble(enchlvl, "chance"))
 			{
 					final Location loc = e.getBlock().getLocation();
 					final int radius = enchlvl/2;
@@ -898,7 +865,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 			final int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.DIAMOND);
 		    
 		    
-			if (getNext() < diamondConfig.getAutofilledDouble(enchlvl, "chance"))
+			if (getNext() < CustomEnchants.diamondConfig.getAutofilledDouble(enchlvl, "chance"))
 			{
 					final Location loc = e.getBlock().getLocation();
 					final int radius = enchlvl/2;
@@ -928,7 +895,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 		{
 			final int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.VEIN_MINER);
 		    
-			if (getNext() < veinMinerConfig.getAutofilledDouble(enchlvl, "chance"))
+			if (getNext() < CustomEnchants.veinMinerConfig.getAutofilledDouble(enchlvl, "chance"))
 			{
 					final Location loc = e.getBlock().getLocation();
 					final int radius = enchlvl/2;
@@ -973,7 +940,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 			final World world = e.getBlock().getWorld();
 			final Location loc = e.getBlock().getLocation();
 			for (final ItemStack drop : drops)
-				if (!drop.getType().equals(Material.AIR) || drop.getType().equals(Material.CAVE_AIR) || drop.getType().equals(Material.VOID_AIR))
+				if (!drop.getType().equals(Material.AIR) && !drop.getType().equals(Material.CAVE_AIR) && !drop.getType().equals(Material.VOID_AIR))
 				world.dropItemNaturally(loc, drop);
 		}
 	}
@@ -996,7 +963,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 		if (mainmeta.hasEnchant(CustomEnchants.TELEPATHY))
 		{
 			final int enchlvl = mainmeta.getEnchantLevel(CustomEnchants.TELEPATHY);
-			if (getNext() < telepathyConfig.getAutofilledDouble(enchlvl, "chance"))
+			if (getNext() < CustomEnchants.telepathyConfig.getAutofilledDouble(enchlvl, "chance"))
 			{
 				for (final Item item : e.getItems())
 					e.getPlayer().getInventory().addItem(item.getItemStack());
@@ -1108,7 +1075,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 			    if (ConfigSettings.getApplyFortuneOn().contains(drop.getType()) && !(saves.contains(block.getLocation())))
 			    	drop.setAmount(getDropCount(fortunelvl, random) * (boosted.contains(p) ? 5 : 1));
 			}
-		    if (aslvl > 0 && getNext() < autosmeltConfig.getAutofilledDouble(aslvl, "chance"))
+		    if (aslvl > 0 && getNext() < CustomEnchants.autosmeltConfig.getAutofilledDouble(aslvl, "chance"))
 		    {
 		    	final Material smelted = getSmelted(drop.getType());
 		    	if (smelted != null)
@@ -1209,25 +1176,31 @@ public class EnchantProcessor implements Listener, Reloadable {
 
 	@Override
 	public void reload() {
-		flyConfig = EPSConfiguration.getConfiguration(CustomEnchants.FLY);
-		experienceConfig = EPSConfiguration.getConfiguration(CustomEnchants.EXPERIENCE);
-		soulDestructionConfig = EPSConfiguration.getConfiguration(CustomEnchants.SOUL_DESTRUCTION);
-		jaggedConfig = EPSConfiguration.getConfiguration(CustomEnchants.JAGGED);
-		lifeStealConfig = EPSConfiguration.getConfiguration(CustomEnchants.LIFESTEAL);
-		momentumConfig = EPSConfiguration.getConfiguration(CustomEnchants.MOMENTUM);
-		lastResortConfig = EPSConfiguration.getConfiguration(CustomEnchants.LAST_RESORT);
-		retaliateConfig = EPSConfiguration.getConfiguration(CustomEnchants.RETALIATE);
-		beheadingConfig = EPSConfiguration.getConfiguration(CustomEnchants.BEHEADING);
-		powerhouseConfig = EPSConfiguration.getConfiguration(CustomEnchants.POWERHOUSE);
-		meltingConfig = EPSConfiguration.getConfiguration(CustomEnchants.MELTING);
-		backupSpellsConfig = EPSConfiguration.getConfiguration(CustomEnchants.BACKUP_SPELLS);
-		evadeConfig = EPSConfiguration.getConfiguration(CustomEnchants.EVADE);
-		enderbowConfig = EPSConfiguration.getConfiguration(CustomEnchants.ENDERBOW);
-		machineryConfig = EPSConfiguration.getConfiguration(CustomEnchants.MACHINERY);
-		thunderingBlowConfig = EPSConfiguration.getConfiguration(CustomEnchants.THUNDERING_BLOW);
-		energizedConfig = EPSConfiguration.getConfiguration(CustomEnchants.ENERGIZED);
-		shockwaveConfig = EPSConfiguration.getConfiguration(CustomEnchants.SHOCKWAVE);
-		fireworksConfig = EPSConfiguration.getConfiguration(CustomEnchants.FIREWORKS);
+		CustomEnchants.flyConfig = EPSConfiguration.getConfiguration(CustomEnchants.FLY);
+		CustomEnchants.repairConfig = EPSConfiguration.getConfiguration(CustomEnchants.REPAIR);
+		CustomEnchants.experienceConfig = EPSConfiguration.getConfiguration(CustomEnchants.EXPERIENCE);
+		CustomEnchants.soulDestructionConfig = EPSConfiguration.getConfiguration(CustomEnchants.SOUL_DESTRUCTION);
+		CustomEnchants.jaggedConfig = EPSConfiguration.getConfiguration(CustomEnchants.JAGGED);
+		CustomEnchants.lifeStealConfig = EPSConfiguration.getConfiguration(CustomEnchants.LIFESTEAL);
+		CustomEnchants.momentumConfig = EPSConfiguration.getConfiguration(CustomEnchants.MOMENTUM);
+		CustomEnchants.poisonousConfig = EPSConfiguration.getConfiguration(CustomEnchants.POISONOUS);
+		CustomEnchants.volcanicConfig = EPSConfiguration.getConfiguration(CustomEnchants.VOLCANIC);
+		CustomEnchants.saturatedConfig = EPSConfiguration.getConfiguration(CustomEnchants.SATURATED);
+		CustomEnchants.insatiableConfig = EPSConfiguration.getConfiguration(CustomEnchants.INSATIABLE);
+		CustomEnchants.lastResortConfig = EPSConfiguration.getConfiguration(CustomEnchants.LAST_RESORT);
+		CustomEnchants.retaliateConfig = EPSConfiguration.getConfiguration(CustomEnchants.RETALIATE);
+		CustomEnchants.beheadingConfig = EPSConfiguration.getConfiguration(CustomEnchants.BEHEADING);
+		CustomEnchants.powerhouseConfig = EPSConfiguration.getConfiguration(CustomEnchants.POWERHOUSE);
+		CustomEnchants.meltingConfig = EPSConfiguration.getConfiguration(CustomEnchants.MELTING);
+		CustomEnchants.backupSpellsConfig = EPSConfiguration.getConfiguration(CustomEnchants.BACKUP_SPELLS);
+		CustomEnchants.overhealedConfig = EPSConfiguration.getConfiguration(CustomEnchants.OVERHEALED);
+		CustomEnchants.evadeConfig = EPSConfiguration.getConfiguration(CustomEnchants.EVADE);
+		CustomEnchants.enderbowConfig = EPSConfiguration.getConfiguration(CustomEnchants.ENDERBOW);
+		CustomEnchants.machineryConfig = EPSConfiguration.getConfiguration(CustomEnchants.MACHINERY);
+		CustomEnchants.thunderingBlowConfig = EPSConfiguration.getConfiguration(CustomEnchants.THUNDERING_BLOW);
+		CustomEnchants.energizedConfig = EPSConfiguration.getConfiguration(CustomEnchants.ENERGIZED);
+		CustomEnchants.shockwaveConfig = EPSConfiguration.getConfiguration(CustomEnchants.SHOCKWAVE);
+		CustomEnchants.fireworksConfig = EPSConfiguration.getConfiguration(CustomEnchants.FIREWORKS);
 		inventoryFull = Language.getLangMessage("inventoryfull");
 		cooldownError = Language.getLangMessage("cooldown-error");
 		itemsToKeep.clear();

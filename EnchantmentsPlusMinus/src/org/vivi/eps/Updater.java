@@ -12,10 +12,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.vivi.eps.util.ConfigSettings;
@@ -81,12 +84,44 @@ public class Updater {
 			configData.set("custom-lore-color", null);
 		}
 		
+		if (configData.contains("global-cost-type"))
+		{
+			configData.set("global-cost-type", null);
+			configData.set("global-cost.enabled", false);
+			configData.set("global-cost.cost", "69420*%lvl%");
+		}
+		
+		setDefault("abbreviate-large-numbers", true);
+		configData.set("do-not-add-lore-to", new ArrayList<String>(Arrays.asList(new String[] {"an item e.g. BEDROCK that you do not want lore added to due to plugin interference"})));
 		configData.set("use-custom-fortune", null);
 		configData.set("show-vanilla-enchants-in-lore", null);
 		
 		for (String key : EPS.incompatibilitiesData.getKeys(false))
 			if (EPS.incompatibilitiesData.contains(key+".items"))
 				EPS.incompatibilitiesData.set(key+".items", null);
+		
+		
+		
+		// Convert enchant configs
+		for (File file : (EPS.enchantsFolder.listFiles()))
+		{
+			FileConfiguration configuration = YamlConfiguration.loadConfiguration(file);
+			String costType = configuration.getString("cost.type");
+			if (costType == null)
+				continue;
+			if (costType.equalsIgnoreCase("linear"))
+				configuration.set("cost", Double.toString(configuration.getDouble("cost.value"))+" * %lvl% + "+Double.toString(configuration.getDouble("cost.startvalue")));
+			else if (costType.equalsIgnoreCase("exponential"))
+				configuration.set("cost", Double.toString(configuration.getDouble("cost.startvalue"))+" * "+Double.toString(configuration.getDouble("cost.multi"))+"^(%lvl%-1)");
+			else if (costType.equalsIgnoreCase("manual"))
+				configuration.set("cost.type", null);
+			try {
+				configuration.save(file);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		
 		try {
 			configData.save(EPS.configFile);

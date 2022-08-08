@@ -5,6 +5,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.vivi.eps.EPS;
+import org.vivi.eps.libs.NumberUtils;
 import org.vivi.eps.util.Language;
 
 public class TokensCommand implements CommandExecutor {
@@ -12,30 +13,18 @@ public class TokensCommand implements CommandExecutor {
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
-		if (!(sender instanceof Player)) {
-			if (args.length == 0) 
-			{
+		if (!(sender instanceof Player) && args.length == 0)
+		{
 				sender.sendMessage(Language.getLangMessage("unspecifiedplayer"));
-				return true;
-			}
-			else
-			{
-			    Integer tokens = EPS.getEconomy().getBalance(args[0]);
-			    sender.sendMessage((Language.getLangMessage("tokenbalance").replaceAll("%tokens%", tokens.toString())));
-			    return false;
-			}
+				return false;
         }
-		if (args.length == 0)
-		{
-			Integer tokens = EPS.getEconomy().getBalance(sender.getName());
-			sender.sendMessage(Language.getLangMessage("tokenbalance").replaceAll("%tokens%", tokens.toString()));
-		    return true;
-		}
-		else
-		{
-			Integer tokens = EPS.getEconomy().getBalance(args[0]);
-			sender.sendMessage(Language.getLangMessage("tokenbalance").replaceAll("%tokens%", tokens.toString()));
-		    return false;
-		}
+	
+		showTokens(sender, args.length == 0 ? sender.getName() : args[0]);
+	    return true;
+	}
+
+	private static void showTokens(CommandSender sender, String name) 
+	{
+		sender.sendMessage(Language.getLangMessage("tokenbalance").replaceAll("%tokens%", NumberUtils.abbreviate(EPS.getEconomy().getBalance(name), 0)).replaceAll("%player%", name));
 	}
 }

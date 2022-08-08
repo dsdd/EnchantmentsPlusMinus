@@ -28,17 +28,14 @@ public class EnchantMetaWriter implements Reloadable {
 	private static Map<Enchantment, ArrayList<String>> descriptionMap = new HashMap<>();
 	private static List<String> allDescriptionLines = new ArrayList<String>();
 	private static String prefix;
-	private static File loreExemptions = new File(EPS.plugin.getDataFolder(), "lore_exemptions.yml");
-	private static EPSConfiguration loreExemptionsConfig = null;
 	private static List<Material> exemptions = new ArrayList<Material>();
 	private static final Dictionary dictionary = EPS.getDictionary();
 	
 	public EnchantMetaWriter()
 	{
 		prefix = ChatColor.translateAlternateColorCodes('&', ConfigSettings.getEnchantLoreColor());
-		EPS.saveDefaultFile("/lore_exemptions.yml", loreExemptions);
-		loreExemptionsConfig = EPSConfiguration.loadConfiguration(loreExemptions);
-		for (String s : loreExemptionsConfig.getStringList("blacklist"))
+		
+		for (String s : ConfigSettings.getLoreExemptions())
 			exemptions.add(Material.matchMaterial(s));
 	}
 	
@@ -279,8 +276,7 @@ public class EnchantMetaWriter implements Reloadable {
 
 	@Override
 	public void reload() {
-		loreExemptionsConfig = EPSConfiguration.loadConfiguration(loreExemptions);
-		for (String s : loreExemptionsConfig.getStringList("blacklist"))
+		for (String s : ConfigSettings.getLoreExemptions())
 			exemptions.add(Material.matchMaterial(s));
 		for (Enchantment enchant : Enchantment.values())
 		{

@@ -20,18 +20,15 @@
 auto-update: false
 show-enchants: true
 show-enchant-descriptions: true
+abbreviate-large-numbers: true
 use-roman-numerals: false
 open-enchant-gui-on-right-click: true
 anvil-combining-enabled: true
 use-vault-economy: false
 use-action-bar-instead-of-chat-when-inventory-full: true
-global-cost-type:
+global-cost:
    enabled: false
-   type: exponential
-   just-a-notice: 
-   - Please note that this feature should only be used after all configurations have been converted.
-   - When switching types, the plugin checks for different values in configurations, and without
-   - those values, the plugin will be vulnerable to duplication glitches. (couldnt use comments because snakeyaml)
+   cost: "69420*%lvl%"
 enchant-lore-color: "&9"
 apply-fortune-on: 
   - COAL
@@ -55,5 +52,7 @@ mining-reward:
   blockstobreak: 1000
 enchant-specific-lore-color:
   depth_strider: &2
+do-not-add-lore-to:
+- an item e.g. BEDROCK that you do not want lore added to due to plugin interference
 disabled-enchants:
 - an enchant you don't like

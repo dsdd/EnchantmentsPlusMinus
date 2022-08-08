@@ -46,7 +46,7 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
     public String onPlaceholderRequest(Player p, String identifier) {
 
         if (identifier.equals("tokens")) {
-            return Integer.toString(EPS.getEconomy().getBalance(p.getName()));
+            return Double.toString(EPS.getEconomy().getBalance(p.getName()));
         }
         return null;
     }

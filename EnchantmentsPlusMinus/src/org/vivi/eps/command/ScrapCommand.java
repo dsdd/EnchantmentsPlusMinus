@@ -39,7 +39,7 @@ public class ScrapCommand implements CommandExecutor {
         	
         	for (Map.Entry<Enchantment,Integer> entry : map.entrySet())
         	{
-        		scrapvalue = scrapvalue + EPSConfiguration.getConfiguration(entry.getKey()).getInt("scrapvalue")*entry.getValue();
+        		scrapvalue = scrapvalue + EPSConfiguration.getConfiguration(entry.getKey(), true).getInt("scrapvalue")*entry.getValue();
         	}
         	
         	if (scrapvalue > 0)

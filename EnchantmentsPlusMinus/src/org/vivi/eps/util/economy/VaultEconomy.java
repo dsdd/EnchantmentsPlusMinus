@@ -13,52 +13,52 @@ public class VaultEconomy implements Economy {
 	private net.milkbowl.vault.economy.Economy economy = VaultHook.getEconomy();
 	
 	@Override
-	public Integer changeBalance(String playername, Integer amount)
+	public double changeBalance(String playername, double amount)
 	{
 		return changeBalance(Bukkit.getOfflinePlayer(EPS.getUUID(playername)), amount);
 	}
 
 	@Override
-	public Integer changeBalance(Player player, Integer amount)
+	public double changeBalance(Player player, double amount)
 	{
 		EconomyResponse e = amount > 0 ? economy.depositPlayer(player, amount) : economy.withdrawPlayer(player, -amount);
-		return (int)e.balance;
+		return e.balance;
 	}
 	
-	public Integer changeBalance(OfflinePlayer player, Integer amount)
+	public double changeBalance(OfflinePlayer player, double amount)
 	{
 		EconomyResponse e = amount > 0 ? economy.depositPlayer(player, amount) : economy.withdrawPlayer(player, -amount);
-		return (int)e.balance;
+		return e.balance;
 	}
 
 	@Override
-	public Integer setBalance(String playername, Integer value)
+	public double setBalance(String playername, double value)
 	{
 		return setBalance(Bukkit.getOfflinePlayer(EPS.getUUID(playername)), value);
 	}
 	
 	@Override
-	public Integer setBalance(Player player, Integer value)
+	public double setBalance(Player player, double value)
 	{
 		EconomyResponse e = value-economy.getBalance(player) > 0 ? economy.depositPlayer(player, value-economy.getBalance(player)) : economy.withdrawPlayer(player, economy.getBalance(player)-value);
-		return (int)e.balance;
+		return e.balance;
 	}
 	
-	public Integer setBalance(OfflinePlayer player, Integer value)
+	public double setBalance(OfflinePlayer player, double value)
 	{
 		EconomyResponse e = value-economy.getBalance(player) > 0 ? economy.depositPlayer(player, value-economy.getBalance(player)) : economy.withdrawPlayer(player, economy.getBalance(player)-value);
-		return (int)e.balance;
+		return e.balance;
 	}
 
 	@Override
-	public Integer getBalance(Player player)
+	public double getBalance(Player player)
 	{
-		return (int)economy.getBalance(player);
+		return economy.getBalance(player);
 	}
 
 	@Override
-	public Integer getBalance(String playername)
+	public double getBalance(String playername)
 	{
-		return (int)economy.getBalance(Bukkit.getOfflinePlayer(EPS.getUUID(playername)));
+		return economy.getBalance(Bukkit.getOfflinePlayer(EPS.getUUID(playername)));
 	}
 }

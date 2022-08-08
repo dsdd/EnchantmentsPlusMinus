@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -52,8 +53,6 @@ public class EnchantGUI implements Listener, Reloadable {
 	private static ItemStack filler = EPS.onLegacy() ? new ItemStack(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short)15) : new ItemStack(Material.matchMaterial("BLACK_STAINED_GLASS_PANE"), 1);
 	private static ItemStack modifyingBook = new ItemStack(Material.BOOK, 1);
 	private static ItemStack glasspane = EPS.onLegacy() ? new ItemStack(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short)13) : new ItemStack(Material.matchMaterial("GREEN_STAINED_GLASS_PANE"), 1);
-	private static boolean globalCostTypeEnabled = EPS.configData.getBoolean("global-cost-type.enabled");
-	private static String globalCostType = EPS.configData.getString("global-cost-type.type");
 	
 	public EnchantGUI()
 	{
@@ -117,7 +116,7 @@ public class EnchantGUI implements Listener, Reloadable {
 
         ItemStack i = new ItemStack(Material.GOLD_INGOT, 1);
         ItemMeta meta = i.getItemMeta();
-        meta.setDisplayName(Language.getLangMessage("balance-display-in-gui", false).replaceAll("%balance%", economy.getBalance(p.getName()).toString()));
+        meta.setDisplayName(Language.getLangMessage("balance-display-in-gui", false).replaceAll("%balance%", Double.toString(economy.getBalance(p.getName()))));
         i.setItemMeta(meta);
         inv.setItem(4, i);
         inv.setItem(31, i);
@@ -135,7 +134,7 @@ public class EnchantGUI implements Listener, Reloadable {
 		createPanes(inv);
 		ItemStack item = new ItemStack(Material.GOLD_INGOT, 1);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Language.getLangMessage("balance-display-in-gui", false).replaceAll("%balance%", economy.getBalance(p.getName()).toString()));
+        meta.setDisplayName(Language.getLangMessage("balance-display-in-gui", false).replaceAll("%balance%", Double.toString(economy.getBalance(p.getName()))));
         item.setItemMeta(meta);
         inv.setItem(4, item);
         inv.setItem(31, item);
@@ -174,34 +173,23 @@ public class EnchantGUI implements Listener, Reloadable {
     		Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid enchantment name "+name+"!");
     		return;
     	}
-    	EPSConfiguration config = EPSConfiguration.getConfiguration(enchant);
+    	EPSConfiguration config = EPSConfiguration.getConfiguration(enchant, true);
     	String displayname = EnchantMetaWriter.enchantnames.get(enchant);
     	Material material = config.getMaterial("upgradeicon");
     	String desc = config.getString("upgradedesc");
     	Integer maxlevel = config.getInt("maxlevel");
     	
-        if (!(mainmeta.getEnchantLevel(enchant) >= maxlevel))
-        {
-        	String method = config.getString("cost.type");
-        	cost = Integer.toString(getCost(method, enchant, mainmeta.getEnchantLevel(enchant), 1));
-        }
+        if (!(mainmeta.getEnchantLevel(enchant) >= maxlevel) || p.hasPermission("eps.admin.bypassmaxlevel"))
+        	cost = Long.toString((long) Math.floor(EPS.getCost(enchant, mainmeta.getEnchantLevel(enchant), 1)));
         else
-        {
-        	if (!p.hasPermission("eps.admin.bypassmaxlevel"))
-        		cost = "Maxed!";
-        	else
-        	{
-        		String method = config.getString("cost.type");
-            	cost = Integer.toString(getCost(method, enchant, mainmeta.getEnchantLevel(enchant), 1));
-        	}
-        }
+            cost = "Maxed!";
         
         if (desc == null)
-        	Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid upgrade description for enchant "+name.toUpperCase()+"!");
+        	EPS.plugin.getLogger().log(Level.WARNING, "Invalid upgrade description for enchant "+name.toUpperCase()+"!");
         if (maxlevel == 0)
-        	Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Max level for enchant"+name.toUpperCase()+" is zero! Is this intentional?");
+        	EPS.plugin.getLogger().log(Level.WARNING, "Max level for enchant"+name.toUpperCase()+" is zero! Is this intentional?");
         if (material == null)
-        	Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid material type for enchantment "+name.toUpperCase()+". Setting to default BOOK.");
+        	EPS.plugin.getLogger().log(Level.WARNING, "Invalid material type for enchantment "+name.toUpperCase()+". Setting to default BOOK.");
 
         ItemStack slot = material == null ? new ItemStack(Material.BOOK, 1) : new ItemStack(material, 1);
         ItemMeta meta = slot.getItemMeta();
@@ -314,56 +302,12 @@ public class EnchantGUI implements Listener, Reloadable {
         
     }
 	
-	/**Returns the cost of the next specified levels of an enchant
-	 * 
-	 * @param type The type of cost increase used
-	 * @param enchant The enchantment to calculate
-	 * @param enchlvl The current enchantment level
-	 * @param multi The amount of levels to be increased by
-	 * @return Returns the cost of the next specified levels of an enchant
-	 */
-	public static Integer getCost(String type, Enchantment enchant, Integer enchlvl, Integer multi)
-    {
-		EPSConfiguration config = EPSConfiguration.getConfiguration(enchant);
-		if (globalCostTypeEnabled)
-			type = globalCostType;
-    	if (type.equalsIgnoreCase("manual"))
-    	{
-    		Integer val = config.getInt("cost."+(enchlvl+1));
-    		for (int i=1;i<multi;i++)
-    		{
-    			val = val + config.getInt("cost."+(enchlvl+1+i));
-    		}
-    		return val;
-    	}
-    	else if (type.equalsIgnoreCase("linear"))
-    	{
-    		int startvalue = config.getInt("cost.startvalue");
-    		int value = config.getInt("cost.value");
-    		int fin = startvalue+value*enchlvl;
-    		for (int i=1;i<multi;i++)
-    			fin = fin + (startvalue+value*enchlvl+1);
-    		return fin;
-    	}
-    	else if (type.equalsIgnoreCase("exponential"))
-    	{
-    		Double multi1 = config.getDouble("cost.multi");
-    		Integer startvalue = config.getInt("cost.startvalue");
-    		return (int)(startvalue*Math.pow((Math.pow(multi1, enchlvl+1)), multi));
-    	}
-    	else
-    	{
-    		return Integer.MAX_VALUE;
-    	}
-    }
-	
 	public void upgradeItem(Enchantment enchant, Player p, Integer multi)
     {
-		EPSConfiguration config = EPSConfiguration.getConfiguration(enchant);
+		EPSConfiguration config = EPSConfiguration.getConfiguration(enchant, true);
 		ItemStack mainhand = p.getInventory().getItemInMainHand();
 		ItemMeta mainmeta = mainhand.getItemMeta();
-    	String method = config.getString("cost.type");
-    	Integer cost = (getCost(method, enchant, mainmeta.getEnchantLevel(enchant), multi));
+    	double cost = (EPS.getCost(enchant, mainmeta.getEnchantLevel(enchant), multi));
     	if (!(mainmeta.getEnchantLevel(enchant)+multi-1 >= config.getInt("maxlevel")) || p.hasPermission("eps.admin.bypassmaxlevel"))
     	{
     		if (!p.hasPermission("eps.admin.bypassincompatibilities"))
@@ -388,8 +332,7 @@ public class EnchantGUI implements Listener, Reloadable {
             {
 	        	Language.sendMessage(p, "upgradedpickaxe");
 	        	mainhand.addUnsafeEnchantment(enchant, mainmeta.getEnchantLevel(enchant)+multi);
-	        	Integer newvalue = economy.getBalance(p.getName()) - cost;
-	        	economy.setBalance(p.getName(), newvalue);
+	        	economy.setBalance(p.getName(), economy.getBalance(p.getName()) - cost);
 	        	mainhand.setItemMeta(EnchantMetaWriter.getWrittenMeta(mainhand));
 	        	loadInventory(p, guiNames.get(p));
             }
@@ -509,7 +452,5 @@ public class EnchantGUI implements Listener, Reloadable {
 		ItemMeta baq = modifyingBook.getItemMeta();
 		meta.setDisplayName(modifyGuiName);
 		modifyingBook.setItemMeta(baq);
-		globalCostTypeEnabled = EPS.configData.getBoolean("global-cost-type.enabled");
-		globalCostType = EPS.configData.getString("global-cost-type.type");
 	}
 }

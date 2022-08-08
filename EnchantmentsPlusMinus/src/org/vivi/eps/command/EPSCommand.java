@@ -1,9 +1,13 @@
 package org.vivi.eps.command;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -11,6 +15,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -61,8 +66,8 @@ public class EPSCommand implements CommandExecutor, TabCompleter {
 			}
 			try
 			{
-			EPS.getEconomy().setBalance(args[1],Integer.parseInt(args[2]));
-			sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aSet "+args[1]+"'s balance to "+Integer.parseInt(args[2])));
+			EPS.getEconomy().setBalance(args[1],Long.parseLong(args[2]));
+			sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aSet "+args[1]+"'s balance to "+Long.parseLong(args[2])));
 			}
 			catch(NullPointerException e)
 			{
@@ -86,8 +91,8 @@ public class EPSCommand implements CommandExecutor, TabCompleter {
 			}
 			try
 			{
-			EPS.getEconomy().changeBalance(args[1],Integer.parseInt(args[2]));
-			sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aChanged "+args[1]+"'s balance by "+Integer.parseInt(args[2])));
+			EPS.getEconomy().changeBalance(args[1],Long.parseLong(args[2]));
+			sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aChanged "+args[1]+"'s balance by "+Long.parseLong(args[2])));
 			}
 			catch(NullPointerException e)
 			{
@@ -201,7 +206,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter {
 		}
 		else if (args[0].equalsIgnoreCase("tokenpouch"))
 		{
-			if (!sender.hasPermission("eps.admin.book"))
+			if (!sender.hasPermission("eps.admin.tokenpouch"))
 			{
 				Language.sendMessage(sender, "insufficientpermission");
 				return false;
@@ -219,17 +224,55 @@ public class EPSCommand implements CommandExecutor, TabCompleter {
 			}
 			p.getInventory().addItem(new TokenPouch(Integer.parseInt(args[2])));
 		}
-		
+		else if (args[0].equalsIgnoreCase("baltop"))
+		{
+			if (!sender.hasPermission("eps.admin.baltop"))
+			{
+				Language.sendMessage(sender, "insufficientpermission");
+				return false;
+			}
+			
+			Map<String, Double> balances = new HashMap<String, Double>();
+			
+			for (String key : EPS.uuidDataStoreData.getKeys(false))
+			{
+				File file = new File(EPS.dataFolder, EPS.uuidDataStoreData.getString(key)+".yml");
+				if (file.exists())
+					balances.put(key, YamlConfiguration.loadConfiguration(file).getDouble("tokens", 0));
+			}
+						
+			balances = balances.entrySet().stream()
+				       .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+				       .limit(50)
+				       .collect(Collectors.toMap(
+				          Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+			
+			String baltopPosition = Language.getLangMessage("baltop-position");
+			int i = 0;
+			for (Map.Entry<String, Double> entry : balances.entrySet())
+			{
+				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', baltopPosition
+						.replaceAll("%position%", Integer.toString(i+1))
+						.replaceAll("%player%", entry.getKey())
+						.replaceAll("%tokens%", Double.toString(entry.getValue()))));
+				i++;
+			}
+				
+			
+			
+			
+		}
 		return false;
 	}
 
 	@Override
-	public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
+	public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) 
+	{
 		if (!(cmd.getName() == "eps"))
 			return null;
 		
-		if (enchantTabList == null)
-			for (Enchantment e : EPS.registeredEnchants)
+		if (enchantTabList.isEmpty())
+			for (Enchantment e : EPS.getRegisteredEnchants())
 				enchantTabList.add(EPS.getDictionary().getName(e));
 		
 		if (args[0].equalsIgnoreCase("enchant") || args[0].equalsIgnoreCase("book"))

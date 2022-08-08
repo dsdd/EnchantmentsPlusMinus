@@ -1,5 +1,0 @@
-# In case you have special items from other plugins that are interfered by enchant lore, you
-# can restrict these items from getting lore added.
-
-blacklist:
-- BEDROCK

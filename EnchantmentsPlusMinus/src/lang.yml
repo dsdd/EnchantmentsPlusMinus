@@ -11,7 +11,7 @@ messages:
     unspecifiedplayer: "&cYou must specify a player."
     unspecifiedtokenspay: "&cYou must specify the amount of tokens to give."
     invalidtokenamountpay: "&cYou must write a proper amount of tokens to give."
-    tokenbalance: "&aYou currently have &e&l%tokens%&a tokens."
+    tokenbalance: "&a%player% currently has &e&l%tokens%&a tokens."
     insufficienttokens: "&cYou do not have enough tokens to buy this."
     upgradedpickaxe: "&aUpgraded successfully!"
     maxedupgrade: "&cYou already have the maximum level for this enchantment."
@@ -32,7 +32,7 @@ messages:
     token-pouch-lore-2: '&7Right-Click to claim tokens in the pouch!'
     startup-message: '&2Thank you for using Enchantments+-!'
     claimed-token-pouch: '&2You received %tokens% tokens from the token pouch!'
-    no-enchant-config-found: '&cCould not find the config for %enchant%! Automatically making one...'
+    no-enchant-config-found: '&cCould not find the config for %enchant%!'
     balance-display-in-gui: '&aYour Tokens » &e%balance%'
     invalid-enchant: '&cCould not find specified enchant. Try using /eps reload.'
     cannot-open-gui: '&cYou cannot open the GUI at this time.'
@@ -43,6 +43,7 @@ messages:
     modify-lore-2: '&7Right-Click to remove this enchant'
     modifying-config: '&aType in the new value of %entry%.'
     modified-config: '&aChanged value!'
+    baltop-position: '&e#%position% &a- %player% (&e&l%tokens%&r&a tokens)'
 eps-command-usage:
 - "&7-----------[ &a&lEnchantments+- &7]-----------"
 - "&7- &e/eps reload &7- Reloads all configuration files. Some settings may require a full plugin reload."
