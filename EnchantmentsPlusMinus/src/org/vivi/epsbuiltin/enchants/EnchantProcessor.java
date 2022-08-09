@@ -15,11 +15,11 @@ import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
-import org.bukkit.EntityEffect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Container;
@@ -31,6 +31,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Skeleton;
 import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -101,9 +102,10 @@ public class EnchantProcessor implements Listener, Reloadable {
 	private static boolean modifiedByEnchant = false;
 	private static boolean looping = false;
 	private final static Collection<Location> saves = new ArrayList<Location>();
-	private final static Material endframe = EPS.onLegacy() ? Material.matchMaterial("ENDER_PORTAL_FRAME") : Material.matchMaterial("END_PORTAL_FRAME");
+	private final static Material endframe = EPS.getMCVersion() < 13 ? Material.matchMaterial("ENDER_PORTAL_FRAME") : Material.matchMaterial("END_PORTAL_FRAME");
 	private final static Economy economy = EPS.getEconomy();
 	private static Map<Material, Material> smeltResults = new HashMap<Material, Material>();
+	private final static Sound ENTITY_ENDERMAN_TELEPORT = EPS.getMCVersion() < 13 ? Sound.valueOf("ENTITY_ENDERMEN_TELEPORT") : Sound.valueOf("ENTITY_ENDERMAN_TELEPORT");
 	
 	private static final Map<EntityType, String> mobHeads = new HashMap<EntityType, String>() {
 		private static final long serialVersionUID = 1L;
@@ -146,7 +148,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 			CustomEnchants.beheadingConfig.save();
 		}
 		
-		if (!EPS.onLegacy())
+		if (EPS.getMCVersion() > 12)
 			for (final Map.Entry<EntityType, String> entry : mobHeads.entrySet())
 				mobSkulls.put(entry.getKey(), getCustomSkull(mobHeads.get(entry.getKey()), WordUtils.capitalizeFully(entry.getKey().name()) + " Head"));
 	}
@@ -172,7 +174,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 				if (dp < dtp) 
 				{
 				    e.setDamage(e.getDamage() + enchlvl);
-				    if (!EPS.onLegacy())
+				    if (EPS.getMCVersion() > 12)
 				    	world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1, new Particle.DustOptions(Color.RED, 5));
 				    else
 				    	world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1);
@@ -229,7 +231,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 					{
 						final double damage = CustomEnchants.insatiableConfig.getAutofilledDouble(piece.getItemMeta().getEnchantLevel(CustomEnchants.INSATIABLE), "extradamage");
 						e.setDamage(e.getDamage() + (damage - (damage*(d.getHealth()*0.05))));
-						if (!EPS.onLegacy())
+						if (EPS.getMCVersion() > 12)
 							world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1, new org.bukkit.Particle.DustOptions(Color.RED, 5));
 						else
 					    	world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1);
@@ -268,7 +270,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 							
 							final LivingEntity en = (LivingEntity) e.getDamager();
 							final int duration = CustomEnchants.poisonousConfig.getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.POISONOUS), "ticks");
-							PotionCombiner.addEffect(en, new PotionEffect(PotionEffectType.POISON, duration, pmeta.getEnchantLevel(CustomEnchants.POISONOUS)-1));
+							PotionCombiner.lengthenEffect(en, new PotionEffect(PotionEffectType.POISON, duration, pmeta.getEnchantLevel(CustomEnchants.POISONOUS)-1));
 						}
 						
 						if (pmeta.hasEnchant(CustomEnchants.VOLCANIC))
@@ -281,7 +283,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 						if (pmeta.hasEnchant(CustomEnchants.SATURATED))
 						{
 							final int duration = CustomEnchants.saturatedConfig.getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.SATURATED), "ticks");
-							PotionCombiner.addEffect(p, new PotionEffect(PotionEffectType.SATURATION, duration, pmeta.getEnchantLevel(CustomEnchants.SATURATED)-1));
+							PotionCombiner.lengthenEffect(p, new PotionEffect(PotionEffectType.SATURATION, duration, pmeta.getEnchantLevel(CustomEnchants.SATURATED)-1));
 						}
 						
 						if (pmeta.hasEnchant(CustomEnchants.STIFFEN))
@@ -290,7 +292,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 							final int amplifier = CustomEnchants.stiffenConfig.getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.STIFFEN), "amplifier")-1;
 							final LivingEntity l = ((LivingEntity)e.getEntity());
 							if (l.getHealth() <= healththreshold)
-		                    	PotionCombiner.addEffect(l, new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, amplifier-1));
+		                    	PotionCombiner.lengthenEffect(l, new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, amplifier-1));
 						}
 						if (pmeta.hasEnchant(CustomEnchants.EVADE))
 						{
@@ -372,6 +374,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onPlayerKill(final PlayerDeathEvent e)
 	{
@@ -386,9 +389,12 @@ public class EnchantProcessor implements Listener, Reloadable {
 				final double chance = CustomEnchants.beheadingConfig.getAutofilledInt(enchlvl, "player-chance");
 				if (getNext() <= chance)
 				{
-					final ItemStack head = EPS.onLegacy() ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
+					final ItemStack head = EPS.getMCVersion() < 13 ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
 					final SkullMeta skull = (SkullMeta) head.getItemMeta();
-					skull.setOwningPlayer(e.getEntity());
+					if (EPS.getMCVersion() < 12)
+						skull.setOwner(e.getEntity().getName());
+					else
+						skull.setOwningPlayer(e.getEntity());
 					head.setItemMeta(skull);
 					e.getDrops().add(head);
 				}
@@ -570,7 +576,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 					{
 						enderbowCooldown.use(player);
 						player.teleport(arrow.getLocation());
-						player.playEffect(EntityEffect.TELEPORT_ENDER);
+						player.playSound(player.getLocation(), ENTITY_ENDERMAN_TELEPORT, 1, 1);
 					}
 				}
 			}
@@ -930,7 +936,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 		}
 		
 		looping = false;
-		
+
 		if (mainmeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS) || mainmeta.hasEnchant(CustomEnchants.AUTOSMELT))
 			modifiedByEnchant = true;
 		
@@ -939,9 +945,14 @@ public class EnchantProcessor implements Listener, Reloadable {
 			e.setDropItems(false);
 			final World world = e.getBlock().getWorld();
 			final Location loc = e.getBlock().getLocation();
+			
+			boolean telepathyEnabled = EPS.getMCVersion() < 14 && mainmeta.hasEnchant(CustomEnchants.TELEPATHY) && getNext() < CustomEnchants.telepathyConfig.getAutofilledDouble(mainmeta.getEnchantLevel(CustomEnchants.TELEPATHY), "chance");
 			for (final ItemStack drop : drops)
-				if (!drop.getType().equals(Material.AIR) && !drop.getType().equals(Material.CAVE_AIR) && !drop.getType().equals(Material.VOID_AIR))
-				world.dropItemNaturally(loc, drop);
+				if (!drop.getType().equals(Material.AIR) && !drop.getType().equals(Material.matchMaterial("CAVE_AIR")) && !drop.getType().equals(Material.matchMaterial("VOID_AIR")))
+					if (telepathyEnabled)
+						e.getPlayer().getInventory().addItem(drop);
+					else
+						world.dropItemNaturally(loc, drop);
 		}
 	}
 	
@@ -1002,35 +1013,38 @@ public class EnchantProcessor implements Listener, Reloadable {
 	@SuppressWarnings("deprecation")
 	private static ItemStack getHead(final LivingEntity e)
 	{
+		if (EPS.getMCVersion() < 12 && e instanceof Skeleton)
+			return new ItemStack(Material.matchMaterial("SKULL_HEAD"), 1, (short)(((Skeleton)e).getSkeletonType() == org.bukkit.entity.Skeleton.SkeletonType.NORMAL ? 0 : 1));
+		
 		switch (e.getType())
 		{
 		case SKELETON:
-			if (!EPS.onLegacy())
-				return new ItemStack(Material.SKELETON_SKULL, 1);
+			if (EPS.getMCVersion() > 12)
+				return new ItemStack(Material.matchMaterial("SKELETON_SKULL"), 1);
 			else
 				return new ItemStack(Material.matchMaterial("SKULL_HEAD"), 1, (short) 0);
 		case WITHER_SKELETON:
-			if (!EPS.onLegacy())
-				return new ItemStack(Material.WITHER_SKELETON_SKULL, 1);
+			if (EPS.getMCVersion() > 12)
+				return new ItemStack(Material.matchMaterial("WITHER_SKELETON_SKULL"), 1);
 			else
 				return new ItemStack(Material.matchMaterial("SKULL_HEAD"), 1, (short) 1);
 		case ZOMBIE:
-			if (!EPS.onLegacy())
-				return new ItemStack(Material.ZOMBIE_HEAD, 1);
+			if (EPS.getMCVersion() > 12)
+				return new ItemStack(Material.matchMaterial("ZOMBIE_HEAD"), 1);
 			else
 				return new ItemStack(Material.matchMaterial("SKULL_HEAD"), 1, (short) 2);
 		case CREEPER:
-			if (!EPS.onLegacy())
-				return new ItemStack(Material.CREEPER_HEAD, 1);
+			if (EPS.getMCVersion() > 12)
+				return new ItemStack(Material.matchMaterial("CREEPER_HEAD"), 1);
 			else
 				return new ItemStack(Material.matchMaterial("SKULL_HEAD"), 1, (short) 4);
 		case ENDER_DRAGON:
-			if (!EPS.onLegacy())
-				return new ItemStack(Material.DRAGON_HEAD, 1);
+			if (EPS.getMCVersion() > 12)
+				return new ItemStack(Material.matchMaterial("DRAGON_HEAD"), 1);
 			else
 				return new ItemStack(Material.matchMaterial("SKULL_HEAD"), 1, (short) 5);
 		default:
-			if (!EPS.onLegacy())
+			if (EPS.getMCVersion() > 12)
 				if (mobHeads.containsKey(e.getType()))
 					return mobSkulls.get(e.getType());
 			return null;
@@ -1038,7 +1052,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 	}
 	
 	private static ItemStack getCustomSkull(final String texture, final String name) {
-		final ItemStack head = EPS.onLegacy() ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
+		final ItemStack head = EPS.getMCVersion() < 13 ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
 
 		final SkullMeta skull = (SkullMeta) head.getItemMeta();
 		skull.setDisplayName(name);
@@ -1209,27 +1223,35 @@ public class EnchantProcessor implements Listener, Reloadable {
 
 class PotionCombiner {
 	
-	public static void addEffect(final LivingEntity e, final PotionEffect pe)
+	public static PotionEffect getEffect(final LivingEntity entity, final PotionEffectType potionEffectType)
 	{
-		final PotionEffect a = e.getPotionEffect(pe.getType());
-		if (a == null)
-		{
-			pe.apply(e);
-			return;
-		}
-		
-		e.addPotionEffect(new PotionEffect(pe.getType(), pe.getDuration()+a.getDuration(), pe.getAmplifier()));
+		for (PotionEffect potionEffect : entity.getActivePotionEffects())
+			if (potionEffect.getType().equals(potionEffectType))
+				return potionEffect;
+		return null;
 	}
 	
-	public static void amplifyEffect(final LivingEntity e, final PotionEffect pe)
+	public static void lengthenEffect(final LivingEntity entity, final PotionEffect potionEffect)
 	{
-		final PotionEffect a = e.getPotionEffect(pe.getType());
+		final PotionEffect a = getEffect(entity, potionEffect.getType());
 		if (a == null)
 		{
-			pe.apply(e);
+			potionEffect.apply(entity);
 			return;
 		}
 		
-		e.addPotionEffect(new PotionEffect(pe.getType(), pe.getDuration(), pe.getAmplifier()+a.getAmplifier()));
+		entity.addPotionEffect(new PotionEffect(potionEffect.getType(), potionEffect.getDuration()+a.getDuration(), potionEffect.getAmplifier()));
+	}
+	
+	public static void amplifyEffect(final LivingEntity entity, final PotionEffect potionEffect)
+	{
+		final PotionEffect a = getEffect(entity, potionEffect.getType());
+		if (a == null)
+		{
+			potionEffect.apply(entity);
+			return;
+		}
+		
+		entity.addPotionEffect(new PotionEffect(potionEffect.getType(), potionEffect.getDuration(), potionEffect.getAmplifier()+a.getAmplifier()));
 	}
 }

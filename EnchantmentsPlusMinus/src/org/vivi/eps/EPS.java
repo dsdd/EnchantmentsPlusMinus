@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -64,10 +64,24 @@ public class EPS extends JavaPlugin implements Reloadable {
 	public static boolean debug = false;
 	
 	private static Dictionary dictionary = new Dictionary.Defaults();
-	private static boolean legacy = Material.getMaterial("BLACK_STAINED_GLASS_PANE") == null;
+	private final static int version = 
+			(Bukkit.getVersion().contains("1.8")) ? 8 : 
+				((Bukkit.getVersion().contains("1.9")) ? 9 :
+					(Bukkit.getVersion().contains("1.10")) ? 10 :
+						(Bukkit.getVersion().contains("1.11") ? 11 :
+							(Bukkit.getVersion().contains("1.12") ? 12 :
+								(Bukkit.getVersion().contains("1.13") ? 13 :
+									(Bukkit.getVersion().contains("1.14") ? 14 :
+										(Bukkit.getVersion().contains("1.15") ? 15 :
+											(Bukkit.getVersion().contains("1.16") ? 16 :
+												(Bukkit.getVersion().contains("1.17") ? 17 :
+													(Bukkit.getVersion().contains("1.18") ? 18 :
+														(Bukkit.getVersion().contains("1.19") ? 19 : 20))))))))));
+	
 	private static Economy economy = null;
 	private static Updater updater = new Updater();
 	private static ArrayList<Enchantment> registeredEnchants = new ArrayList<Enchantment>(Arrays.asList());
+	private static HashMap<Enchantment, HashMap<Integer, Double>> cachedCosts = new HashMap<Enchantment, HashMap<Integer, Double>>();
 	private static final Enchantment NULL_ENCHANT = EPS.newEnchant("null", "null");
 	
 	@Override
@@ -169,10 +183,10 @@ public class EPS extends JavaPlugin implements Reloadable {
 		
 		// Initialize legacy support
 		File file = new File(getDataFolder().getParentFile(), "LegacyWrapper.jar");
-		if (EPS.onLegacy() && !file.exists()) try {
+		if (EPS.getMCVersion() < 13 && !file.exists()) try {
 			Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(FileUtils.downloadFile(getDataFolder().getParentFile().getPath()+"/LegacyWrapper.jar", "https://github.com/dsdd/EnchantmentsPlusMinus/raw/main/Packs/LegacyWrapper.jar"))); } catch (Exception e) {}
 		
-		if (EPS.onLegacy() && !Bukkit.getPluginManager().isPluginEnabled("LegacyWrapper")) 
+		if (EPS.getMCVersion() < 13 && !Bukkit.getPluginManager().isPluginEnabled("LegacyWrapper")) 
 		{
 			Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Sorry, but it seems that there was an error downloading LegacyWrapper. "
 					+ "To prevent data corruption, Enchantments+- will be forcefully disabled."
@@ -276,13 +290,15 @@ public class EPS extends JavaPlugin implements Reloadable {
 		EPS.dictionary = dictionary;
 	}
 	
-	/** Returns true if the MC server is 1.12 or below.
+	/** Returns the version of the Minecraft server in numerical form.
+	 * e.g. 1.8.6, 1.8.2 and 1.8.8 will all return 8.
+	 * 		1.16, 1.14.2 and 1.19.84 will return 16, 14 and 19 respectively.
 	 * 
-	 * @return Returns true if the MC server is 1.12 or below.
+	 * @return Returns the version of the Minecraft server in numerical form.
 	 */
-	public static boolean onLegacy()
+	public static int getMCVersion()
 	{
-		return legacy;
+		return version;
 	}
 	
 	/**
@@ -328,25 +344,42 @@ public class EPS extends JavaPlugin implements Reloadable {
 		
 		Object cost = ConfigSettings.isGlobalCostEnabled() ? ConfigSettings.getGlobalCost() : config.get("cost");
 	
-		if (cost instanceof ConfigurationSection)
-		{
-			ConfigurationSection manualCost = (ConfigurationSection)cost;
-			double val = 0;
-			for (int i=0;i<levels;i++)
-				val = val + manualCost.getLong(Integer.toString(currentLevel+1+i));
-			return val;
-		}
-		else if (cost instanceof String)
-		{
-			double val = 0;
-			for (int i=0;i<levels;i++)
-				val = val + EPSConfiguration.eval(((String)cost).replaceAll("%lvl%", Integer.toString(currentLevel+1+i)));
-			return val;
-		}
-		else
-		{
+		if (!(cost instanceof ConfigurationSection) && !(cost instanceof String))
 			return Double.MAX_VALUE;
-		}
+		
+		double val = 0;
+		for (int i=0;i<levels;i++)
+			val = val + getCost(enchant, currentLevel+1+i, cost);
+		
+		return val;
+	}
+	
+	/** Tries accessing cached costs of the specified level of the enchant
+	 * If there is no existing cached cost, calculate it manually using provided cost object.
+	 * Cost object should either be a ConfigurationSection where costs are manually stated or a String equation.
+	 * 
+	 * @param enchant The enchantment to calculate
+	 * @param level The level of the enchant to calculate
+	 * @param cost Cost equation to use if there is no cached cost.
+	 * @return Returns the cost of the next specified levels of an enchant
+	 */
+	private static double getCost(Enchantment enchant, int level, Object cost)
+	{
+		if (!cachedCosts.containsKey(enchant))
+			cachedCosts.put(enchant, new HashMap<Integer, Double>());
+		
+		Double cachedCost = cachedCosts.get(enchant).get(level);
+		if (cachedCost != null)
+			return cachedCost;
+		
+		double val = Double.MAX_VALUE;
+		if (cost instanceof ConfigurationSection)
+			val = ((ConfigurationSection)cost).getLong(Integer.toString(level));
+		else if (cost instanceof String)
+			val = EPSConfiguration.eval(((String)cost).replaceAll("%lvl%", Integer.toString(level)));
+		
+		cachedCosts.get(enchant).put(level, val);
+		return val;
 	}
 
 	/**Registers an enchant for use.
@@ -424,7 +457,7 @@ public class EPS extends JavaPlugin implements Reloadable {
 			return NULL_ENCHANT;
 		if (disabledEnchants.contains(namespace))
 			return NULL_ENCHANT;
-		return onLegacy() ? LegacyWrapper.newEnchant(namespace, name.replaceAll(" ", "_"), 32767) : new Wrapper(namespace, name.replaceAll(" ", "_"), 32767);
+		return getMCVersion() < 13 ? LegacyWrapper.newEnchant(namespace, name.replaceAll(" ", "_"), 32767) : new Wrapper(namespace, name.replaceAll(" ", "_"));
 	}
 
 	/** Checks if the specified player has ever joined before.

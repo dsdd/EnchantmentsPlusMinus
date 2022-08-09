@@ -60,7 +60,7 @@ public class ConfigSettings implements Reloadable {
 		for (String name : applyFortuneOnStringList)
 		{
 			Material material = Material.matchMaterial(name);
-			if (material == null)
+			if (material == null && EPS.getMCVersion() > 12)
 				material = Material.matchMaterial(name, true);
 			if (material != null)
 				getApplyFortuneOn().add(material);

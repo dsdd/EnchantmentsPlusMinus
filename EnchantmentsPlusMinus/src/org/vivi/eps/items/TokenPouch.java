@@ -23,7 +23,7 @@ public class TokenPouch extends ItemStack {
 	
 	public TokenPouch(int tokens)
 	{
-		super(EPS.onLegacy() ? Material.matchMaterial("SKULL_ITEM") : Material.PLAYER_HEAD, 1);
+		super(EPS.getMCVersion() < 13 ? Material.matchMaterial("SKULL_ITEM") : Material.PLAYER_HEAD, 1);
 		SkullMeta meta = pouchSkullMeta;
 		meta.setDisplayName(Language.getLangMessage("token-pouch", false));
 		meta.setLore(Arrays.asList(new String[] {
@@ -36,7 +36,7 @@ public class TokenPouch extends ItemStack {
 	
 	// �\_(^v^)_/�
 	private static SkullMeta getCustomSkullMeta(String texture) {
-		ItemStack head = EPS.onLegacy() ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
+		ItemStack head = EPS.getMCVersion() < 13 ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
 		SkullMeta skull = (SkullMeta) head.getItemMeta();
 		GameProfile profile = new GameProfile(UUID.randomUUID(), null);
 

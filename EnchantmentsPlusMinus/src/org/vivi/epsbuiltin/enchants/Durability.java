@@ -21,7 +21,7 @@ public class Durability {
 		if (item.getItemMeta() == null)
 			return;
 		maxdurability = item.getType().getMaxDurability();
-		if (EPS.onLegacy())
+		if (EPS.getMCVersion() < 13)
 			durability = item.getDurability();
 		else
 		{
@@ -51,7 +51,7 @@ public class Durability {
 	{
 		if (item == null)
 			return;
-		if (EPS.onLegacy())
+		if (EPS.getMCVersion() < 13)
 			item.setDurability((short) (maxdurability-dmg));
 		else
 		{
@@ -65,7 +65,7 @@ public class Durability {
 	{
 		if (item == null)
 			return;
-		if (EPS.onLegacy())
+		if (EPS.getMCVersion() < 13)
 			item.setDurability((short)durability);
 		else
 		{

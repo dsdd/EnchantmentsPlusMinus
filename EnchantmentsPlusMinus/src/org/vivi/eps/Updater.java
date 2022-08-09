@@ -91,6 +91,18 @@ public class Updater {
 			configData.set("global-cost.cost", "69420*%lvl%");
 		}
 		
+		if (EPS.languageData.contains("upgradedpickaxe"))
+		{
+			EPS.languageData.set("upgraded-item", EPS.languageData.get("upgradedpickaxe"));
+			EPS.languageData.set("upgradedpickaxe", null);
+			try {
+				EPS.languageData.save(EPS.languageFile);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+		}
+		
 		setDefault("abbreviate-large-numbers", true);
 		configData.set("do-not-add-lore-to", new ArrayList<String>(Arrays.asList(new String[] {"an item e.g. BEDROCK that you do not want lore added to due to plugin interference"})));
 		configData.set("use-custom-fortune", null);

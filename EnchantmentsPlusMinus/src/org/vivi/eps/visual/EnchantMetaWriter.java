@@ -68,7 +68,9 @@ public class EnchantMetaWriter implements Reloadable {
 			if (enchants.contains(entry.getKey()))
 			{
 				String name = enchantnames.get(entry.getKey());
-				String lore = name+" "+ getNumber(entry.getValue());
+				String lore = (entry.getKey().getMaxLevel() < 2 || 
+						(EPSConfiguration.getConfiguration(entry.getKey()) != null && EPSConfiguration.getConfiguration(entry.getKey()).getInt("maxlevel", 10) < 2)
+						? name : name+" "+ getNumber(entry.getValue()));
 				String colorPrefix = ConfigSettings.getEnchantSpecificLoreColors().get(dictionary.getName(entry.getKey()));
 				lore = colorPrefix == null ? prefix + lore : ChatColor.translateAlternateColorCodes('&', colorPrefix) + lore;
 			    if (ConfigSettings.isShowEnchantDescriptions())

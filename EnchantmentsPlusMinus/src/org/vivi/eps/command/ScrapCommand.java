@@ -20,6 +20,7 @@ import org.vivi.eps.util.Language;
  */
 public class ScrapCommand implements CommandExecutor {
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) 
 	{
@@ -28,12 +29,12 @@ public class ScrapCommand implements CommandExecutor {
         	return false;
         }
 		
-        Player p = (Player) sender;
-        PlayerInventory pinv = p.getInventory();
+        Player player = (Player) sender;
+        PlayerInventory playerInventory = player.getInventory();
         
-        if (p.hasPermission("eps.scrap"))
+        if (player.hasPermission("eps.scrap"))
         {  
-        	ItemStack item = pinv.getItemInMainHand();
+        	ItemStack item = EPS.getMCVersion() < 9 ? playerInventory.getItemInHand() : playerInventory.getItemInMainHand();
         	Map<Enchantment, Integer> map = item.getItemMeta().getEnchants();
         	int scrapvalue = 0;
         	
@@ -44,18 +45,18 @@ public class ScrapCommand implements CommandExecutor {
         	
         	if (scrapvalue > 0)
         	{
-        	    EPS.getEconomy().changeBalance(p.getName(),scrapvalue);
-        	    pinv.removeItem(pinv.getItemInMainHand());
-        	    p.sendMessage(Language.getLangMessage("scrapsuccess").replaceAll("%tokens%", Integer.toString(scrapvalue)));
+        	    EPS.getEconomy().changeBalance(player.getName(),scrapvalue);
+        	    playerInventory.removeItem(EPS.getMCVersion() < 9 ? playerInventory.getItemInHand() : playerInventory.getItemInMainHand());
+        	    player.sendMessage(Language.getLangMessage("scrapsuccess").replaceAll("%tokens%", Integer.toString(scrapvalue)));
         	}
         	else
         	{
-        		p.sendMessage(Language.getLangMessage("cannotscrap"));
+        		player.sendMessage(Language.getLangMessage("cannotscrap"));
         	}
         }
         else
         {
-        	p.sendMessage(Language.getLangMessage("insufficientpermission"));
+        	player.sendMessage(Language.getLangMessage("insufficientpermission"));
 			return false;
         }
 		return false;

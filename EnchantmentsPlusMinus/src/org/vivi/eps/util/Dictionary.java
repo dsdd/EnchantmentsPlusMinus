@@ -158,7 +158,7 @@ public interface Dictionary {
 				return "thorns";
 			else if (Enchantment.DEPTH_STRIDER == enchant)
 				return "depth_strider";
-			else if (Enchantment.FROST_WALKER == enchant)
+			else if (EPS.getMCVersion() > 8 && Enchantment.FROST_WALKER == enchant)
 				return "frost_walker";
 			else if (Enchantment.DAMAGE_ALL == enchant)
 				return "sharpness";
@@ -192,15 +192,15 @@ public interface Dictionary {
 				return "luck_of_the_sea";
 			else if (Enchantment.LURE == enchant)
 				return "lure";
-			else if (Enchantment.MENDING == enchant)
+			else if (EPS.getMCVersion() > 8 && Enchantment.MENDING == enchant)
 				return "mending";
 			else
-				return EPS.onLegacy() ? enchant.getName().toLowerCase() : enchant.getKey().getKey();
+				return EPS.getMCVersion() < 13 ? enchant.getName().toLowerCase() : enchant.getKey().getKey();
 		}
 
 		@Override
 		public Enchantment findEnchant(String enchantName) {
-			Enchantment enchant =  EPS.onLegacy() ? Enchantment.getByName(bukkitNaming(enchantName)) : Enchantment.getByKey(NamespacedKey.minecraft(enchantName));
+			Enchantment enchant =  EPS.getMCVersion() < 13 ? Enchantment.getByName(bukkitNaming(enchantName)) : Enchantment.getByKey(NamespacedKey.minecraft(enchantName));
 			return enchant;
 		}	
 		

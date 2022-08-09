@@ -111,41 +111,41 @@ public class EPSCommand implements CommandExecutor, TabCompleter {
 				return true;
 			}
 			
-			Player p = (Player) sender;
+			Player player = (Player) sender;
 			
-			if (p.hasPermission(perm))
+			if (player.hasPermission(perm))
 	        {
 				if (args.length < 3)
 				{
 					sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cUsage: /eps enchant [enchant] [lvl]"));
 					return true;
 				}
-				if (p.getInventory().getItemInMainHand().getAmount() > 0)
+				if (player.getInventory().getItemInMainHand().getAmount() > 0)
 				{
 					int num = Integer.parseInt(args[2]);
 					Enchantment enchant = EPS.getDictionary().findEnchant(args[1].toLowerCase());
 					if (enchant == null)
 					{
-						Language.sendMessage(p, "invalid-enchant");
+						Language.sendMessage(player, "invalid-enchant");
 						return true;
 					}
 					if (num != 0)
-						p.getInventory().getItemInMainHand().addUnsafeEnchantment(enchant, num);
+						player.getInventory().getItemInMainHand().addUnsafeEnchantment(enchant, num);
 					else
-						p.getInventory().getItemInMainHand().removeEnchantment(enchant);
-					ItemMeta meta = EnchantMetaWriter.getWrittenMeta(p.getInventory().getItemInMainHand());
-		        	p.getInventory().getItemInMainHand().setItemMeta(meta);
+						player.getInventory().getItemInMainHand().removeEnchantment(enchant);
+					ItemMeta meta = EnchantMetaWriter.getWrittenMeta(player.getInventory().getItemInMainHand());
+		        	player.getInventory().getItemInMainHand().setItemMeta(meta);
 					return true;
 				}
 				else
 				{
-					Language.sendMessage(p, "invaliditem");
+					Language.sendMessage(player, "invaliditem");
 					return false;
 				}
 	        }
 			else
 			{
-				Language.sendMessage(p, "insufficientpermission");
+				Language.sendMessage(player, "insufficientpermission");
 				return false;
 			}
 		}

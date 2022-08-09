@@ -50,9 +50,9 @@ public class EnchantGUI implements Listener, Reloadable {
 	private static String modifyGuiName = Language.getLangMessage("modify-gui", false);
 	private static String modifyLore1 = Language.getLangMessage("modify-lore-1", false);
 	private static String modifyLore2 = Language.getLangMessage("modify-lore-2", false);
-	private static ItemStack filler = EPS.onLegacy() ? new ItemStack(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short)15) : new ItemStack(Material.matchMaterial("BLACK_STAINED_GLASS_PANE"), 1);
+	private static ItemStack filler = EPS.getMCVersion() < 13 ? new ItemStack(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short)15) : new ItemStack(Material.matchMaterial("BLACK_STAINED_GLASS_PANE"), 1);
 	private static ItemStack modifyingBook = new ItemStack(Material.BOOK, 1);
-	private static ItemStack glasspane = EPS.onLegacy() ? new ItemStack(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short)13) : new ItemStack(Material.matchMaterial("GREEN_STAINED_GLASS_PANE"), 1);
+	private static ItemStack glasspane = EPS.getMCVersion() < 13 ? new ItemStack(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short)13) : new ItemStack(Material.matchMaterial("GREEN_STAINED_GLASS_PANE"), 1);
 	
 	public EnchantGUI()
 	{
@@ -122,7 +122,7 @@ public class EnchantGUI implements Listener, Reloadable {
         inv.setItem(31, i);
 	}
 	
-	public static void nextPage(Player p, List<String> list)
+	private static void nextPage(Player p, List<String> list)
 	{
 		Inventory inv = GUIs.get(p);
 		ItemStack nextPage = inv.getItem(35);
@@ -148,7 +148,7 @@ public class EnchantGUI implements Listener, Reloadable {
 		inv.setItem(35, nextPage);
 	}
 	
-	public static void createPanes(Inventory gui)
+	private static void createPanes(Inventory gui)
     {
 		ItemStack slot = filler.clone();
     	for (int i=0;i<9;i++)
@@ -161,7 +161,7 @@ public class EnchantGUI implements Listener, Reloadable {
         	gui.setItem(i, slot);
     }
 	
-	public static void add(Player p, Inventory inv, String name)
+	private static void add(Player p, Inventory inv, String name)
     {
 		if (inv.firstEmpty() == -1)
 			return;
@@ -174,7 +174,7 @@ public class EnchantGUI implements Listener, Reloadable {
     		return;
     	}
     	EPSConfiguration config = EPSConfiguration.getConfiguration(enchant, true);
-    	String displayname = EnchantMetaWriter.enchantnames.get(enchant);
+    	String enchantDisplayName = EnchantMetaWriter.enchantnames.get(enchant);
     	Material material = config.getMaterial("upgradeicon");
     	String desc = config.getString("upgradedesc");
     	Integer maxlevel = config.getInt("maxlevel");
@@ -193,7 +193,7 @@ public class EnchantGUI implements Listener, Reloadable {
 
         ItemStack slot = material == null ? new ItemStack(Material.BOOK, 1) : new ItemStack(material, 1);
         ItemMeta meta = slot.getItemMeta();
-        meta.setDisplayName(ChatColor.AQUA+displayname);
+        meta.setDisplayName(ChatColor.AQUA+enchantDisplayName);
         
         List<String> lore = EnchantMetaWriter.getDescription(enchant);
 		        
@@ -209,7 +209,7 @@ public class EnchantGUI implements Listener, Reloadable {
 	
 	@EventHandler(priority = EventPriority.HIGH)
     public void onInventoryDrag(final InventoryDragEvent e) {
-		if (EPS.onLegacy())
+		if (EPS.getMCVersion() < 13)
 		{
 			if (!isSimilarInventory(e.getInventory(), GUIs.get(e.getWhoClicked()))) return;
 	        if (!compareInvs(e.getInventory(), GUIs.get(e.getWhoClicked()))) return;
@@ -234,7 +234,7 @@ public class EnchantGUI implements Listener, Reloadable {
 
         final Player p = (Player) e.getWhoClicked();
         
-        if (EPS.onLegacy())
+        if (EPS.getMCVersion() < 13)
 		{
 			if (!isSimilarInventory(e.getInventory(), GUIs.get(p))) return;
 	        if (!compareInvs(e.getInventory(), GUIs.get(p))) return;
@@ -302,15 +302,18 @@ public class EnchantGUI implements Listener, Reloadable {
         
     }
 	
-	public void upgradeItem(Enchantment enchant, Player p, Integer multi)
+	private void upgradeItem(Enchantment enchant, Player player, Integer multi)
     {
 		EPSConfiguration config = EPSConfiguration.getConfiguration(enchant, true);
-		ItemStack mainhand = p.getInventory().getItemInMainHand();
+		ItemStack mainhand = player.getInventory().getItemInMainHand();
 		ItemMeta mainmeta = mainhand.getItemMeta();
-    	double cost = (EPS.getCost(enchant, mainmeta.getEnchantLevel(enchant), multi));
-    	if (!(mainmeta.getEnchantLevel(enchant)+multi-1 >= config.getInt("maxlevel")) || p.hasPermission("eps.admin.bypassmaxlevel"))
+    	int currentLevel = mainmeta.getEnchantLevel(enchant);
+    	int upgradedLevel = currentLevel+multi;
+    	
+		double cost = EPS.getCost(enchant, currentLevel, multi);
+		if (!(upgradedLevel-1 >= config.getInt("maxlevel")) || player.hasPermission("eps.admin.bypassmaxlevel"))
     	{
-    		if (!p.hasPermission("eps.admin.bypassincompatibilities"))
+    		if (!player.hasPermission("eps.admin.bypassincompatibilities"))
     		{
     			for (Map.Entry<List<String>, List<Enchantment>> entry : incpts.entrySet())
     			{
@@ -321,38 +324,38 @@ public class EnchantGUI implements Listener, Reloadable {
 				    			if (e != null)
 					    			if (mainmeta.hasEnchant(e) && e != enchant)
 					    			{
-					    				Language.sendMessage(p, "lockedupgrade");
+					    				Language.sendMessage(player, "lockedupgrade");
 					    				return;
 					    			}
     				}
     			}
     		}
 
-    		if (economy.getBalance(p.getName()) >= cost)
+    		if (economy.getBalance(player.getName()) >= cost)
             {
-	        	Language.sendMessage(p, "upgradedpickaxe");
-	        	mainhand.addUnsafeEnchantment(enchant, mainmeta.getEnchantLevel(enchant)+multi);
-	        	economy.setBalance(p.getName(), economy.getBalance(p.getName()) - cost);
+    			player.sendMessage(Language.getLangMessage("upgraded-item").replaceAll("%enchant%", EnchantMetaWriter.enchantnames.get(enchant)).replaceAll("%lvl%", Integer.toString(upgradedLevel)));
+	        	mainhand.addUnsafeEnchantment(enchant, upgradedLevel);
+	        	economy.setBalance(player.getName(), economy.getBalance(player.getName()) - cost);
 	        	mainhand.setItemMeta(EnchantMetaWriter.getWrittenMeta(mainhand));
-	        	loadInventory(p, guiNames.get(p));
+	        	loadInventory(player, guiNames.get(player));
             }
 	        else
 	        {
-	        	Language.sendMessage(p, "insufficienttokens");
+	        	Language.sendMessage(player, "insufficienttokens");
 	        }
     	}
-    	else if ((mainmeta.getEnchantLevel(enchant) >= config.getInt("maxlevel")))
+    	else if ((currentLevel >= config.getInt("maxlevel")))
     	{
-    		Language.sendMessage(p, "exceedmaxlvl");
+    		Language.sendMessage(player, "exceedmaxlvl");
     	}
     	else
     	{
-    		Language.sendMessage(p, "maxedupgrade");
+    		Language.sendMessage(player, "maxedupgrade");
     	}
 
     }
 	
-	public static boolean isSimilarInventory(Inventory first, Inventory second)
+	private static boolean isSimilarInventory(Inventory first, Inventory second)
 	{
 	    if(first == null && second == null) return true;
 	    if((first == null && second != null) || (first != null && second == null)) return false;
@@ -370,7 +373,7 @@ public class EnchantGUI implements Listener, Reloadable {
 	    return true;
 	}
 	
-	public static boolean compareInvs(Inventory inv0, Inventory inv1){
+	private static boolean compareInvs(Inventory inv0, Inventory inv1){
 		if (!inv0.getHolder().equals(inv1.getHolder())) return false;
 		if (inv0.getSize() != inv1.getSize()) return false;
 		if (!inv0.getType().equals(inv1.getType())) return false;
@@ -404,7 +407,7 @@ public class EnchantGUI implements Listener, Reloadable {
 					inv.getItemInOffHand().getType().equals(Material.SHIELD) ||
 					hoes.contains(m) ||
 					m.equals(Material.FISHING_ROD) ||
-					(e.getClickedBlock() != null && e.getClickedBlock().getType().isInteractable()))
+					(EPS.getMCVersion() > 11 && e.getClickedBlock() != null && e.getClickedBlock().getType().isInteractable()))
 				return;
 			if (EPS.configData.getBoolean("open-enchant-gui-on-right-click") == true)
 				EPS.enchantsCommand.onCommand(e.getPlayer(), Bukkit.getPluginCommand("enchants"), "enchants", new String[] {"dontshow"});
@@ -431,16 +434,17 @@ public class EnchantGUI implements Listener, Reloadable {
 		}
 	}
 	
-	public static void setOpenable(Player p, boolean openable)
+	public static void setOpenable(Player player, boolean openable)
 	{
 		if (openable)
-			disabled.remove(p);
+			disabled.remove(player);
 		else
-			disabled.add(p);
+			disabled.add(player);
 	}
 
 	@Override
-	public void reload() {
+	public void reload() 
+	{
 		EnchantGUI.setupInCPTS();
 		nextPageName = Language.getLangMessage("next-page", false);
 		modifyGuiName = Language.getLangMessage("modify-gui", false);

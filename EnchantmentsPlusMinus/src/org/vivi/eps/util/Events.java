@@ -162,7 +162,7 @@ public class Events implements Listener, Reloadable {
 	@EventHandler
 	public void onInventoryClick(PrepareAnvilEvent e)
 	{
-		if (!ConfigSettings.isAnvilCombiningEnabled())
+		if (!ConfigSettings.isAnvilCombiningEnabled() || EPS.getMCVersion() < 12)
 			return;
 		AnvilInventory anvil = e.getInventory();
 		

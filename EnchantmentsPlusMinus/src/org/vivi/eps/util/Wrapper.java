@@ -13,14 +13,12 @@ public class Wrapper extends Enchantment {
 	
 	private static final Dictionary dictionary = EPS.getDictionary();
 	private final String name;
-	private final int maxLvl;
 	private final List<Enchantment> incompatibilities = new ArrayList<Enchantment>();
 	
-	public Wrapper(String namespace, String name, int lvl) 
+	public Wrapper(String namespace, String name) 
 	{
 		super(NamespacedKey.minecraft(namespace));
 		this.name = name;
-		this.maxLvl = lvl;
 	}
 
 	// Defaults to true for now.
@@ -69,7 +67,7 @@ public class Wrapper extends Enchantment {
 	@Override
 	public int getMaxLevel() {
 		// TODO Auto-generated method stub
-		return maxLvl;
+		return 32767;
 	}
 
 	@Override
@@ -84,13 +82,11 @@ public class Wrapper extends Enchantment {
 		return 0;
 	}
 
-	@Override
 	public boolean isCursed() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	@Override
 	public boolean isTreasure() {
 		// TODO Auto-generated method stub
 		return false;
