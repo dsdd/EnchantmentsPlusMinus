@@ -31,6 +31,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.vivi.eps.EPS;
 import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.api.Reloadable;
+import org.vivi.eps.libs.NumberUtils;
+import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Dictionary;
 import org.vivi.eps.util.Language;
 import org.vivi.eps.util.economy.Economy;
@@ -95,28 +97,28 @@ public class EnchantGUI implements Listener, Reloadable {
 		
 	}
 	
-	public static void loadInventory(Player p, String guiname)
+	public static void loadInventory(Player player, String guiToOpen)
 	{
-		Inventory inv = GUIs.get(p);
+		Inventory inv = GUIs.get(player);
 		inv.clear();
 		createPanes(inv);
-		List<String> l = EPS.guisData.getStringList("guis."+guiname+".enchants");
+		List<String> l = EPS.guisData.getStringList("guis."+guiToOpen+".enchants");
 		if (l.size() > 14)
 		{
 			ItemStack i = glasspane.clone();
 			inv.setItem(35, i);
 		}
-		if (p.hasPermission("eps.admin.changegui"))
+		if (player.hasPermission("eps.admin.changegui"))
 		{
 			ItemStack i = modifyingBook.clone();
 			inv.setItem(8, i);
 		}
         for (String i : l)
-        	add(p, inv, i);
+        	add(player, inv, i);
 
         ItemStack i = new ItemStack(Material.GOLD_INGOT, 1);
         ItemMeta meta = i.getItemMeta();
-        meta.setDisplayName(Language.getLangMessage("balance-display-in-gui", false).replaceAll("%balance%", Double.toString(economy.getBalance(p.getName()))));
+        meta.setDisplayName(Language.getLangMessage("balance-display-in-gui", false).replaceAll("%balance%", ConfigSettings.isAbbreviateLargeNumbers() ? NumberUtils.abbreviate(economy.getBalance(player.getName())) : Double.toString(economy.getBalance(player.getName()))));
         i.setItemMeta(meta);
         inv.setItem(4, i);
         inv.setItem(31, i);
@@ -167,9 +169,10 @@ public class EnchantGUI implements Listener, Reloadable {
 			return;
 		ItemStack mainhand = p.getInventory().getItemInMainHand();
 		ItemMeta mainmeta = mainhand.getItemMeta();
-    	String cost;
+    	String displayCost;
     	Enchantment enchant = dictionary.findEnchant(name);
-    	if (enchant == null) {
+    	if (enchant == null) 
+    	{
     		Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid enchantment name "+name+"!");
     		return;
     	}
@@ -180,9 +183,12 @@ public class EnchantGUI implements Listener, Reloadable {
     	Integer maxlevel = config.getInt("maxlevel");
     	
         if (!(mainmeta.getEnchantLevel(enchant) >= maxlevel) || p.hasPermission("eps.admin.bypassmaxlevel"))
-        	cost = Long.toString((long) Math.floor(EPS.getCost(enchant, mainmeta.getEnchantLevel(enchant), 1)));
+        {
+        	long cost = (long) Math.floor(EPS.getCost(enchant, mainmeta.getEnchantLevel(enchant), 1));
+        	displayCost = ConfigSettings.isAbbreviateLargeNumbers() ? NumberUtils.abbreviate(cost) : Long.toString(cost);
+        }
         else
-            cost = "Maxed!";
+            displayCost = "Maxed!";
         
         if (desc == null)
         	EPS.plugin.getLogger().log(Level.WARNING, "Invalid upgrade description for enchant "+name.toUpperCase()+"!");
@@ -198,7 +204,7 @@ public class EnchantGUI implements Listener, Reloadable {
         List<String> lore = EnchantMetaWriter.getDescription(enchant);
 		        
         for (String s : EPS.guiLoreData.getStringList("lore"))
-        	lore.add(ChatColor.translateAlternateColorCodes('&', s.replaceAll("%cost%", cost).replaceAll("%maxlevel%", maxlevel.toString()).replaceAll("%currentlevel%", Integer.toString(mainmeta.getEnchantLevel(enchant)))));
+        	lore.add(ChatColor.translateAlternateColorCodes('&', s.replaceAll("%cost%", displayCost).replaceAll("%maxlevel%", maxlevel.toString()).replaceAll("%currentlevel%", Integer.toString(mainmeta.getEnchantLevel(enchant)))));
         
         meta.setLore(lore);
         meta.addEnchant(enchant, 1, true);

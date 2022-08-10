@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.vivi.eps.EPS;
 import org.vivi.eps.libs.NumberUtils;
+import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Language;
 
 public class TokensCommand implements CommandExecutor {
@@ -25,6 +26,6 @@ public class TokensCommand implements CommandExecutor {
 
 	private static void showTokens(CommandSender sender, String name) 
 	{
-		sender.sendMessage(Language.getLangMessage("tokenbalance").replaceAll("%tokens%", NumberUtils.abbreviate(EPS.getEconomy().getBalance(name), 0)).replaceAll("%player%", name));
+		sender.sendMessage(Language.getLangMessage("tokenbalance").replaceAll("%tokens%", ConfigSettings.isAbbreviateLargeNumbers() ? NumberUtils.abbreviate(EPS.getEconomy().getBalance(name)) : Double.toString(EPS.getEconomy().getBalance(name))).replaceAll("%player%", name));
 	}
 }

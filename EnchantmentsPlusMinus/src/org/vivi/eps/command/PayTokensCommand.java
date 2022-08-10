@@ -33,7 +33,8 @@ public class PayTokensCommand implements CommandExecutor {
 			if (EPS.playerExists(args[0]))
 			{
 				try {
-				Integer tokens = Integer.parseInt(args[1]);
+					
+				int tokens = Integer.parseInt(args[1]);
 				if (economy.getBalance((Player)sender) < tokens)
 				{
 					Language.sendMessage(sender, "invalidtokenamountpay");

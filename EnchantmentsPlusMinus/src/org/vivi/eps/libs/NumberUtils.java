@@ -1,23 +1,23 @@
 package org.vivi.eps.libs;
 
 public class NumberUtils {
-	public static char[] c = new char[]{'k', 'M', 'B', 'T', 'Q'};
+	public static char[] suffixes = new char[]{'k', 'M', 'B', 'T', 'q', 'Q', 's', 'S'};
 
-	/** Recursive implementation, invokes itself for each factor of a thousand, increasing the class on each invocation.
-	 *  
-	 * @param n the number to format
-	 * @param iteration in fact this is the class from the array c
-	 * @return a String representing the number n formatted in a cool looking way.
+	/** Logarithm implementation.
+	 * 
+	 * @param value Value to abbreviate
+	 * @return Abbreviated number in k, M, B, T and Q
 	 */
-	public static String abbreviate(double n, int iteration) 
+	public static String abbreviate(double value)
 	{
-	    double d = ((long) n * 0.01) * 0.1;
-	    boolean isRound = (d * 10) %10 == 0;//true if the decimal part is equal to 0 (then it's trimmed anyway)
-	    return (d < 1000? //this determines the class, i.e. 'k', 'm' etc
-	        ((d > 99.9 || isRound || (!isRound && d > 9.99)? //this decides whether to trim the decimals
-	         (int) d * 10 / 10 : d + "" // (int) d * 10 / 10 drops the decimal
-	         ) + "" + c[iteration]) 
-	        : abbreviate(d, iteration+1));
+		if (value < 1000)
+			return Short.toString((short)value);
+		else
+		{
+			int exp = (int)(Math.log10(value) * 0.33);
+			char suffix = suffixes[exp-1];
+			double norm = Math.floor(value * (100 / (Math.pow(1000, exp)))) * 0.01;
+			return String.format("%." + 2 + "f%s", norm, suffix);
+		}
 	}
-
 }
