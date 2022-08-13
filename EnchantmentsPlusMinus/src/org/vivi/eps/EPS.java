@@ -15,6 +15,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.api.Reloadable;
@@ -80,6 +81,7 @@ public class EPS extends JavaPlugin implements Reloadable {
 	
 	private static Economy economy = null;
 	private static Updater updater = new Updater();
+	private static Events epsEvents = new Events();
 	private static ArrayList<Enchantment> registeredEnchants = new ArrayList<Enchantment>(Arrays.asList());
 	private static HashMap<Enchantment, HashMap<Integer, Double>> cachedCosts = new HashMap<Enchantment, HashMap<Integer, Double>>();
 	private static final Enchantment NULL_ENCHANT = EPS.newEnchant("null", "null");
@@ -178,7 +180,7 @@ public class EPS extends JavaPlugin implements Reloadable {
 		// Load events
 		enchantMetaWriter = new EnchantMetaWriter();
 		Bukkit.getPluginManager().registerEvents(new EnchantGUI(), this);
-		Bukkit.getPluginManager().registerEvents(new Events(), this);
+		Bukkit.getPluginManager().registerEvents(epsEvents, this);
 		
 		
 		// Initialize legacy support
@@ -197,7 +199,6 @@ public class EPS extends JavaPlugin implements Reloadable {
 		EPS.registerReloader(this); // This has to be reloaded first.
 		EPS.registerReloader(enchantMetaWriter);
 		EPS.registerReloader(new EnchantGUI());
-		EPS.registerReloader((new EPSConfiguration()).new EPSConfigReloader());
 				
 		// Finalize loading
 		try 
@@ -212,15 +213,24 @@ public class EPS extends JavaPlugin implements Reloadable {
 		}
 		for (Enchantment enchant : Enchantment.values())
 			EnchantMetaWriter.init(enchant);
-		EPSConfiguration.reloadConfigurations();
 		try {
 			configData.save(configFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		EnchantGUI.setupInCPTS();
-		for (Player p : Bukkit.getOnlinePlayers())
-			EnchantGUI.setupGUI(p);
+		epsEvents.reload();
+		for (Player player : Bukkit.getOnlinePlayers())
+		{
+			try {
+				epsEvents.onJoin(new PlayerJoinEvent(player, null));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			EnchantGUI.setupGUI(player);
+		}
+		
+			
 		
 		// And load in the built-in enchants.
 		
@@ -340,7 +350,7 @@ public class EPS extends JavaPlugin implements Reloadable {
 	 */
 	public static double getCost(Enchantment enchant, int currentLevel, int levels)
 	{
-		EPSConfiguration config = EPSConfiguration.getConfiguration(enchant, true);
+		EPSConfiguration config = EPSConfiguration.getConfiguration(enchant);
 		
 		Object cost = ConfigSettings.isGlobalCostEnabled() ? ConfigSettings.getGlobalCost() : config.get("cost");
 	
@@ -395,7 +405,7 @@ public class EPS extends JavaPlugin implements Reloadable {
 		registeredEnchants.add(enchant);
 		File enchantfile = new File(enchantsFolder, getDictionary().getName(enchant)+".yml");
 		if (enchantfile.exists())
-			EPSConfiguration.getEPSConfigurations().put(enchant, EPSConfiguration.loadConfiguration(enchantfile));
+			EPSConfiguration.loadConfiguration(enchantfile, enchant);
 		if (!Arrays.asList(Enchantment.values()).contains(enchant))
 		{
 			try

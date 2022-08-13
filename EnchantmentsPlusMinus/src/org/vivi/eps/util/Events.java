@@ -37,31 +37,16 @@ import org.vivi.epsbuiltin.enchants.Durability;
 
 public class Events implements Listener, Reloadable {
 
-	public Map<Player, Integer> blocklog = new HashMap<Player, Integer>();
-	private Random random = new Random();
-	private Economy economy = EPS.getEconomy();
-	private String miningTokensGet = Language.getLangMessage("miningtokensget");
-	private String playerKillGet = Language.getLangMessage("playerkill");
-	private String mobKillGet = Language.getLangMessage("mobkill");
+	public Map<Player, Integer> blocklog;
+	private Random random;
+	private Economy economy;
+	private String miningTokensGet;
+	private String playerKillGet;
+	private String mobKillGet;
 	
 	public Events() 
 	{
 		EPS.registerReloader(this);
-
-		setDefault("playerkilltokens.enabled", true);
-		setDefault("playerkilltokens.min", 25);
-		setDefault("playerkilltokens.max", 50);
-		setDefault("mobkilltokens.enabled", true);
-		setDefault("mobkilltokens.min", 5);
-		setDefault("mobkilltokens.max", 10);
-		Language.setDefaultLangMessage("playerkill", "&aYou received %tokens% tokens for killing %victim%!");
-		Language.setDefaultLangMessage("mobkill", "&aYou received %tokens% tokens for killing %mob%!");
-		
-		setDefault("miningtokens.enabled", true);
-		setDefault("miningtokens.min", 25);
-		setDefault("miningtokens.max", 50);
-		setDefault("miningtokens.blockstobreak", 1000);
-		Language.setDefaultLangMessage("miningtokensget", "&aYou received %tokens% tokens for mining!");
 	}	
 	
 	@EventHandler
@@ -183,7 +168,7 @@ public class Events implements Listener, Reloadable {
 
 		int cost = 1;
 		for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
-			int maxlevel = EPSConfiguration.getConfiguration(entry.getKey(), true).getInt("maxlevel");
+			int maxlevel = EPSConfiguration.getConfiguration(entry.getKey()).getInt("maxlevel");
 			if (maxlevel != 0 && entry.getValue() > maxlevel)
 			{
 				item.addUnsafeEnchantment(entry.getKey(), maxlevel);
@@ -251,6 +236,25 @@ public class Events implements Listener, Reloadable {
 	@Override
 	public void reload() 
 	{
+		EPSConfiguration.reloadConfigurations();
+		
+		setDefault("playerkilltokens.enabled", true);
+		setDefault("playerkilltokens.min", 25);
+		setDefault("playerkilltokens.max", 50);
+		setDefault("mobkilltokens.enabled", true);
+		setDefault("mobkilltokens.min", 5);
+		setDefault("mobkilltokens.max", 10);
+		Language.setDefaultLangMessage("playerkill", "&aYou received %tokens% tokens for killing %victim%!");
+		Language.setDefaultLangMessage("mobkill", "&aYou received %tokens% tokens for killing %mob%!");
+		
+		setDefault("miningtokens.enabled", true);
+		setDefault("miningtokens.min", 25);
+		setDefault("miningtokens.max", 50);
+		setDefault("miningtokens.blockstobreak", 1000);
+		Language.setDefaultLangMessage("miningtokensget", "&aYou received %tokens% tokens for mining!");
+		blocklog = new HashMap<Player, Integer>();
+		random = new Random();
+		economy = EPS.getEconomy();
 		miningTokensGet = Language.getLangMessage("miningtokensget");
 		playerKillGet = Language.getLangMessage("playerkill");
 		mobKillGet = Language.getLangMessage("mobkill");

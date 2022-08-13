@@ -176,7 +176,7 @@ public class EnchantGUI implements Listener, Reloadable {
     		Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Invalid enchantment name "+name+"!");
     		return;
     	}
-    	EPSConfiguration config = EPSConfiguration.getConfiguration(enchant, true);
+    	EPSConfiguration config = EPSConfiguration.getConfiguration(enchant);
     	String enchantDisplayName = EnchantMetaWriter.enchantnames.get(enchant);
     	Material material = config.getMaterial("upgradeicon");
     	String desc = config.getString("upgradedesc");
@@ -193,7 +193,7 @@ public class EnchantGUI implements Listener, Reloadable {
         if (desc == null)
         	EPS.plugin.getLogger().log(Level.WARNING, "Invalid upgrade description for enchant "+name.toUpperCase()+"!");
         if (maxlevel == 0)
-        	EPS.plugin.getLogger().log(Level.WARNING, "Max level for enchant"+name.toUpperCase()+" is zero! Is this intentional?");
+        	EPS.plugin.getLogger().log(Level.WARNING, "Max level for enchant "+name.toUpperCase()+" is zero! Is this intentional?");
         if (material == null)
         	EPS.plugin.getLogger().log(Level.WARNING, "Invalid material type for enchantment "+name.toUpperCase()+". Setting to default BOOK.");
 
@@ -310,7 +310,7 @@ public class EnchantGUI implements Listener, Reloadable {
 	
 	private void upgradeItem(Enchantment enchant, Player player, Integer multi)
     {
-		EPSConfiguration config = EPSConfiguration.getConfiguration(enchant, true);
+		EPSConfiguration config = EPSConfiguration.getConfiguration(enchant);
 		ItemStack mainhand = player.getInventory().getItemInMainHand();
 		ItemMeta mainmeta = mainhand.getItemMeta();
     	int currentLevel = mainmeta.getEnchantLevel(enchant);

@@ -3,7 +3,9 @@ package org.vivi.eps.api;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -15,8 +17,6 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.vivi.eps.EPS;
-import org.vivi.eps.util.Dictionary;
-import org.vivi.eps.util.Language;
 
 /** An implementation of {@link Configuration}.
  * Meant for use for easy writing and reading of Enchantments+- configuration files.
@@ -27,23 +27,21 @@ import org.vivi.eps.util.Language;
 public class EPSConfiguration extends YamlConfiguration {
 
 	private File file = null;
+	private Enchantment enchant = null;
 	private Map<String, String> cachedStrings = new HashMap<String, String>();
-	private static Dictionary dictionary = EPS.getDictionary();
 	private Map<String, Map<Integer, Double>> cachedAutofills = new HashMap<String, Map<Integer, Double>>();
 	
-	// This map is used to improve efficiency of getting values from each enchant config
-	private static Map<Enchantment, EPSConfiguration> fgMap = new HashMap<Enchantment, EPSConfiguration>();
+	private static List<EPSConfiguration> configurations = new ArrayList<EPSConfiguration>();
 	
 	/** Reloads all enchant configurations
      */
     public static void reloadConfigurations()
     {
-    	Enchantment[] enchants = Enchantment.values();
-    	for (Enchantment enchant : enchants)
-    		reloadConfiguration(enchant);
+    	for (EPSConfiguration configuration : configurations)
+			configuration.load();
     }
     
-    /** Reloads the configuration of the specified enchant
+	/** Reloads the configuration of the specified enchant
      * 
      * @param enchant Enchant to reload configuration
      */
@@ -51,10 +49,10 @@ public class EPSConfiguration extends YamlConfiguration {
     {
     	File enchantfile = new File(EPS.enchantsFolder, EPS.getDictionary().getName(enchant)+".yml");
 		if (enchantfile.exists())
-			fgMap.put(enchant, EPSConfiguration.loadConfiguration(enchantfile));
+				EPSConfiguration.getConfiguration(enchant).load();
     }
 
-	public static EPSConfiguration loadConfiguration(File file)
+	public static EPSConfiguration loadConfiguration(File file, Enchantment enchant)
 	{
 		Validate.notNull(file, "File cannot be null");
 
@@ -69,6 +67,7 @@ public class EPSConfiguration extends YamlConfiguration {
             Bukkit.getLogger().log(Level.SEVERE, "Cannot load " + file, ex);
         }
         config.file = file;
+        config.enchant = enchant;
 
         return config;
 	}
@@ -123,35 +122,11 @@ public class EPSConfiguration extends YamlConfiguration {
      */
     public void setDefault(String path, Object value)
     {
-    	setConfigValue(path, value);
-    }
-	
-    private void setConfigValue(String path, Object replace)
-    {
-		if (!isSet(path))
+    	if (!isSet(path))
 		{
-			set(path, replace);
+			set(path, value);
 			save();
 		}
-    }
-    
-    /** Automatically fills the max level, scrap value, upgrade icon and cost for easier value setting.
-     *  
-     *  Max level is set to 10, scrap value is set to half cost, upgrade icon is set to BOOK,
-     *  upgrade description is set to the specified description (so people can understand what the
-     *  enchant does), the cost type is set to linear and the start value and value is set to the 
-     *  specified cost.
-     * 
-     * @param description The description to fill
-     * @param cost The cost you want to set
-     */
-    public void autoFillEnchantConfig(String description, int cost)
-    {
-    	setDefault("maxlevel", 10);
-    	setDefault("scrapvalue", cost/2);
-    	setDefault("upgradeicon", Material.BOOK.name());
-    	setDefault("upgradedesc", description);
-    	setDefault("cost", Integer.toString(cost) + " * %lvl% + " + Integer.toString(cost));
     }
     
     /** Fills the max level, scrap value, upgrade icon and cost using provided values if they do not exist.
@@ -198,60 +173,34 @@ public class EPSConfiguration extends YamlConfiguration {
 		return file;
 	}
 	
-	/** Gets the configuration of the enchant
-	 * Should not be used by plugins, use loadConfiguration() instead!
-	 * 
-	 * @param enchant The enchant
-	 * @param autofill Whether the configuration should be auto-filled or not.
-	 * @return The configuration of the enchant
-	 */
-	public static EPSConfiguration getConfiguration(Enchantment enchant, boolean autofill)
-	{
-		EPSConfiguration config = getEPSConfigurations().get(enchant);
-		if (config == null)
-		{
-			String enchname = EPS.getDictionary().getName(enchant);
-			File file = new File(EPS.enchantsFolder, enchname+".yml");
-			if (file.exists())
-				config = EPSConfiguration.loadConfiguration(file);
-			else
-			{
-				String msg = Language.getLangMessage("no-enchant-config-found");
-				if (!msg.isEmpty())
-					Bukkit.getConsoleSender().sendMessage(msg.replaceAll("%enchant%", enchname));
-				try {
-					file.createNewFile();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-				config = EPSConfiguration.loadConfiguration(file);
-				if (autofill)
-				{
-					config.autoFillEnchantConfig(dictionary.getDefaultDescription(enchant), dictionary.getDefaultCost(enchant));
-					try {
-						config.save(file);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-			
-			getEPSConfigurations().put(enchant, config);
-			return config;
-		}
-		else
-			return config;
-	}
-	
-	/** Gets the configuration of the enchant
-	 * Should not be used by plugins, use loadConfiguration() instead!
+	/** Gets the configuration of the enchant.
 	 * 
 	 * @param enchant The enchant
 	 * @return The configuration of the enchant
 	 */
 	public static EPSConfiguration getConfiguration(Enchantment enchant)
 	{
-		return getConfiguration(enchant, false);
+		for (EPSConfiguration configuration : configurations)
+			if (configuration.enchant == enchant)
+				return configuration;
+
+		EPSConfiguration config = null;
+		String enchname = EPS.getDictionary().getName(enchant);
+		File file = new File(EPS.enchantsFolder, enchname+".yml");
+		if (file.exists())
+			config = EPSConfiguration.loadConfiguration(file, enchant);
+		else
+		{
+			try {
+				file.createNewFile();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			config = EPSConfiguration.loadConfiguration(file, enchant);
+			config.save();
+		}
+					
+		return config;
 	}
     
 	public static double eval(final String str) {
@@ -336,14 +285,20 @@ public class EPSConfiguration extends YamlConfiguration {
 	    }.parse();
 	}
 	
-	/**
-	 * Just saving but easier.
-	 */
 	public void save()
 	{
 		try {
 			save(file);
 		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	 private void load() 
+	 {
+		try {
+			load(file);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -359,7 +314,8 @@ public class EPSConfiguration extends YamlConfiguration {
 	 */
 	public Material getMaterial(String path)
 	{
-		return Material.matchMaterial(getString(path));
+		String value = getString(path);
+		return value == null ? null : Material.matchMaterial(value);
 	}
 	
 	/**
@@ -418,18 +374,9 @@ public class EPSConfiguration extends YamlConfiguration {
 		return cachedString;
 	}
 	
-	public static Map<Enchantment, EPSConfiguration> getEPSConfigurations() 
+	public static List<EPSConfiguration> getConfigurations() 
 	{
-		return fgMap;
-	}
-
-	public class EPSConfigReloader implements Reloadable {
-
-		@Override
-		public void reload() {
-			EPSConfiguration.reloadConfigurations();
-		}
-		
+		return configurations;
 	}
 	
 	public static class EPSParam {

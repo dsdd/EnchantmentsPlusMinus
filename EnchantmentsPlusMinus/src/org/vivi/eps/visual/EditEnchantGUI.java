@@ -32,7 +32,7 @@ public class EditEnchantGUI implements Listener {
 	{
 		Bukkit.getPluginManager().registerEvents(this, EPS.plugin);
 		this.p = p;
-        config = EPSConfiguration.getConfiguration(enchant, true);
+        config = EPSConfiguration.getConfiguration(enchant);
 		Map<String, Object> entries = config.getValues(true);
 		int size = (int) (Math.ceil((double)entries.size()/9)*9);
 		inv = Bukkit.createInventory(null, size, "Modifying "+EPS.getDictionary().getName(enchant).toUpperCase());
