@@ -10,13 +10,18 @@ An easy-to-use API to make your own custom enchants
 PAPI Support, use %eps_tokens% to display your tokens!  
 
 # Commands  
-/enchants - Opens the enchant GUI  
-/tokens [player] - Shows how many tokens [player] has. If [player] is blank, shows how many tokens you have  
-/eps reload - Reloads everything.  
-/eps changetokens [player] [amount] - Increases/decreases the amount of tokens [player] by [amount]  
-/eps settokens [player] [amount] - Sets the amount of tokens [player] to [amount]  
-/scrap - Destroys the current tool a player is holding in return for tokens. Can be disabled with permissions.  
-/paytokens [player] [amount] - Pays [player] [amount] tokens. Player-only command.  
+/enchants - Opens the enchant GUI
+/tokens [player] - Shows how many tokens [player] has. If [player] is blank, shows how many tokens you have
+/eps reload - Reloads all configuration files. Some settings may require a full plugin reload.
+/eps changebal [player] [amount] - Changes a player's balance by the specified amount.
+/eps setbal [player] [amount] - Sets a player's balance to the specified amount.
+/eps enchant [enchant] [level] - Enchants the item you are holding with the specified enchant and level.
+/eps book [player] [enchant:level] - Gives the player a book with the specified enchant and level. (e.g. /eps book efficiency:2)
+/eps tokenpouch [player] [amount] - Gives the player a token pouch with the specified amount.
+/eps baltop - Shows the baltop. Can be useful for statistical data.
+/scrap - Destroys the current tool a player is holding in return for tokens. Can be disabled with permissions.
+/paytokens [player] [amount] - Pays [player] [amount] tokens. Player-only command.
+
 
 # Supported Versions:  
 1.12.2+  
@@ -24,7 +29,7 @@ Anything below is broken.
 
 
 # Known bugs:  
-NoClassDefFoundError (This can be fixed with a simple /reload or if you have Plugman, /plugman reload EnchantmentsPlusMinus)  
+Failed to handle packet error. Looking into this right now
 
 # Registered built-in enchants:  
 
@@ -68,17 +73,20 @@ eps.scrap - Gives access to /scrap.
 eps.paytokens - Gives access to /paytokens.  
 
 #### Admin commands  
-eps.admin.reload - Gives access to /eps reload.  
-eps.admin.settokens - Gives access to /eps settokens.  
-eps.admin.changetokens - Gives access to /eps changetokens.  
-eps.admin.enchant - Gives access to /eps enchant.  
-eps.admin.bypassmaxlevel - Allows bypassing of max level in the enchant GUI  
-eps.admin.bypassincompatibilities - Allows bypassing of incompatibilities of enchants in the enchant GUI  
+eps.admin.reload - Gives access to /eps reload.
+eps.admin.setbal - Gives access to /eps setbal.
+eps.admin.changebal - Gives access to /eps changebal.
+eps.admin.enchant - Gives access to /eps enchant.
+eps.admin.book - Gives access to /eps book.
+eps.admin.tokenpouch - Gives access to /eps tokenpouch.
+eps.admin.baltop - Gives access to /eps baltop.
+eps.admin.bypassmaxlevel - Allows bypassing of max level in the enchant GUI
+eps.admin.bypassincompatibilities - Allows bypassing of incompatibilities of enchants in the enchant GUI
+
 
 # Misc  
 The plugin is in an early release stage.  
 You can report bugs or crashes at https://github.com/dsdd/EnchantmentsPlusMinus/issues or in the Discord server listed below.  
 
 # Discord  
-It's getting harder to manage issues now, so there's a Discord server now! (please note this server is just a ticket system for me to personally respond asap)  
-https://discord.gg/D8HujTT4bU  
+No
