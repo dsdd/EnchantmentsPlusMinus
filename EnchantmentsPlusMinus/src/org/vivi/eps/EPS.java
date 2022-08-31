@@ -84,7 +84,7 @@ public class EPS extends JavaPlugin implements Reloadable {
 	private static Events epsEvents = new Events();
 	private static ArrayList<Enchantment> registeredEnchants = new ArrayList<Enchantment>(Arrays.asList());
 	private static HashMap<Enchantment, HashMap<Integer, Double>> cachedCosts = new HashMap<Enchantment, HashMap<Integer, Double>>();
-	private static final Enchantment NULL_ENCHANT = EPS.newEnchant("null", "null");
+	private static Enchantment NULL_ENCHANT = null;
 	
 	@Override
 	public void onEnable()
@@ -234,6 +234,7 @@ public class EPS extends JavaPlugin implements Reloadable {
 		
 		// And load in the built-in enchants.
 		
+		NULL_ENCHANT = EPS.newEnchant("null", "null");
 		new BuiltInEnchantsLoader().onEnable();
 		        
         getLogger().log(Level.INFO, "Preload time: "+Long.toString(System.currentTimeMillis()-startTime)+" ms (rough approx.)");

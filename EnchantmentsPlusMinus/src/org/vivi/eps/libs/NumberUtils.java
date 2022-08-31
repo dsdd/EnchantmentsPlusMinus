@@ -14,7 +14,7 @@ public class NumberUtils {
 			return Short.toString((short)value);
 		else
 		{
-			int exp = (int)(Math.log10(value) * 0.33);
+			int exp = (int)(Math.log10(value) / 3);
 			char suffix = suffixes[exp-1];
 			double norm = Math.floor(value * (100 / (Math.pow(1000, exp)))) * 0.01;
 			return String.format("%." + 2 + "f%s", norm, suffix);
