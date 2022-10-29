@@ -523,8 +523,7 @@ public class EPS extends JavaPlugin implements Reloadable {
 	 */
 	public static File getUserDataFile(UUID uuid)
 	{
-		if (uuid == null)
-			return null;
+		if (uuid == null) {return null;}
 		File dataFile = new File(dataFolder, uuid.toString()+".yml");
 		return dataFile;
 	}
