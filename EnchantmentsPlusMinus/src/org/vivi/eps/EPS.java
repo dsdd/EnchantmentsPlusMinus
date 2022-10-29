@@ -490,10 +490,9 @@ public class EPS extends JavaPlugin implements Reloadable {
 	 */
 	public static UUID getUUID(String username)
 	{
-		String stringUUID = uuidDataStoreData.getString(username);
-		if (stringUUID == null)
-			return null;
-		return UUID.fromString(stringUUID);
+		OfflinePlayer player = Bukkit.getOfflinePlayer(string);
+		if (!player.hasPlayedBefore()) {return null;}
+		return player.getUniqueId();
 	}
 
 	/** Gets the data file of the specified player.
