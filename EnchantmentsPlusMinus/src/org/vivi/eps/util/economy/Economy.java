@@ -1,52 +1,63 @@
 package org.vivi.eps.util.economy;
 
+import java.util.UUID;
+
 import org.bukkit.entity.Player;
 
 public interface Economy {
-
-	/**Changes the specified player's balance.
-	 * 
-	 * @param playername The player affected
-	 * @param amount The amount changed. Can be negative.
-	 * @return Returns the amount the player has after.
-	 */
-	public double changeBalance(String playername, double amount);
 	
-	/**Changes the specified player's balance.
+	/** Gets the balance linked to the specified UUID.
 	 * 
-	 * @param player The player affected
-	 * @param amount The amount changed. Can be negative.
-	 * @return Returns the amount the player has after.
+	 * @param playerUUID The player UUID to get from
+	 * @return Returns the balance of the linked player.
 	 */
-	public double changeBalance(Player player, double amount);
+	public double getBalance(UUID playerUUID);
 	
-	/**Sets the specified player's balance.
+	/** Changes the balance linked to the specified UUID by the specified amount.
 	 * 
-	 * @param playername The player affected
+	 * @param playerUUID The player UUID to get from
+	 * @param amount The amount changed.
+	 * @return Returns the amount the player has in the end.
+	 */
+	public double changeBalance(UUID playerUUID, double amount);
+	
+	/** Sets the balance linked to the specified UUID to the specified amount.
+	 * 
+	 * @param playerUUID The player UUID to get from
 	 * @param value The amount to be set to.
-	 * @return Returns the balance the player has after.
+	 * @return Returns the amount the player has in the end.
 	 */
-	public double setBalance(String playername, double value);
+	public double setBalance(UUID playerUUID, double value);
 	
-	/**Sets the specified player's balance.
-	 * 
-	 * @param player The player affected
-	 * @param value The amount to be set to.
-	 * @return Returns the balance the player has after.
-	 */
-	public double setBalance(Player player, double value);
-	
-	/**Returns the balance of the specified player.
+	/** Gets the balance of the specified player.
 	 * 
 	 * @param player The player to get from
-	 * @return Returns the balance of the specified player.
+	 * @return Returns the balance of the player.
 	 */
-	public double getBalance(Player player);
+	public default double getBalance(Player player)
+	{
+		return getBalance(player.getUniqueId());
+	}
 	
-	/**Returns the balance of the specified player.
+	/** Changes the balance of the specified player by the specified amount.
 	 * 
-	 * @param playername The player to get from
-	 * @return Returns the balance of the specified player.
+	 * @param player The player to get from
+	 * @param amount The amount changed.
+	 * @return Returns the amount the player has in the end.
 	 */
-	public double getBalance(String playername);
+	public default double changeBalance(Player player, double amount)
+	{
+		return changeBalance(player.getUniqueId(), amount);
+	}
+	
+	/** Sets the balance of the specified player to the specified amount.
+	 * 
+	 * @param player The player to get from
+	 * @param value The amount to be set to.
+	 * @return Returns the amount the player has in the end.
+	 */
+	public default double setBalance(Player player, double value)
+	{
+		return setBalance(player.getUniqueId(), value);
+	}
 }

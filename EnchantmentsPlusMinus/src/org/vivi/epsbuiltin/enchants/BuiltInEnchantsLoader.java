@@ -4,13 +4,13 @@ import org.bukkit.Bukkit;
 import org.vivi.eps.EPS;
 
 public class BuiltInEnchantsLoader {
-	
+
 	public static boolean vaultEnabled = false;
-	
-	public void onEnable() 
+
+	public void onEnable()
 	{
 		CustomEnchants.register();
-		new EnchantProcessor(EPS.plugin);		
+		new EnchantProcessor(EPS.plugin);
 		if (Bukkit.getPluginManager().isPluginEnabled("Vault"))
 			vaultEnabled = true;
 	}

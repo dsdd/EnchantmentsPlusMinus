@@ -389,7 +389,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 				final double chance = CustomEnchants.beheadingConfig.getAutofilledInt(enchlvl, "player-chance");
 				if (getNext() <= chance)
 				{
-					final ItemStack head = EPS.getMCVersion() < 13 ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
+					final ItemStack head = EPS.getMCVersion() < 13 ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.matchMaterial("PLAYER_HEAD"), 1);
 					final SkullMeta skull = (SkullMeta) head.getItemMeta();
 					if (EPS.getMCVersion() < 12)
 						skull.setOwner(e.getEntity().getName());
@@ -1052,7 +1052,7 @@ public class EnchantProcessor implements Listener, Reloadable {
 	}
 	
 	private static ItemStack getCustomSkull(final String texture, final String name) {
-		final ItemStack head = EPS.getMCVersion() < 13 ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.PLAYER_HEAD, 1);
+		final ItemStack head = EPS.getMCVersion() < 13 ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.matchMaterial("PLAYER_HEAD"), 1);
 
 		final SkullMeta skull = (SkullMeta) head.getItemMeta();
 		skull.setDisplayName(name);

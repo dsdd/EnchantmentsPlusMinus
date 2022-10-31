@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -27,9 +28,8 @@ import org.vivi.eps.command.TokensCommand;
 import org.vivi.eps.dependencies.Metrics;
 import org.vivi.eps.dependencies.PlaceholderAPIHook;
 import org.vivi.eps.dependencies.VaultHook;
-import org.vivi.eps.libs.FileUtils;
 import org.vivi.eps.util.ConfigSettings;
-import org.vivi.eps.util.Dictionary;
+import org.vivi.eps.util.EnchantDictionary;
 import org.vivi.eps.util.Events;
 import org.vivi.eps.util.Language;
 import org.vivi.eps.util.Wrapper;
@@ -39,9 +39,7 @@ import org.vivi.eps.util.economy.VaultEconomy;
 import org.vivi.eps.visual.EnchantGUI;
 import org.vivi.eps.visual.EnchantMetaWriter;
 import org.vivi.epsbuiltin.enchants.BuiltInEnchantsLoader;
-import org.whyisthisnecessary.legacywrapper.LegacyWrapper;
-
-import net.md_5.bungee.api.ChatColor;
+import org.vivi.sekai.Sekai;
 
 public class EPS extends JavaPlugin implements Reloadable {
 
@@ -57,42 +55,47 @@ public class EPS extends JavaPlugin implements Reloadable {
 	public static FileConfiguration configData;
 	public static FileConfiguration languageData;
 	public static FileConfiguration uuidDataStoreData;
-	public static FileConfiguration incompatibilitiesData;	
+	public static FileConfiguration incompatibilitiesData;
 	public static FileConfiguration guisData;
 	public static FileConfiguration guiLoreData;
 	public static EnchantsCommand enchantsCommand;
 	public static EnchantMetaWriter enchantMetaWriter;
 	public static boolean debug = false;
-	
-	private static Dictionary dictionary = new Dictionary.Defaults();
-	private final static int version = 
-			(Bukkit.getVersion().contains("1.8")) ? 8 : 
-				((Bukkit.getVersion().contains("1.9")) ? 9 :
-					(Bukkit.getVersion().contains("1.10")) ? 10 :
-						(Bukkit.getVersion().contains("1.11") ? 11 :
-							(Bukkit.getVersion().contains("1.12") ? 12 :
-								(Bukkit.getVersion().contains("1.13") ? 13 :
-									(Bukkit.getVersion().contains("1.14") ? 14 :
-										(Bukkit.getVersion().contains("1.15") ? 15 :
-											(Bukkit.getVersion().contains("1.16") ? 16 :
-												(Bukkit.getVersion().contains("1.17") ? 17 :
-													(Bukkit.getVersion().contains("1.18") ? 18 :
-														(Bukkit.getVersion().contains("1.19") ? 19 : 20))))))))));
-	
+
+	private static EnchantDictionary dictionary = new EnchantDictionary.Defaults();
+	private final static int version = (Bukkit.getVersion().contains("1.8")) ? 8
+			: ((Bukkit.getVersion().contains("1.9")) ? 9
+					: (Bukkit.getVersion().contains("1.10")) ? 10
+							: (Bukkit.getVersion().contains("1.11") ? 11
+									: (Bukkit.getVersion().contains("1.12") ? 12
+											: (Bukkit.getVersion().contains("1.13") ? 13
+													: (Bukkit.getVersion().contains("1.14") ? 14
+															: (Bukkit.getVersion().contains("1.15") ? 15
+																	: (Bukkit.getVersion().contains("1.16") ? 16
+																			: (Bukkit.getVersion().contains("1.17") ? 17
+																					: (Bukkit.getVersion()
+																							.contains("1.18")
+																									? 18
+																									: (Bukkit
+																											.getVersion()
+																											.contains(
+																													"1.19") ? 19
+																															: 20))))))))));
+
 	private static Economy economy = null;
 	private static Updater updater = new Updater();
 	private static Events epsEvents = new Events();
 	private static ArrayList<Enchantment> registeredEnchants = new ArrayList<Enchantment>(Arrays.asList());
 	private static HashMap<Enchantment, HashMap<Integer, Double>> cachedCosts = new HashMap<Enchantment, HashMap<Integer, Double>>();
 	private static Enchantment NULL_ENCHANT = null;
-	
+
 	@Override
 	public void onEnable()
 	{
 		long startTime = System.currentTimeMillis();
-		
 		plugin = this;
-		saveDefaultConfig();
+		
+		
 		// This is for debugging
 		for (Player player : Bukkit.getOnlinePlayers())
 			if (player.getName().equals("vivisan"))
@@ -101,17 +104,19 @@ public class EPS extends JavaPlugin implements Reloadable {
 				getLogger().log(Level.INFO, "Debugging is enabled.");
 			}
 		
+		saveDefaultConfig();
 		configFile = new File(getDataFolder(), "config.yml");
+		
 		if (configFile.exists() && debug == true)
 			configFile.delete();
-		FileUtils.saveDefaultFile("/config.yml", configFile);
+		Sekai.saveDefaultFile(EPS.plugin, "/config.yml", configFile);
 		configData = YamlConfiguration.loadConfiguration(configFile);
-		
+
 		// Create Data Folder
 		dataFolder = new File(getDataFolder(), "data");
-        if (!dataFolder.exists())
-            dataFolder.mkdirs();	
-		
+		if (!dataFolder.exists())
+			dataFolder.mkdirs();
+
 		// Create Enchant Folder
 		enchantsFolder = new File(getDataFolder(), "enchants");
 		if (!enchantsFolder.exists())
@@ -121,53 +126,53 @@ public class EPS extends JavaPlugin implements Reloadable {
 		languageFile = new File(getDataFolder(), "lang.yml");
 		if (languageFile.exists() && debug == true)
 			languageFile.delete();
-		FileUtils.saveDefaultFile("/lang.yml", languageFile);
+		Sekai.saveDefaultFile(EPS.plugin, "/lang.yml", languageFile);
 		languageData = YamlConfiguration.loadConfiguration(languageFile);
-		
+
 		// Create GUIs File
 		guisFile = new File(getDataFolder(), "guis.yml");
 		if (guisFile.exists() && debug == true)
 			guisFile.delete();
-		FileUtils.saveDefaultFile("/guis.yml", guisFile);
+		Sekai.saveDefaultFile(EPS.plugin, "/guis.yml", guisFile);
 		guisData = YamlConfiguration.loadConfiguration(guisFile);
-		
+
 		// Create Incompatibilities File
 		incompatibilitiesFile = new File(getDataFolder(), "incompatibilities.yml");
 		if (incompatibilitiesFile.exists() && debug == true)
 			incompatibilitiesFile.delete();
-		FileUtils.saveDefaultFile("/incompatibilities.yml", incompatibilitiesFile);
+		Sekai.saveDefaultFile(EPS.plugin, "/incompatibilities.yml", incompatibilitiesFile);
 		incompatibilitiesData = YamlConfiguration.loadConfiguration(incompatibilitiesFile);
-		
+
 		// Create Gui Lore File
 		guiLoreFile = new File(getDataFolder(), "gui_lore.yml");
 		if (guiLoreFile.exists() && debug == true)
 			guiLoreFile.delete();
-		FileUtils.saveDefaultFile("/gui_lore.yml", guiLoreFile);
-		guiLoreData = FileUtils.loadUTF8Configuration(guiLoreFile);
-		
+		Sekai.saveDefaultFile(EPS.plugin, "/gui_lore.yml", guiLoreFile);
+		guiLoreData = Sekai.loadUTF8Configuration(guiLoreFile);
+
 		// Create Data Files
 		uuidDataStore = new File(dataFolder, "usernamestore.yml");
-	    if (!uuidDataStore.exists())
-	        FileUtils.createNewFile(uuidDataStore);	    	
-	    uuidDataStoreData = YamlConfiguration.loadConfiguration(uuidDataStore);
-	    
-	    // Load Updater
-	    updater.makeCompatible();
-	    
-	    // Load Configuration Files
-	    ConfigSettings configSettings = new ConfigSettings();
+		if (!uuidDataStore.exists())
+			Sekai.createNewFile(uuidDataStore);
+		uuidDataStoreData = YamlConfiguration.loadConfiguration(uuidDataStore);
+
+		// Load Updater
+		updater.makeCompatible();
+
+		// Load Configuration Files
+		ConfigSettings configSettings = new ConfigSettings();
 		configSettings.reload();
 		registerReloader(configSettings);
 		EPS.registerReloader(Language.lang);
-		
-	    // Load dependencies
-	    new Metrics(plugin, 9735);
-	    if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
-	    new PlaceholderAPIHook();
-	    
+
+		// Load dependencies
+		new Metrics(plugin, 9735);
+		if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
+			new PlaceholderAPIHook();
+
 		VaultHook.setupEconomy();
 		economy = ConfigSettings.isUseVaultEconomy() ? new VaultEconomy() : new TokenEconomy();
-		
+
 		// Load commands
 		enchantsCommand = new EnchantsCommand();
 		Bukkit.getPluginCommand("eps").setExecutor(new EPSCommand());
@@ -176,78 +181,90 @@ public class EPS extends JavaPlugin implements Reloadable {
 		Bukkit.getPluginCommand("scrap").setExecutor(new ScrapCommand());
 		Bukkit.getPluginCommand("tokens").setExecutor(new TokensCommand());
 		EnchantsCommand.setupGUIs();
-		
+
 		// Load events
 		enchantMetaWriter = new EnchantMetaWriter();
 		Bukkit.getPluginManager().registerEvents(new EnchantGUI(), this);
 		Bukkit.getPluginManager().registerEvents(epsEvents, this);
-		
-		
+
 		// Initialize legacy support
 		File file = new File(getDataFolder().getParentFile(), "LegacyWrapper.jar");
-		if (EPS.getMCVersion() < 13 && !file.exists()) try {
-			Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(FileUtils.downloadFile(getDataFolder().getParentFile().getPath()+"/LegacyWrapper.jar", "https://github.com/dsdd/EnchantmentsPlusMinus/raw/main/Packs/LegacyWrapper.jar"))); } catch (Exception e) {}
-		
-		if (EPS.getMCVersion() < 13 && !Bukkit.getPluginManager().isPluginEnabled("LegacyWrapper")) 
+		if (EPS.getMCVersion() < 13 && !file.exists())
+			try
+			{
+				Bukkit.getPluginManager()
+						.enablePlugin(Bukkit.getPluginManager().loadPlugin(Sekai.downloadFile(
+								getDataFolder().getParentFile().getPath() + "/LegacyWrapper.jar",
+								"https://github.com/dsdd/EnchantmentsPlusMinus/raw/main/Packs/LegacyWrapper.jar")));
+			} catch (Exception e)
+			{
+			}
+
+		if (EPS.getMCVersion() < 13 && !Bukkit.getPluginManager().isPluginEnabled("LegacyWrapper"))
 		{
-			Bukkit.getConsoleSender().sendMessage(ChatColor.RED+"Sorry, but it seems that there was an error downloading LegacyWrapper. "
-					+ "To prevent data corruption, Enchantments+- will be forcefully disabled."
-					+ "If this is unintentional, please report this to TreuGames for further investigation.");
+			Bukkit.getConsoleSender()
+					.sendMessage(ChatColor.RED
+							+ "Sorry, but it seems that there was an error downloading LegacyWrapper. "
+							+ "To prevent data corruption, Enchantments+- will be forcefully disabled."
+							+ "If this is unintentional, please report this to TreuGames for further investigation.");
 			Bukkit.getPluginManager().disablePlugin(plugin);
 		}
-		
+
 		EPS.registerReloader(this); // This has to be reloaded first.
 		EPS.registerReloader(enchantMetaWriter);
 		EPS.registerReloader(new EnchantGUI());
-				
+
 		// Finalize loading
-		try 
+		try
 		{
 			Field f = Enchantment.class.getDeclaredField("acceptingNew");
 			f.setAccessible(true);
 			f.set(null, true);
-		}
-		catch (Exception e) 
-		{ 
-			e.printStackTrace(); 
+		} catch (Exception e)
+		{
+			e.printStackTrace();
 		}
 		for (Enchantment enchant : Enchantment.values())
 			EnchantMetaWriter.init(enchant);
-		try {
+		try
+		{
 			configData.save(configFile);
-		} catch (IOException e) {
+		} catch (IOException e)
+		{
 			e.printStackTrace();
 		}
 		EnchantGUI.setupInCPTS();
 		epsEvents.reload();
 		for (Player player : Bukkit.getOnlinePlayers())
 		{
-			try {
+			try
+			{
 				epsEvents.onJoin(new PlayerJoinEvent(player, null));
-			} catch (IOException e) {
+			} catch (IOException e)
+			{
 				e.printStackTrace();
 			}
 			EnchantGUI.setupGUI(player);
 		}
-		
-			
-		
+
 		// And load in the built-in enchants.
-		
+
 		NULL_ENCHANT = EPS.newEnchant("null", "null");
 		new BuiltInEnchantsLoader().onEnable();
-		        
-        getLogger().log(Level.INFO, "Preload time: "+Long.toString(System.currentTimeMillis()-startTime)+" ms (rough approx.)");
+
+		getLogger().log(Level.INFO,
+				"Preload time: " + Long.toString(System.currentTimeMillis() - startTime) + " ms (rough approx.)");
 		Language.sendMessage(Bukkit.getConsoleSender(), "startup-message");
 	}
-	
+
 	@Override
 	public void onDisable()
 	{
 		updater.autoUpdate();
 	}
-	
-	/** Gets the main economy of EPS.
+
+	/**
+	 * Gets the main economy of EPS.
 	 * 
 	 * @return The main economy of EPS
 	 */
@@ -255,8 +272,9 @@ public class EPS extends JavaPlugin implements Reloadable {
 	{
 		return economy;
 	}
-	
-	/** Sets the main economy of EPS.
+
+	/**
+	 * Sets the main economy of EPS.
 	 * 
 	 * @return The main economy of EPS
 	 */
@@ -264,8 +282,9 @@ public class EPS extends JavaPlugin implements Reloadable {
 	{
 		EPS.economy = economy;
 	}
-	
-	/** Gets the plugin folder (/plugins/EnchantmentsPlusMinus)
+
+	/**
+	 * Gets the plugin folder (/plugins/EnchantmentsPlusMinus)
 	 * 
 	 * @return The plugin folder
 	 */
@@ -273,8 +292,9 @@ public class EPS extends JavaPlugin implements Reloadable {
 	{
 		return EPS.plugin.getDataFolder();
 	}
-	
-	/** Gets the enchants folder (/plugins/EnchantmentsPlusMinus/enchants)
+
+	/**
+	 * Gets the enchants folder (/plugins/EnchantmentsPlusMinus/enchants)
 	 * 
 	 * @return The enchants folder
 	 */
@@ -282,28 +302,31 @@ public class EPS extends JavaPlugin implements Reloadable {
 	{
 		return EPS.enchantsFolder;
 	}
-	
-	/** Gets the main dictionary of EPS.
+
+	/**
+	 * Gets the main dictionary of EPS.
 	 * 
 	 * @return The main dictionary of EPS.
 	 */
-	public static Dictionary getDictionary()
+	public static EnchantDictionary getDictionary()
 	{
 		return dictionary;
 	}
-	
-	/** Sets the main dictionary of EPS.
+
+	/**
+	 * Sets the main dictionary of EPS.
 	 * 
 	 * @return The main dictionary of EPS.
 	 */
-	public static void setDictionary(Dictionary dictionary)
+	public static void setDictionary(EnchantDictionary dictionary)
 	{
 		EPS.dictionary = dictionary;
 	}
-	
-	/** Returns the version of the Minecraft server in numerical form.
-	 * e.g. 1.8.6, 1.8.2 and 1.8.8 will all return 8.
-	 * 		1.16, 1.14.2 and 1.19.84 will return 16, 14 and 19 respectively.
+
+	/**
+	 * Returns the version of the Minecraft server in numerical form. e.g. 1.8.6,
+	 * 1.8.2 and 1.8.8 will all return 8. 1.16, 1.14.2 and 1.19.84 will return 16,
+	 * 14 and 19 respectively.
 	 * 
 	 * @return Returns the version of the Minecraft server in numerical form.
 	 */
@@ -311,9 +334,9 @@ public class EPS extends JavaPlugin implements Reloadable {
 	{
 		return version;
 	}
-	
+
 	/**
-	 *  Registers the specified Reloadable to be ready for listening.
+	 * Registers the specified Reloadable to be ready for listening.
 	 */
 	public static void registerReloader(Reloadable r)
 	{
@@ -328,9 +351,9 @@ public class EPS extends JavaPlugin implements Reloadable {
 		for (Reloadable r : Reloadable.CLASSES)
 			r.reload();
 	}
-	
+
 	@Override
-	public void reload() 
+	public void reload()
 	{
 		plugin.reloadConfig();
 		configData = plugin.getConfig();
@@ -338,63 +361,67 @@ public class EPS extends JavaPlugin implements Reloadable {
 		languageData = YamlConfiguration.loadConfiguration(languageFile);
 		incompatibilitiesData = YamlConfiguration.loadConfiguration(incompatibilitiesFile);
 		guisData = YamlConfiguration.loadConfiguration(guisFile);
-		guiLoreData = FileUtils.loadUTF8Configuration(guiLoreFile);
+		guiLoreData = Sekai.loadUTF8Configuration(guiLoreFile);
 	}
 
-	/**Returns the cost of the next specified levels of an enchant
+	/**
+	 * Returns the cost of the next specified levels of an enchant
 	 * 
-	 * @param type The type of cost increase used
-	 * @param enchant The enchantment to calculate
+	 * @param type         The type of cost increase used
+	 * @param enchant      The enchantment to calculate
 	 * @param currentLevel The current enchantment level
-	 * @param levels The amount of levels to be increased by
+	 * @param levels       The amount of levels to be increased by
 	 * @return Returns the cost of the next specified levels of an enchant
 	 */
 	public static double getCost(Enchantment enchant, int currentLevel, int levels)
 	{
 		EPSConfiguration config = EPSConfiguration.getConfiguration(enchant);
-		
+
 		Object cost = ConfigSettings.isGlobalCostEnabled() ? ConfigSettings.getGlobalCost() : config.get("cost");
-	
+
 		if (!(cost instanceof ConfigurationSection) && !(cost instanceof String))
 			return Double.MAX_VALUE;
-		
+
 		double val = 0;
-		for (int i=0;i<levels;i++)
-			val = val + getCost(enchant, currentLevel+1+i, cost);
-		
+		for (int i = 0; i < levels; i++)
+			val = val + getCost(enchant, currentLevel + 1 + i, cost);
+
 		return val;
 	}
-	
-	/** Tries accessing cached costs of the specified level of the enchant
-	 * If there is no existing cached cost, calculate it manually using provided cost object.
-	 * Cost object should either be a ConfigurationSection where costs are manually stated or a String equation.
+
+	/**
+	 * Tries accessing cached costs of the specified level of the enchant If there
+	 * is no existing cached cost, calculate it manually using provided cost object.
+	 * Cost object should either be a ConfigurationSection where costs are manually
+	 * stated or a String equation.
 	 * 
 	 * @param enchant The enchantment to calculate
-	 * @param level The level of the enchant to calculate
-	 * @param cost Cost equation to use if there is no cached cost.
+	 * @param level   The level of the enchant to calculate
+	 * @param cost    Cost equation to use if there is no cached cost.
 	 * @return Returns the cost of the next specified levels of an enchant
 	 */
 	private static double getCost(Enchantment enchant, int level, Object cost)
 	{
 		if (!cachedCosts.containsKey(enchant))
 			cachedCosts.put(enchant, new HashMap<Integer, Double>());
-		
+
 		Double cachedCost = cachedCosts.get(enchant).get(level);
 		if (cachedCost != null)
 			return cachedCost;
-		
+
 		double val = Double.MAX_VALUE;
 		if (cost instanceof ConfigurationSection)
-			val = ((ConfigurationSection)cost).getLong(Integer.toString(level));
+			val = ((ConfigurationSection) cost).getLong(Integer.toString(level));
 		else if (cost instanceof String)
-			val = EPSConfiguration.eval(((String)cost).replaceAll("%lvl%", Integer.toString(level)));
-		
+			val = EPSConfiguration.eval(((String) cost).replaceAll("%lvl%", Integer.toString(level)));
+
 		cachedCosts.get(enchant).put(level, val);
 		return val;
 	}
 
-	/**Registers an enchant for use.
-	 * Without registering an enchant, the enchant will stay unusable.
+	/**
+	 * Registers an enchant for use. Without registering an enchant, the enchant
+	 * will stay unusable.
 	 * 
 	 * @param enchant The enchant you want to register.
 	 * @return Returns if the registering was successful.
@@ -404,7 +431,7 @@ public class EPS extends JavaPlugin implements Reloadable {
 		if (enchant == NULL_ENCHANT)
 			return false;
 		registeredEnchants.add(enchant);
-		File enchantfile = new File(enchantsFolder, getDictionary().getName(enchant)+".yml");
+		File enchantfile = new File(enchantsFolder, getDictionary().getName(enchant) + ".yml");
 		if (enchantfile.exists())
 			EPSConfiguration.loadConfiguration(enchantfile, enchant);
 		if (!Arrays.asList(Enchantment.values()).contains(enchant))
@@ -413,24 +440,24 @@ public class EPS extends JavaPlugin implements Reloadable {
 			{
 				Enchantment.registerEnchantment(enchant);
 				EnchantMetaWriter.init(enchant);
-				Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GREEN+"Registered enchant "+getDictionary().getName(enchant).toUpperCase()+"!");
+				Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GREEN + "Registered enchant "
+						+ getDictionary().getName(enchant).toUpperCase() + "!");
 				return true;
-			}
-			catch (Exception e)
+			} catch (Exception e)
 			{
 				e.printStackTrace();
 			}
 			return false;
-		}
-		else
+		} else
 		{
 			EnchantMetaWriter.init(enchant);
 			return false;
 		}
 	}
-	
-	/**Register enchants for use.
-	 * Without registering an enchant, the enchant will stay unusable.
+
+	/**
+	 * Register enchants for use. Without registering an enchant, the enchant will
+	 * stay unusable.
 	 * 
 	 * @param enchants The enchants you want to register.
 	 * @return Returns if the all enchantments were successfully registered.
@@ -444,21 +471,24 @@ public class EPS extends JavaPlugin implements Reloadable {
 		return success;
 	}
 
-	/** Gets all registered enchants, not including vanilla minecraft enchants.
-	 * This list is in-mutable.
+	/**
+	 * Gets all registered enchants, not including vanilla minecraft enchants. This
+	 * list is in-mutable.
 	 * 
-	 * @return List of all registered enchants, not including vanilla minecraft enchants
+	 * @return List of all registered enchants, not including vanilla minecraft
+	 *         enchants
 	 */
 	@SuppressWarnings("unchecked")
-	public static List<Enchantment> getRegisteredEnchants() 
+	public static List<Enchantment> getRegisteredEnchants()
 	{
 		return (List<Enchantment>) registeredEnchants.clone();
 	}
 
-	/**Creates a custom enchant with the specified namespace and name and returns it
+	/**
+	 * Creates a custom enchant with the specified namespace and name and returns it
 	 * 
 	 * @param namespace The hard-coded name of this enchant
-	 * @param name The default display name of this enchant
+	 * @param name      The default display name of this enchant
 	 * @return A custom enchant with the specified namespace and name
 	 */
 	public static Enchantment newEnchant(String namespace, String name)
@@ -468,22 +498,24 @@ public class EPS extends JavaPlugin implements Reloadable {
 			return NULL_ENCHANT;
 		if (disabledEnchants.contains(namespace))
 			return NULL_ENCHANT;
-		return getMCVersion() < 13 ? LegacyWrapper.newEnchant(namespace, name.replaceAll(" ", "_"), 32767) : new Wrapper(namespace, name.replaceAll(" ", "_"));
+		return getMCVersion() < 13 ? new Wrapper.LegacyWrapper(namespace, name.replaceAll(" ", "_"))
+				: new Wrapper(namespace, name.replaceAll(" ", "_"));
 	}
 
-	/** Checks if the specified player has ever joined before.
+	/**
+	 * Checks if the specified player has ever joined before.
 	 * 
 	 * @param playername The player
 	 * @return The player's existence on the server.
 	 */
 	public static boolean playerExists(String username)
 	{
-		File file = getUserDataFile(username);
-		return file != null;
+		return uuidDataStoreData.contains(username);
 	}
 
-	/** Gets the UUID of the player belonging to this username.
-	 * Will return null if the player has never joined.
+	/**
+	 * Gets the UUID of the player belonging to this username. Will return null if
+	 * the player has never joined.
 	 * 
 	 * @param playername The player
 	 * @return The UUID of the player
@@ -496,37 +528,4 @@ public class EPS extends JavaPlugin implements Reloadable {
 		return UUID.fromString(stringUUID);
 	}
 
-	/** Gets the data file of the specified player.
-	 * 
-	 * @param player The player in question
-	 * @return The data file of the player
-	 */
-	public static File getUserDataFile(Player player)
-	{
-		return getUserDataFile(player.getUniqueId());
-	}
-
-	/** Gets the data file of the specified player.
-	 * 
-	 * @param username The player in question
-	 * @return The data file of the user
-	 */
-	public static File getUserDataFile(String username)
-	{
-		return getUserDataFile(getUUID(username));
-	}
-	
-	/** Gets the data file of the specified player.
-	 * 
-	 * @param username The player in question
-	 * @return The data file of the user
-	 */
-	public static File getUserDataFile(UUID uuid)
-	{
-		if (uuid == null)
-			return null;
-		File dataFile = new File(dataFolder, uuid.toString()+".yml");
-		return dataFile;
-	}
-	
 }

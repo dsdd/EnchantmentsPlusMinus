@@ -4,7 +4,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.vivi.eps.EPS;
 
-public interface Dictionary {
+public interface EnchantDictionary {
 
 	/** Gets the default description from the Minecraft Wiki of the specified enchant.
 	 * 
@@ -35,7 +35,7 @@ public interface Dictionary {
 	public Enchantment findEnchant(String enchant_name);
 	
 	@SuppressWarnings("deprecation")
-	class Defaults implements Dictionary
+	class Defaults implements EnchantDictionary
 	{
 
 		/** Gets the default description from the Minecraft Wiki of the specified enchant.

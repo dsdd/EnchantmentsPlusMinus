@@ -151,11 +151,6 @@ public class Updater {
 		if (!EPS.configData.isSet(path))
 		{
 			EPS.configData.set(path, value);
-			try {
-				EPS.configData.save(EPS.configFile);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
 		}
 	}
 	

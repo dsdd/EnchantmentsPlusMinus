@@ -38,9 +38,9 @@ public class ConfigSettings implements Reloadable {
 	private static Map<String, String> enchantSpecificLoreColors = new HashMap<String, String>();
 	private static List<String> loreExemptions = new ArrayList<String>();
 	private static List<String> disabledEnchants = new ArrayList<String>();
-	
+
 	@Override
-	public void reload() 
+	public void reload()
 	{
 		isAutoUpdating = EPS.configData.getBoolean("auto-update");
 		showEnchants = EPS.configData.getBoolean("show-enchants");
@@ -54,7 +54,7 @@ public class ConfigSettings implements Reloadable {
 		globalCostEnabled = EPS.configData.getBoolean("global-cost.enabled");
 		globalCost = EPS.configData.get("global-cost.cost");
 		enchantLoreColor = EPS.configData.getString("enchant-lore-color");
-		
+
 		getApplyFortuneOn().clear();
 		List<String> applyFortuneOnStringList = EPS.configData.getStringList("apply-fortune-on");
 		for (String name : applyFortuneOnStringList)
@@ -65,7 +65,7 @@ public class ConfigSettings implements Reloadable {
 			if (material != null)
 				getApplyFortuneOn().add(material);
 		}
-		
+
 		playerKillRewardEnabled = EPS.configData.getBoolean("player-kill-reward.enabled");
 		playerKillRewardMin = EPS.configData.getInt("player-kill-reward.min");
 		playerKillRewardMax = EPS.configData.getInt("player-kill-reward.max");
@@ -75,50 +75,52 @@ public class ConfigSettings implements Reloadable {
 		miningRewardEnabled = EPS.configData.getBoolean("mining-reward.enabled");
 		miningRewardMin = EPS.configData.getInt("mining-reward.min");
 		miningRewardBlocksToBreak = EPS.configData.getInt("mining-reward.blockstobreak");
-		
-		ConfigurationSection enchantSpecificLoreColors = EPS.configData.getConfigurationSection("enchant-specific-lore-color");
+
+		ConfigurationSection enchantSpecificLoreColors = EPS.configData
+				.getConfigurationSection("enchant-specific-lore-color");
 		for (String key : enchantSpecificLoreColors.getKeys(false))
 			getEnchantSpecificLoreColors().put(key, enchantSpecificLoreColors.getString(key));
-		
+
 		loreExemptions = EPS.configData.getStringList("do-not-add-lore-to");
 		disabledEnchants = EPS.configData.getStringList("disabled-enchants");
 	}
 
-	public static boolean isAutoUpdating() 
+	public static boolean isAutoUpdating()
 	{
 		return isAutoUpdating;
 	}
 
-	public static boolean isShowEnchants() 
+	public static boolean isShowEnchants()
 	{
 		return showEnchants;
 	}
 
-	public static boolean isShowEnchantDescriptions() 
+	public static boolean isShowEnchantDescriptions()
 	{
 		return showEnchantDescriptions;
 	}
 
-	public static boolean isAbbreviateLargeNumbers() {
+	public static boolean isAbbreviateLargeNumbers()
+	{
 		return abbreviateLargeNumbers;
 	}
 
-	public static boolean isUseRomanNumerals() 
+	public static boolean isUseRomanNumerals()
 	{
 		return useRomanNumerals;
 	}
 
-	public static boolean isOpenEnchantGuiOnRightClick() 
+	public static boolean isOpenEnchantGuiOnRightClick()
 	{
 		return openEnchantGuiOnRightClick;
 	}
 
-	public static boolean isAnvilCombiningEnabled() 
+	public static boolean isAnvilCombiningEnabled()
 	{
 		return anvilCombiningEnabled;
 	}
 
-	public static boolean isUseVaultEconomy() 
+	public static boolean isUseVaultEconomy()
 	{
 		return useVaultEconomy;
 	}
@@ -128,12 +130,12 @@ public class ConfigSettings implements Reloadable {
 		return useActionBar;
 	}
 
-	public static boolean isGlobalCostEnabled() 
+	public static boolean isGlobalCostEnabled()
 	{
 		return globalCostEnabled;
 	}
 
-	public static Object getGlobalCost() 
+	public static Object getGlobalCost()
 	{
 		return globalCost;
 	}
@@ -143,17 +145,17 @@ public class ConfigSettings implements Reloadable {
 		return enchantLoreColor;
 	}
 
-	public static boolean isPlayerKillRewardEnabled() 
+	public static boolean isPlayerKillRewardEnabled()
 	{
 		return playerKillRewardEnabled;
 	}
 
-	public static List<Material> getApplyFortuneOn() 
+	public static List<Material> getApplyFortuneOn()
 	{
 		return applyFortuneOn;
 	}
 
-	public static int getPlayerKillRewardMin() 
+	public static int getPlayerKillRewardMin()
 	{
 		return playerKillRewardMin;
 	}
@@ -173,42 +175,42 @@ public class ConfigSettings implements Reloadable {
 		return mobKillRewardMin;
 	}
 
-	public static int getMobKillRewardMax() 
+	public static int getMobKillRewardMax()
 	{
 		return mobKillRewardMax;
 	}
 
-	public static boolean isMiningRewardEnabled() 
+	public static boolean isMiningRewardEnabled()
 	{
 		return miningRewardEnabled;
 	}
 
-	public static int getMiningRewardMin() 
+	public static int getMiningRewardMin()
 	{
 		return miningRewardMin;
 	}
 
-	public static int getMiningRewardMax() 
+	public static int getMiningRewardMax()
 	{
 		return miningRewardMax;
 	}
 
-	public static int getMiningRewardBlocksToBreak() 
+	public static int getMiningRewardBlocksToBreak()
 	{
 		return miningRewardBlocksToBreak;
 	}
 
-	public static Map<String, String> getEnchantSpecificLoreColors() 
+	public static Map<String, String> getEnchantSpecificLoreColors()
 	{
 		return enchantSpecificLoreColors;
 	}
 
-	public static List<String> getDisabledEnchants() 
+	public static List<String> getDisabledEnchants()
 	{
 		return disabledEnchants;
 	}
 
-	public static List<String> getLoreExemptions() 
+	public static List<String> getLoreExemptions()
 	{
 		return loreExemptions;
 	}

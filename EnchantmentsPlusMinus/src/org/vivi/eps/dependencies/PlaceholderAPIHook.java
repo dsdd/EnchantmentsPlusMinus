@@ -7,47 +7,51 @@ import org.vivi.eps.EPS;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 
-public class PlaceholderAPIHook extends PlaceholderExpansion {
-       
-	/** Creates a new hook for use.
-	 */
-    public PlaceholderAPIHook() {
-    	this.register();
-    	Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN+"Successfully hooked into PlaceholderAPI!");
-    }
-   
-    @Override
-    public boolean canRegister() {
-        return true;
-    }
-    
-    @Override
-    public String getAuthor() {
-        return "vivisan";
-    }
-    
-    @Override
-    public String getIdentifier() {
-        return "eps";
-    }
-    
-    @Override
-    public String getPlugin() {
-        return "EnchantmentsPlusMinus";
-    }
-    
-    @Override
-    public String getVersion() {
-        return EPS.plugin.getDescription().getVersion();
-    }
-   
-   
-    @Override
-    public String onPlaceholderRequest(Player p, String identifier) {
+public class PlaceholderAPIHook extends PlaceholderExpansion
+{
 
-        if (identifier.equals("tokens")) {
-            return Double.toString(EPS.getEconomy().getBalance(p.getName()));
-        }
-        return null;
-    }
+	/**
+	 * Creates a new hook for use.
+	 */
+	public PlaceholderAPIHook()
+	{
+		this.register();
+		Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "Successfully hooked into PlaceholderAPI!");
+	}
+
+	@Override
+	public boolean canRegister()
+	{
+		return true;
+	}
+
+	@Override
+	public String getAuthor()
+	{
+		return "vivisan";
+	}
+
+	@Override
+	public String getIdentifier()
+	{
+		return "eps";
+	}
+
+	@Override
+	public String getPlugin()
+	{
+		return "EnchantmentsPlusMinus";
+	}
+
+	@Override
+	public String getVersion()
+	{
+		return EPS.plugin.getDescription().getVersion();
+	}
+
+	@Override
+	public String onPlaceholderRequest(Player p, String identifier)
+	{
+		return identifier.equals("tokens") ? Double.toString(EPS.getEconomy().getBalance(p)) : null;
+	}
 }

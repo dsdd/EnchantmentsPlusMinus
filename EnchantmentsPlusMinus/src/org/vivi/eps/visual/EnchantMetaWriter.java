@@ -20,7 +20,7 @@ import org.vivi.eps.EPS;
 import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.util.ConfigSettings;
-import org.vivi.eps.util.Dictionary;
+import org.vivi.eps.util.EnchantDictionary;
 
 public class EnchantMetaWriter implements Reloadable {
 	
@@ -29,7 +29,7 @@ public class EnchantMetaWriter implements Reloadable {
 	private static List<String> allDescriptionLines = new ArrayList<String>();
 	private static String prefix;
 	private static List<Material> exemptions = new ArrayList<Material>();
-	private static final Dictionary dictionary = EPS.getDictionary();
+	private static final EnchantDictionary dictionary = EPS.getDictionary();
 	
 	public EnchantMetaWriter()
 	{
@@ -55,10 +55,7 @@ public class EnchantMetaWriter implements Reloadable {
 			for (int i=0;i<list.size();i++)
 			{
 				String s = list.get(i);
-				if (s.split(" ").length > 0)
-					if (s.contains(enchantnames.get(enchant)))
-						list.remove(i);
-				if (allDescriptionLines.contains(s) || s.equals(ChatColor.BLACK+"-"))
+				if ((s != null && s.split(" ").length > 0 && s.contains(enchantnames.get(enchant))) || allDescriptionLines.contains(s) || s.equals(ChatColor.BLACK+"-"))
 					list.remove(i);
 			}
 		}

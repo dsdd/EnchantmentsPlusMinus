@@ -1,53 +1,92 @@
 package org.vivi.eps.util.economy;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.vivi.eps.EPS;
 import org.vivi.eps.dependencies.VaultHook;
 
 import net.milkbowl.vault.economy.EconomyResponse;
 
-public class VaultEconomy implements Economy {
+public class VaultEconomy implements Economy
+{
 
 	private net.milkbowl.vault.economy.Economy economy = VaultHook.getEconomy();
+	private Map<UUID, OfflinePlayer> uuidCache = new HashMap<UUID, OfflinePlayer>();
 	
-	@Override
-	public double changeBalance(String playername, double amount)
+	private OfflinePlayer getOfflinePlayer(UUID playerUUID)
 	{
-		return changeBalance(Bukkit.getOfflinePlayer(EPS.getUUID(playername)), amount);
+		if (uuidCache.containsKey(playerUUID))
+			return uuidCache.get(playerUUID);
+		OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerUUID);
+		if (offlinePlayer.hasPlayedBefore())
+		{
+			uuidCache.put(playerUUID, offlinePlayer);
+			return offlinePlayer;
+		}
+		return null;
+	}
+
+	@Override
+	public double getBalance(UUID playerUUID)
+	{
+		Player player = Bukkit.getPlayer(playerUUID);
+		if (player != null)
+			return getBalance(player);
+		OfflinePlayer offlinePlayer = getOfflinePlayer(playerUUID);
+		return offlinePlayer.hasPlayedBefore() ? getBalance(offlinePlayer) : 0; // pff
+	}
+
+	@Override
+	public double changeBalance(UUID playerUUID, double amount)
+	{
+		Player player = Bukkit.getPlayer(playerUUID);
+		if (player != null)
+			return changeBalance(player, amount);
+		OfflinePlayer offlinePlayer = getOfflinePlayer(playerUUID);
+		return offlinePlayer.hasPlayedBefore() ? changeBalance(offlinePlayer, amount) : 0; // pff
+	}
+
+	@Override
+	public double setBalance(UUID playerUUID, double value)
+	{
+		Player player = Bukkit.getPlayer(playerUUID);
+		if (player != null)
+			return changeBalance(player, value);
+		OfflinePlayer offlinePlayer = getOfflinePlayer(playerUUID);
+		return offlinePlayer.hasPlayedBefore() ? setBalance(offlinePlayer, value) : 0; // pff
 	}
 
 	@Override
 	public double changeBalance(Player player, double amount)
 	{
-		EconomyResponse e = amount > 0 ? economy.depositPlayer(player, amount) : economy.withdrawPlayer(player, -amount);
-		return e.balance;
-	}
-	
-	public double changeBalance(OfflinePlayer player, double amount)
-	{
-		EconomyResponse e = amount > 0 ? economy.depositPlayer(player, amount) : economy.withdrawPlayer(player, -amount);
+		EconomyResponse e = amount > 0 ? economy.depositPlayer(player, amount)
+				: economy.withdrawPlayer(player, -amount);
 		return e.balance;
 	}
 
-	@Override
-	public double setBalance(String playername, double value)
+	public double changeBalance(OfflinePlayer player, double amount)
 	{
-		return setBalance(Bukkit.getOfflinePlayer(EPS.getUUID(playername)), value);
+		return (amount > 0 ? economy.depositPlayer(player, amount)
+				: economy.withdrawPlayer(player, -amount)).balance;
 	}
-	
+
 	@Override
 	public double setBalance(Player player, double value)
 	{
-		EconomyResponse e = value-economy.getBalance(player) > 0 ? economy.depositPlayer(player, value-economy.getBalance(player)) : economy.withdrawPlayer(player, economy.getBalance(player)-value);
-		return e.balance;
+		return (value - economy.getBalance(player) > 0
+				? economy.depositPlayer(player, value - economy.getBalance(player))
+				: economy.withdrawPlayer(player, economy.getBalance(player) - value)).balance;
 	}
-	
+
 	public double setBalance(OfflinePlayer player, double value)
 	{
-		EconomyResponse e = value-economy.getBalance(player) > 0 ? economy.depositPlayer(player, value-economy.getBalance(player)) : economy.withdrawPlayer(player, economy.getBalance(player)-value);
-		return e.balance;
+		return (value - economy.getBalance(player) > 0
+				? economy.depositPlayer(player, value - economy.getBalance(player))
+				: economy.withdrawPlayer(player, economy.getBalance(player) - value)).balance;
 	}
 
 	@Override
@@ -55,10 +94,10 @@ public class VaultEconomy implements Economy {
 	{
 		return economy.getBalance(player);
 	}
-
-	@Override
-	public double getBalance(String playername)
+	
+	public double getBalance(OfflinePlayer player)
 	{
-		return economy.getBalance(Bukkit.getOfflinePlayer(EPS.getUUID(playername)));
+		return economy.getBalance(player);
 	}
+
 }
