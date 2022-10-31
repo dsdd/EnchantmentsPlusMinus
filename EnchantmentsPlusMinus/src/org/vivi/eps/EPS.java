@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -255,6 +254,8 @@ public class EPS extends JavaPlugin implements Reloadable {
 		getLogger().log(Level.INFO,
 				"Preload time: " + Long.toString(System.currentTimeMillis() - startTime) + " ms (rough approx.)");
 		Language.sendMessage(Bukkit.getConsoleSender(), "startup-message");
+		
+		EPS.reloadConfigs(); // hotfix for startup
 	}
 
 	@Override
@@ -500,32 +501,6 @@ public class EPS extends JavaPlugin implements Reloadable {
 			return NULL_ENCHANT;
 		return getMCVersion() < 13 ? new Wrapper.LegacyWrapper(namespace, name.replaceAll(" ", "_"))
 				: new Wrapper(namespace, name.replaceAll(" ", "_"));
-	}
-
-	/**
-	 * Checks if the specified player has ever joined before.
-	 * 
-	 * @param playername The player
-	 * @return The player's existence on the server.
-	 */
-	public static boolean playerExists(String username)
-	{
-		return uuidDataStoreData.contains(username);
-	}
-
-	/**
-	 * Gets the UUID of the player belonging to this username. Will return null if
-	 * the player has never joined.
-	 * 
-	 * @param playername The player
-	 * @return The UUID of the player
-	 */
-	public static UUID getUUID(String username)
-	{
-		String stringUUID = uuidDataStoreData.getString(username);
-		if (stringUUID == null)
-			return null;
-		return UUID.fromString(stringUUID);
 	}
 
 }

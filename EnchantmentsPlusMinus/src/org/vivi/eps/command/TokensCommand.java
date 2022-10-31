@@ -7,6 +7,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.vivi.eps.EPS;
+import org.vivi.eps.api.EPSPlayerData;
 import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Language;
 import org.vivi.sekai.Sekai;
@@ -24,7 +25,7 @@ public class TokensCommand implements CommandExecutor
 		}
 
 		String targetName = args.length == 0 ? sender.getName() : args[0];
-		UUID targetUUID = EPS.getUUID(targetName);
+		UUID targetUUID = EPSPlayerData.getUUID(targetName);
 		if (targetUUID == null)
 		{
 			Language.sendMessage(sender, "invalidplayer");

@@ -51,6 +51,7 @@ public class CustomEnchants {
 	
 	public static EPSConfiguration flyConfig = EPSConfiguration.getConfiguration(FLY);
 	public static EPSConfiguration repairConfig = EPSConfiguration.getConfiguration(REPAIR);
+	public static EPSConfiguration soulboundConfig = EPSConfiguration.getConfiguration(SOULBOUND);
 	public static EPSConfiguration experienceConfig = EPSConfiguration.getConfiguration(EXPERIENCE);
 	public static EPSConfiguration soulDestructionConfig = EPSConfiguration.getConfiguration(SOUL_DESTRUCTION);
 	public static EPSConfiguration jaggedConfig = EPSConfiguration.getConfiguration(JAGGED);
@@ -155,6 +156,7 @@ public class CustomEnchants {
 		flyConfig.fillEnchantConfig(1, 6400, Material.matchMaterial("ELYTRA"), "Allows you to fly while holding this item.", "51200", new EPSParam("enabled", true));
 		repairConfig.fillEnchantConfig(1, 2400, Material.matchMaterial("ANVIL"), "While moving, this item will be automatically repaired.", "12800");
 		experienceConfig.fillEnchantConfig(3, 750, Material.matchMaterial("EXPERIENCE_BOTTLE"), "Drops now give more experience.", "1500 * 1.5 ^ %lvl%");
+		soulboundConfig.fillEnchantConfig(1, 4000, Material.matchMaterial("SKELETON_SKULL"), "Has a moderate chance to keep your item on death.", "12800", new EPSParam("chance", 40));
 		soulDestructionConfig.fillEnchantConfig(1, 6500, Material.matchMaterial("SKELETON_SKULL"), "Has a chance to stop Soulbound from working for any players you kill.", "12800", new EPSParam("chance", 10));
 		jaggedConfig.fillEnchantConfig(2, 200, Material.matchMaterial("PRISMARINE_SHARD"), "The damage of this item is amplified when its durability is low.", "100 * 3^%lvl%", new EPSParam("durabilitythresholdpercent", 30));
 		retaliateConfig.fillEnchantConfig(3, 400, Material.matchMaterial("IRON_AXE"), "Gives a very temporary strength boost when hit.", "500 * 1.5^%lvl%", new EPSParam("duration-seconds", "1"));
@@ -189,7 +191,7 @@ public class CustomEnchants {
 		charityConfig.fillEnchantConfig(10, 100, Material.matchMaterial("BOOK"), "Has a chance to reward everyone money for your mining.", "150 * 1.1^%lvl%", new EPSParam("chance", "%lvl%*0.02"), new EPSParam("money", "%lvl%*350"), new EPSParam("random-range", "%lvl%*15"));
 		excavateConfig.fillEnchantConfig(10, 75, Material.matchMaterial("IRON_PICKAXE"), "Has a chance to destroy a cube of blocks at once.", "100 * 1.35^%lvl%", new EPSParam("chance", "%lvl%"));
 		diamondConfig.fillEnchantConfig(10, 75, Material.matchMaterial("IRON_PICKAXE"), "Has a chance to destroy blocks in a diamond shape.", "100 * 1.35^%lvl%", new EPSParam("chance", "%lvl%"));
-		veinMinerConfig.fillEnchantConfig(10, 50, Material.matchMaterial("VINES"), "Has a chance to brea all blocks in a vein of ores.", "75 * 1.2^%lvl%", new EPSParam("chance", "%lvl%*4"));
+		veinMinerConfig.fillEnchantConfig(10, 50, Material.matchMaterial("VINES"), "Has a chance to break all blocks in a vein of ores.", "75 * 1.2^%lvl%", new EPSParam("chance", "%lvl%*4"));
 		boostedConfig.fillEnchantConfig(3, 100, Material.matchMaterial("DIAMOND_BLOCK"), "Shift + right-click to gain a temporary Fortune boost.", "200 * %lvl%", new EPSParam("cooldown-seconds", "40 - 5 * %lvl%"), new EPSParam("duration-seconds", "4"));
 	}
 }

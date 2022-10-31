@@ -7,6 +7,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.vivi.eps.EPS;
+import org.vivi.eps.api.EPSPlayerData;
 import org.vivi.eps.util.Language;
 import org.vivi.eps.util.economy.Economy;
 
@@ -36,7 +37,7 @@ public class PayTokensCommand implements CommandExecutor
 				return false;
 			}
 
-			UUID targetUUID = EPS.getUUID(args[0]);
+			UUID targetUUID = EPSPlayerData.getUUID(args[0]);
 			if (targetUUID != null)
 			{
 				try

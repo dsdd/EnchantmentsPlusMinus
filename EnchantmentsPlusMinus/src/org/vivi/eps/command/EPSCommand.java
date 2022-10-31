@@ -21,6 +21,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.vivi.eps.EPS;
+import org.vivi.eps.api.EPSPlayerData;
 import org.vivi.eps.items.CustomEnchantedBook;
 import org.vivi.eps.items.TokenPouch;
 import org.vivi.eps.util.Language;
@@ -74,7 +75,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter
 			}
 			try
 			{
-				UUID targetUUID = EPS.getUUID(args[1]);
+				UUID targetUUID = EPSPlayerData.getUUID(args[1]);
 				if (targetUUID != null)
 				{
 					EPS.getEconomy().setBalance(targetUUID, Long.parseLong(args[2]));
@@ -108,7 +109,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter
 			}
 			try
 			{
-				UUID targetUUID = EPS.getUUID(args[1]);
+				UUID targetUUID = EPSPlayerData.getUUID(args[1]);
 				if (targetUUID != null)
 				{
 					EPS.getEconomy().changeBalance(targetUUID, Long.parseLong(args[2]));
