@@ -91,22 +91,7 @@ public class EPSPlayerData
 	{
 		String stringUUID = EPS.uuidDataStoreData.getString(playerName);
 		if (stringUUID == null)
-		{
-			// Async... it will return null the first time the operation is run but luckily
-			// human behavior is typing commands again if it doesnt work so its fine(?)
-			Bukkit.getScheduler().runTaskAsynchronously(EPS.plugin, new Runnable() {
-
-				@Override
-				public void run()
-				{
-					@SuppressWarnings("deprecation")
-					OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
-					if (offlinePlayer.hasPlayedBefore())
-						EPSPlayerData.getPlayerData(offlinePlayer.getUniqueId());
-				}
-
-			});
-		}
+			return null;
 
 		return UUID.fromString(stringUUID);
 	}
