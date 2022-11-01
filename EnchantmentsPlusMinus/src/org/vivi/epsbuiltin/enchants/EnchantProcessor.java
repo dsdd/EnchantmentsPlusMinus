@@ -175,6 +175,22 @@ public class EnchantProcessor implements Listener, Reloadable
 			for (final Map.Entry<EntityType, String> entry : mobHeads.entrySet())
 				mobSkulls.put(entry.getKey(), getCustomSkull(mobHeads.get(entry.getKey()),
 						WordUtils.capitalizeFully(entry.getKey().name()) + " Head"));
+		
+		Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(EPS.plugin, new Runnable() {
+            public void run() {
+            	for (Player player : Bukkit.getOnlinePlayers())
+            	{
+            		ItemStack itemStack = player.getInventory().getItemInMainHand();
+            		if (itemStack == null)
+            			return;
+            		
+            		if (itemStack.getItemMeta().hasEnchant(CustomEnchants.NIGHT_VISION))
+                		PotionCombiner.lengthenEffect(player, new PotionEffect(PotionEffectType.NIGHT_VISION, 5, 1));
+            	}
+            }
+		}, 0, 100);
+		
+		
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -535,28 +551,26 @@ public class EnchantProcessor implements Listener, Reloadable
 		if (e.isCancelled())
 			return;
 
-		final Player p = e.getPlayer();
-		final ItemStack item = p.getInventory().getItem(e.getNewSlot());
+		final Player player = e.getPlayer();
+		final ItemStack itemStack = player.getInventory().getItem(e.getNewSlot());
 
-		if (flying.contains(p))
+		if (flying.contains(player))
 		{
-			p.setAllowFlight(false);
-			p.setFlying(false);
-			flying.remove(p);
+			player.setAllowFlight(false);
+			player.setFlying(false);
+			flying.remove(player);
 		}
-
-		if (item == null)
+		
+		if (itemStack == null)
 			return;
 
-		final ItemMeta meta = item.getItemMeta();
-		if (CustomEnchants.flyConfig.getBoolean("enabled", false))
-			if (meta.hasEnchant(CustomEnchants.FLY))
-			{
-				p.setAllowFlight(true);
-				p.setFlying(true);
-				flying.add(p);
-			}
-
+		final ItemMeta itemMeta = itemStack.getItemMeta();
+		if (CustomEnchants.flyConfig.getBoolean("enabled", false) && itemMeta.hasEnchant(CustomEnchants.FLY))
+		{
+			player.setAllowFlight(true);
+			player.setFlying(true);
+			flying.add(player);
+		}		
 	}
 
 	@EventHandler

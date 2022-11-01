@@ -12,6 +12,7 @@ public class CustomEnchants {
 	public static final Enchantment REPAIR = EPS.newEnchant("repair", "Repair");
 	public static final Enchantment SOULBOUND = EPS.newEnchant("soulbound", "Soulbound");
 	public static final Enchantment EXPERIENCE = EPS.newEnchant("experience", "Experience");
+	public static final Enchantment NIGHT_VISION = EPS.newEnchant("night_vision", "Night Vision");
 	public static final Enchantment SOUL_DESTRUCTION = EPS.newEnchant("soul_destruction", "Soul Destruction");
 	public static final Enchantment JAGGED = EPS.newEnchant("jagged", "Jagged");
 	public static final Enchantment RETALIATE = EPS.newEnchant("retaliate", "Retaliate");
@@ -53,6 +54,7 @@ public class CustomEnchants {
 	public static EPSConfiguration repairConfig = EPSConfiguration.getConfiguration(REPAIR);
 	public static EPSConfiguration soulboundConfig = EPSConfiguration.getConfiguration(SOULBOUND);
 	public static EPSConfiguration experienceConfig = EPSConfiguration.getConfiguration(EXPERIENCE);
+	public static EPSConfiguration nightvisionConfig = EPSConfiguration.getConfiguration(NIGHT_VISION);
 	public static EPSConfiguration soulDestructionConfig = EPSConfiguration.getConfiguration(SOUL_DESTRUCTION);
 	public static EPSConfiguration jaggedConfig = EPSConfiguration.getConfiguration(JAGGED);
 	public static EPSConfiguration lifeStealConfig = EPSConfiguration.getConfiguration(LIFESTEAL);
@@ -96,6 +98,7 @@ public class CustomEnchants {
 		EPS.registerEnchant(REPAIR);
 		EPS.registerEnchant(SOULBOUND);
 		EPS.registerEnchant(EXPERIENCE);
+		EPS.registerEnchant(NIGHT_VISION);
 		EPS.registerEnchant(SOUL_DESTRUCTION);
 		EPS.registerEnchant(JAGGED);
 		EPS.registerEnchant(RETALIATE);
@@ -151,12 +154,11 @@ public class CustomEnchants {
 		EPSConfiguration.getConfiguration(Enchantment.DAMAGE_ALL).fillEnchantConfig(10, 60, Material.matchMaterial("DIAMOND_SWORD"), "Increases the attack damage of a weapon.", "60 * 1.4^%lvl%");
 		EPSConfiguration.getConfiguration(Enchantment.THORNS).fillEnchantConfig(5, 16, Material.matchMaterial("CACTUS"), "Has a chance to inflict damage on your attacker while being attacked.", "32 * 1.3^%lvl%");
 		
-		
-		
 		flyConfig.fillEnchantConfig(1, 6400, Material.matchMaterial("ELYTRA"), "Allows you to fly while holding this item.", "51200", new EPSParam("enabled", true));
 		repairConfig.fillEnchantConfig(1, 2400, Material.matchMaterial("ANVIL"), "While moving, this item will be automatically repaired.", "12800");
 		experienceConfig.fillEnchantConfig(3, 750, Material.matchMaterial("EXPERIENCE_BOTTLE"), "Drops now give more experience.", "1500 * 1.5 ^ %lvl%");
 		soulboundConfig.fillEnchantConfig(1, 4000, Material.matchMaterial("SKELETON_SKULL"), "Has a moderate chance to keep your item on death.", "12800", new EPSParam("chance", 40));
+		nightvisionConfig.fillEnchantConfig(1, 300, Material.matchMaterial("ENDER_PEARL"), "Gain Night Vision upon equipping this tool.", "1500");
 		soulDestructionConfig.fillEnchantConfig(1, 6500, Material.matchMaterial("SKELETON_SKULL"), "Has a chance to stop Soulbound from working for any players you kill.", "12800", new EPSParam("chance", 10));
 		jaggedConfig.fillEnchantConfig(2, 200, Material.matchMaterial("PRISMARINE_SHARD"), "The damage of this item is amplified when its durability is low.", "100 * 3^%lvl%", new EPSParam("durabilitythresholdpercent", 30));
 		retaliateConfig.fillEnchantConfig(3, 400, Material.matchMaterial("IRON_AXE"), "Gives a very temporary strength boost when hit.", "500 * 1.5^%lvl%", new EPSParam("duration-seconds", "1"));
