@@ -186,29 +186,6 @@ public class EPS extends JavaPlugin implements Reloadable {
 		Bukkit.getPluginManager().registerEvents(new EnchantGUI(), this);
 		Bukkit.getPluginManager().registerEvents(epsEvents, this);
 
-		// Initialize legacy support
-		File file = new File(getDataFolder().getParentFile(), "LegacyWrapper.jar");
-		if (EPS.getMCVersion() < 13 && !file.exists())
-			try
-			{
-				Bukkit.getPluginManager()
-						.enablePlugin(Bukkit.getPluginManager().loadPlugin(Sekai.downloadFile(
-								getDataFolder().getParentFile().getPath() + "/LegacyWrapper.jar",
-								"https://github.com/dsdd/EnchantmentsPlusMinus/raw/main/Packs/LegacyWrapper.jar")));
-			} catch (Exception e)
-			{
-			}
-
-		if (EPS.getMCVersion() < 13 && !Bukkit.getPluginManager().isPluginEnabled("LegacyWrapper"))
-		{
-			Bukkit.getConsoleSender()
-					.sendMessage(ChatColor.RED
-							+ "Sorry, but it seems that there was an error downloading LegacyWrapper. "
-							+ "To prevent data corruption, Enchantments+- will be forcefully disabled."
-							+ "If this is unintentional, please report this to TreuGames for further investigation.");
-			Bukkit.getPluginManager().disablePlugin(plugin);
-		}
-
 		EPS.registerReloader(this); // This has to be reloaded first.
 		EPS.registerReloader(enchantMetaWriter);
 		EPS.registerReloader(new EnchantGUI());
