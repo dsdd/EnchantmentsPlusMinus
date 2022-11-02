@@ -23,15 +23,15 @@ import org.vivi.eps.util.Language;
 public class EditEnchantGUI implements Listener {
 
 	private Inventory inv = null;
-	private Player p = null;
+	private Player player = null;
 	private boolean editing = false;
 	private String key = null;
 	private EPSConfiguration config = null;
 	
-	public EditEnchantGUI(Player p, Enchantment enchant)
+	public EditEnchantGUI(Player player, Enchantment enchant)
 	{
 		Bukkit.getPluginManager().registerEvents(this, EPS.plugin);
-		this.p = p;
+		this.player = player;
         config = EPSConfiguration.getConfiguration(enchant);
 		Map<String, Object> entries = config.getValues(true);
 		int size = (int) (Math.ceil((double)entries.size()/9)*9);
@@ -48,7 +48,7 @@ public class EditEnchantGUI implements Listener {
 			i.setItemMeta(meta);
 			inv.addItem(i);
 		}
-		p.openInventory(inv);
+		player.openInventory(inv);
 	}
 	
 	@EventHandler
@@ -65,32 +65,33 @@ public class EditEnchantGUI implements Listener {
 		if (clickedItem == null || clickedItem.getType() == Material.AIR)
 			return;
 		
-		p.closeInventory();
+		player.closeInventory();
 		key = clickedItem.getItemMeta().getLore().get(1).replace("�0", "");
-		p.sendMessage(Language.getLangMessage("modifying-config").replace("%entry%", key));
+		player.sendMessage(Language.getLangMessage("modifying-config").replace("%entry%", key));
 		editing = true;
 	}
 	
 	@EventHandler
 	public void onChat(AsyncPlayerChatEvent e)
 	{
-		if (e.getPlayer() == p && editing)
+		if (e.getPlayer() == player && editing)
 		{
 			e.setCancelled(true);
-			Object o = toObject(e.getMessage());
-			config.set(key, o);
-			config.save();
-			EPS.reloadConfigs();
-			Language.sendMessage(p, "modified-config");
-			Bukkit.getScheduler().runTask(EPS.plugin, new Runnable()
-					{
-						@Override
-						public void run() {
-							EnchantGUI.openInventory(p, EnchantGUI.guiNames.get(p));
-							
-						}
-					});
-			
+			if (!e.getMessage().equals("cancel")) // Not using ignore case just in case ;)
+			{
+				config.set(key, toObject(e.getMessage()));
+				config.save();
+				EPS.reloadConfigs();
+				Language.sendMessage(player, "modified-config");
+				Bukkit.getScheduler().runTask(EPS.plugin, new Runnable()
+						{
+							@Override
+							public void run() {
+								EnchantGUI.openInventory(player, EnchantGUI.guiNames.get(player));
+								
+							}
+						});
+			}
 		}
 	}
 	

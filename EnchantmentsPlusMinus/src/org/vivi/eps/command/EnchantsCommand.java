@@ -20,16 +20,13 @@ public class EnchantsCommand implements CommandExecutor {
 	private static Set<String> guis;
 	private static Map<List<Material>, String> list = new HashMap<List<Material>, String>();
 	
-	/** Sets up enchant GUIs for use.
-	 * Should never be used by plugins, for internal use only!
-	 */
 	public static void setupGUIs()
 	{
-		guis = EPS.guisData.getConfigurationSection("guis").getKeys(false);
+		guis = EPS.guisFile.getConfigurationSection("guis").getKeys(false);
 		for (String i : guis) 
 		{
 			List<Material> tlist = new ArrayList<Material>();
-			for (String i1 : EPS.guisData.getStringList("guis."+i+".items"))
+			for (String i1 : EPS.guisFile.getStringList("guis."+i+".items"))
 			{
 				if (Material.matchMaterial(i1) != null)
 				tlist.add(Material.matchMaterial(i1));

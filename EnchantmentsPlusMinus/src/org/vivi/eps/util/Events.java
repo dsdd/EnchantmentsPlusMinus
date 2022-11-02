@@ -18,6 +18,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
@@ -153,7 +154,7 @@ public class Events implements Listener, Reloadable {
 			}
 	}
 
-	@EventHandler
+	@EventHandler(ignoreCancelled = true)
 	public void onInventoryClick(PrepareAnvilEvent e)
 	{
 		if (!ConfigSettings.isAnvilCombiningEnabled() || EPS.getMCVersion() < 12)
@@ -197,6 +198,15 @@ public class Events implements Listener, Reloadable {
 		e.setResult(item);
 		Bukkit.getServer().getScheduler().runTask(EPS.plugin, () -> e.getInventory().setRepairCost(cost1));
 	}
+	
+	@EventHandler(ignoreCancelled = true)
+	public void onSignChangeEvent(SignChangeEvent e)
+	{
+		if (e.getLines()[0].equalsIgnoreCase(Language.getLangMessage("enchant-sign-initiating-line", false)))
+		{
+			
+		}
+	}
 
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent e)
@@ -209,14 +219,8 @@ public class Events implements Listener, Reloadable {
 	{
 		Player player = e.getPlayer();
 		File dataFile = new File(EPS.dataFolder, player.getUniqueId().toString() + ".yml");
-		EPS.uuidDataStoreData.set(player.getName(), player.getUniqueId().toString());
-		try
-		{
-			EPS.uuidDataStoreData.save(EPS.uuidDataStore);
-		} catch (IOException e1)
-		{
-			e1.printStackTrace();
-		}
+		EPS.uuidDataStore.set(player.getName(), player.getUniqueId().toString());
+		EPS.uuidDataStore.saveYaml();
 
 		if (!dataFile.exists())
 			dataFile.createNewFile();
@@ -232,10 +236,9 @@ public class Events implements Listener, Reloadable {
 
 	public static void setDefault(String path, Object replace)
 	{
-		if (!EPS.configData.isSet(path))
-		{
-			EPS.configData.set(path, replace);
-		}
+		YamlConfiguration yamlConfiguration = EPS.configFile.getYaml();
+		if (!yamlConfiguration.isSet(path))
+			yamlConfiguration.set(path, replace);
 	}
 
 	@Override

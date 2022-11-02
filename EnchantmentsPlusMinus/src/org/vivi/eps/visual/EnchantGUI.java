@@ -110,7 +110,7 @@ public class EnchantGUI implements Listener, Reloadable
 		Inventory inv = GUIs.get(player);
 		inv.clear();
 		createPanes(inv);
-		List<String> l = EPS.guisData.getStringList("guis." + guiToOpen + ".enchants");
+		List<String> l = EPS.guisFile.getStringList("guis." + guiToOpen + ".enchants");
 		if (l.size() > 14)
 		{
 			ItemStack i = glasspane.clone();
@@ -226,7 +226,7 @@ public class EnchantGUI implements Listener, Reloadable
 
 		List<String> lore = EnchantMetaWriter.getDescription(enchant);
 
-		for (String s : EPS.guiLoreData.getStringList("lore"))
+		for (String s : EPS.languageFile.getStringList("enchant-gui-item-lore"))
 			lore.add(ChatColor.translateAlternateColorCodes('&',
 					s.replaceAll("%cost%", displayCost).replaceAll("%maxlevel%", maxlevel.toString())
 							.replaceAll("%currentlevel%", Integer.toString(mainmeta.getEnchantLevel(enchant)))));
@@ -289,7 +289,7 @@ public class EnchantGUI implements Listener, Reloadable
 
 		if (displayName.equals(nextPageName))
 		{
-			nextPage(p, EPS.guisData.getStringList("guis." + guiNames.get(p) + ".enchants"));
+			nextPage(p, EPS.guisFile.getStringList("guis." + guiNames.get(p) + ".enchants"));
 		} else if (displayName.equals(modifyGuiName))
 		{
 			modifying = p;
@@ -317,10 +317,10 @@ public class EnchantGUI implements Listener, Reloadable
 			if (e.isRightClick())
 			{
 				String path = "guis." + guiNames.get(p) + ".enchants";
-				List<String> list = EPS.guisData.getStringList(path);
+				List<String> list = EPS.guisFile.getStringList(path);
 				list.remove(dictionary.getName(ench));
-				EPS.guisData.set(path, list);
-				EPS.guisData.save(EPS.guisFile);
+				EPS.guisFile.set(path, list);
+				EPS.guisFile.saveYaml();
 				e.getInventory().remove(clickedItem);
 				EPS.reloadConfigs();
 			} else
@@ -462,7 +462,7 @@ public class EnchantGUI implements Listener, Reloadable
 					|| m.equals(Material.FISHING_ROD) || (EPS.getMCVersion() > 11 && e.getClickedBlock() != null
 							&& e.getClickedBlock().getType().isInteractable()))
 				return;
-			if (EPS.configData.getBoolean("open-enchant-gui-on-right-click") == true)
+			if (EPS.configFile.getYaml().getBoolean("open-enchant-gui-on-right-click") == true)
 				EPS.enchantsCommand.onCommand(e.getPlayer(), Bukkit.getPluginCommand("enchants"), "enchants",
 						new String[] { "dontshow" });
 		}
@@ -470,7 +470,7 @@ public class EnchantGUI implements Listener, Reloadable
 
 	public static void setupInCPTS()
 	{
-		ConfigurationSection cs = EPS.incompatibilitiesData.getConfigurationSection("incompatibilities");
+		ConfigurationSection cs = EPS.incompatibilitiesFile.getConfigurationSection("incompatibilities");
 		incpts.clear();
 
 		if (cs == null)
@@ -483,9 +483,9 @@ public class EnchantGUI implements Listener, Reloadable
 		for (String i : a)
 		{
 			List<Enchantment> enchs = new ArrayList<Enchantment>();
-			for (String s : EPS.incompatibilitiesData.getStringList("incompatibilities." + i + ".enchants"))
+			for (String s : EPS.incompatibilitiesFile.getStringList("incompatibilities." + i + ".enchants"))
 				enchs.add(dictionary.findEnchant(s));
-			incpts.put(EPS.incompatibilitiesData.getStringList("incompatibilities." + i + ".items"), enchs);
+			incpts.put(EPS.incompatibilitiesFile.getStringList("incompatibilities." + i + ".items"), enchs);
 		}
 	}
 

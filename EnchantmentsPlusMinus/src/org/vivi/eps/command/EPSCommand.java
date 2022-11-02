@@ -43,7 +43,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter
 	{
 		if (args.length == 0)
 		{
-			for (String line : EPS.languageData.getStringList("eps-command-usage"))
+			for (String line : EPS.languageFile.getStringList("eps-command-usage"))
 				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', line));
 			return false;
 		}
@@ -252,9 +252,9 @@ public class EPSCommand implements CommandExecutor, TabCompleter
 
 			Map<String, Double> balances = new HashMap<String, Double>();
 
-			for (String key : EPS.uuidDataStoreData.getKeys(false))
+			for (String key : EPS.uuidDataStore.getKeys(false))
 			{
-				File file = new File(EPS.dataFolder, EPS.uuidDataStoreData.getString(key) + ".yml");
+				File file = new File(EPS.dataFolder, EPS.uuidDataStore.getString(key) + ".yml");
 				if (file.exists())
 					balances.put(key, YamlConfiguration.loadConfiguration(file).getDouble("tokens", 0));
 			}

@@ -1,6 +1,5 @@
 package org.vivi.eps.util;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +14,7 @@ import org.vivi.eps.api.Reloadable;
 public class Language implements Reloadable {
 	
 	private static Map<String, String> msgs = new HashMap<String, String>();
-	private static String prefix = EPS.languageData.getString("prefix");
+	private static String prefix = EPS.languageFile.getString("prefix");
 	public static Language lang = new Language();
 
 	private Language() 
@@ -50,15 +49,9 @@ public class Language implements Reloadable {
 	 */
 	public static void setLangMessage(String langkey, String message)
 	{
-		EPS.languageData.set("messages."+langkey, message);
+		EPS.languageFile.set("messages."+langkey, message);
 		msgs.put(langkey, message);
-		if (EPS.languageFile.exists())
-			try {
-				EPS.languageData.save(EPS.languageFile);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		EPS.languageFile.saveYaml();
 	}
 	
 	/**Sets the language message defined in lang.yml if it does not already exist
@@ -93,7 +86,7 @@ public class Language implements Reloadable {
 	@Override
 	public void reload() 
 	{
-		ConfigurationSection section = EPS.languageData.getConfigurationSection("messages");
+		ConfigurationSection section = EPS.languageFile.getConfigurationSection("messages");
 		for (Map.Entry<String, Object> entry : section.getValues(false).entrySet())
 			msgs.put(entry.getKey(), entry.getValue().toString());
 	}

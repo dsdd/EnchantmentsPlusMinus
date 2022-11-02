@@ -184,7 +184,9 @@ public class EnchantProcessor implements Listener, Reloadable
             		if (itemStack == null)
             			return;
             		
-            		if (itemStack.getItemMeta().hasEnchant(CustomEnchants.NIGHT_VISION))
+            		ItemMeta itemMeta = itemStack.getItemMeta();
+            		
+            		if (itemMeta != null && itemMeta.hasEnchant(CustomEnchants.NIGHT_VISION))
                 		PotionCombiner.lengthenEffect(player, new PotionEffect(PotionEffectType.NIGHT_VISION, 5, 1));
             	}
             }

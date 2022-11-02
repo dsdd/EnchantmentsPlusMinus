@@ -1,20 +1,15 @@
 package org.vivi.sekai;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
 
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 /**
- * All in one dumpster fire library class Don't judge the na
+ * All in one dumpster fire library class
  * 
  * @author vivisan
  *
@@ -28,7 +23,7 @@ public class Sekai
 	 * destination if it does not exist
 	 * 
 	 * @param resourcePath The path to copy from
-	 * @param dest     The file you want to copy to
+	 * @param dest         The file you want to copy to
 	 */
 	public static void saveDefaultFile(Plugin plugin, String resourcePath, File dest)
 	{
@@ -46,8 +41,8 @@ public class Sekai
 	}
 
 	/**
-	 * Copies a resource in the given plugin's jar from the specified internal
-	 * file path to the specified file
+	 * Copies a resource in the given plugin's jar from the specified internal file
+	 * path to the specified file
 	 * 
 	 * @param internalPath The file path to copy from
 	 * @param dest         The file to paste into
@@ -81,46 +76,7 @@ public class Sekai
 		}
 	}
 
-	/**
-	 * Creates a new file, similar to file.createNewFile(), but without having to
-	 * write try/catch
-	 * 
-	 * @param file The file to create
-	 * @return Whether the file has been successfully created.
-	 */
-	public static boolean createNewFile(File file)
-	{
-		try
-		{
-			file.createNewFile();
-			return true;
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-			return false;
-		}
-	}
-
-	/**
-	 * Loads a YAML file using UTF-8 format, allowing the reading of Unicode
-	 * characters.
-	 * 
-	 * @param file The file to load
-	 * @return Loaded YAML configuration
-	 */
-	public static YamlConfiguration loadUTF8Configuration(File file)
-	{
-		YamlConfiguration config = new YamlConfiguration();
-		try
-		{
-			config.load(new InputStreamReader(new FileInputStream(file), Charset.forName("UTF-8")));
-		} catch (IOException | InvalidConfigurationException e)
-		{
-			e.printStackTrace();
-		}
-		return config;
-	}
-
+	
 	/**
 	 * Abbreviates a given number using suffixes, rounded to 2 decimal places. e.g.
 	 * Converts 1,581,195 to 1.58M

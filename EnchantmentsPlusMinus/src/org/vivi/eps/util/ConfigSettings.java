@@ -10,7 +10,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.vivi.eps.EPS;
 import org.vivi.eps.api.Reloadable;
 
-public class ConfigSettings implements Reloadable {
+public class ConfigSettings implements Reloadable
+{
 
 	private static boolean isAutoUpdating = false;
 	private static boolean showEnchants = true;
@@ -42,21 +43,21 @@ public class ConfigSettings implements Reloadable {
 	@Override
 	public void reload()
 	{
-		isAutoUpdating = EPS.configData.getBoolean("auto-update");
-		showEnchants = EPS.configData.getBoolean("show-enchants");
-		showEnchantDescriptions = EPS.configData.getBoolean("show-enchant-descriptions");
-		abbreviateLargeNumbers = EPS.configData.getBoolean("abbreviate-large-numbers");
-		useRomanNumerals = EPS.configData.getBoolean("use-roman-numerals");
-		openEnchantGuiOnRightClick = EPS.configData.getBoolean("open-enchant-gui-on-right-click");
-		anvilCombiningEnabled = EPS.configData.getBoolean("anvil-combining-enabled");
-		useVaultEconomy = EPS.configData.getBoolean("use-vault-economyy");
-		useActionBar = EPS.configData.getBoolean("use-action-bar-instead-of-chat-when-inventory-full");
-		globalCostEnabled = EPS.configData.getBoolean("global-cost.enabled");
-		globalCost = EPS.configData.get("global-cost.cost");
-		enchantLoreColor = EPS.configData.getString("enchant-lore-color");
+		isAutoUpdating = EPS.configFile.getBoolean("auto-update");
+		showEnchants = EPS.configFile.getBoolean("show-enchants");
+		showEnchantDescriptions = EPS.configFile.getBoolean("show-enchant-descriptions");
+		abbreviateLargeNumbers = EPS.configFile.getBoolean("abbreviate-large-numbers");
+		useRomanNumerals = EPS.configFile.getBoolean("use-roman-numerals");
+		openEnchantGuiOnRightClick = EPS.configFile.getBoolean("open-enchant-gui-on-right-click");
+		anvilCombiningEnabled = EPS.configFile.getBoolean("anvil-combining-enabled");
+		useVaultEconomy = EPS.configFile.getBoolean("use-vault-economyy");
+		useActionBar = EPS.configFile.getBoolean("use-action-bar-instead-of-chat-when-inventory-full");
+		globalCostEnabled = EPS.configFile.getBoolean("global-cost.enabled");
+		globalCost = EPS.configFile.get("global-cost.cost");
+		enchantLoreColor = EPS.configFile.getString("enchant-lore-color");
 
 		getApplyFortuneOn().clear();
-		List<String> applyFortuneOnStringList = EPS.configData.getStringList("apply-fortune-on");
+		List<String> applyFortuneOnStringList = EPS.configFile.getStringList("apply-fortune-on");
 		for (String name : applyFortuneOnStringList)
 		{
 			Material material = Material.matchMaterial(name);
@@ -66,23 +67,23 @@ public class ConfigSettings implements Reloadable {
 				getApplyFortuneOn().add(material);
 		}
 
-		playerKillRewardEnabled = EPS.configData.getBoolean("player-kill-reward.enabled");
-		playerKillRewardMin = EPS.configData.getInt("player-kill-reward.min");
-		playerKillRewardMax = EPS.configData.getInt("player-kill-reward.max");
-		mobKillRewardEnabled = EPS.configData.getBoolean("mob-kill-reward.enabled");
-		mobKillRewardMin = EPS.configData.getInt("mob-kill-reward.min");
-		mobKillRewardMax = EPS.configData.getInt("mob-kill-reward.max");
-		miningRewardEnabled = EPS.configData.getBoolean("mining-reward.enabled");
-		miningRewardMin = EPS.configData.getInt("mining-reward.min");
-		miningRewardBlocksToBreak = EPS.configData.getInt("mining-reward.blockstobreak");
+		playerKillRewardEnabled = EPS.configFile.getBoolean("player-kill-reward.enabled");
+		playerKillRewardMin = EPS.configFile.getInt("player-kill-reward.min");
+		playerKillRewardMax = EPS.configFile.getInt("player-kill-reward.max");
+		mobKillRewardEnabled = EPS.configFile.getBoolean("mob-kill-reward.enabled");
+		mobKillRewardMin = EPS.configFile.getInt("mob-kill-reward.min");
+		mobKillRewardMax = EPS.configFile.getInt("mob-kill-reward.max");
+		miningRewardEnabled = EPS.configFile.getBoolean("mining-reward.enabled");
+		miningRewardMin = EPS.configFile.getInt("mining-reward.min");
+		miningRewardBlocksToBreak = EPS.configFile.getInt("mining-reward.blockstobreak");
 
-		ConfigurationSection enchantSpecificLoreColors = EPS.configData
+		ConfigurationSection enchantSpecificLoreColors = EPS.configFile
 				.getConfigurationSection("enchant-specific-lore-color");
 		for (String key : enchantSpecificLoreColors.getKeys(false))
 			getEnchantSpecificLoreColors().put(key, enchantSpecificLoreColors.getString(key));
 
-		loreExemptions = EPS.configData.getStringList("do-not-add-lore-to");
-		disabledEnchants = EPS.configData.getStringList("disabled-enchants");
+		loreExemptions = EPS.configFile.getStringList("do-not-add-lore-to");
+		disabledEnchants = EPS.configFile.getStringList("disabled-enchants");
 	}
 
 	public static boolean isAutoUpdating()

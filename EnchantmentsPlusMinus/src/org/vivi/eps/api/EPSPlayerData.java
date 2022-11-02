@@ -87,7 +87,7 @@ public class EPSPlayerData
 	 */
 	public static UUID getUUID(String playerName)
 	{
-		String stringUUID = EPS.uuidDataStoreData.getString(playerName);
+		String stringUUID = EPS.uuidDataStore.getString(playerName);
 		if (stringUUID == null)
 			return null;
 

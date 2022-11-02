@@ -1,6 +1,6 @@
 # Language Config
 
-prefix: '&7[&a&lEPS&7] &r'
+prefix: "&7[&a&lEPS&7] &r"
 messages:
     insufficientpermission: "&cYou do not have permission to use this command."
     invalidplayertype: "&cThis command can only be executed by a player."
@@ -25,25 +25,27 @@ messages:
     moneyblocksactivate: "&aYou received &e&l$%money%&a from MoneyBlocks!"
     tokencharityactivate: "&aYou received &e&l%tokens%&a tokens from a token charity run by %player%&a!"
     charityactivate: "&aYou received &e&l$%money%&a from a charity by %player%&a!"
-    cooldown-error: '&cYou must wait %secs% more seconds to use this again!'
-    enderbow-radius-error: '&cYou cannot teleport further than %blocks% blocks!'
-    token-pouch: '&eToken Pouch'
-    token-pouch-lore-1: '&7%tokens% Tokens'
-    token-pouch-lore-2: '&7Right-Click to claim tokens in the pouch!'
-    startup-message: '&2Thank you for using Enchantments+-!'
-    claimed-token-pouch: '&2You received %tokens% tokens from the token pouch!'
-    no-enchant-config-found: '&cCould not find the config for %enchant%!'
-    balance-display-in-gui: '&aYour Tokens » &e%balance%'
-    invalid-enchant: '&cCould not find specified enchant. Try using /eps reload.'
-    cannot-open-gui: '&cYou cannot open the GUI at this time.'
-    boosted-activate: '&aBoosted fortune!'
-    next-page: '&aNext page'
-    modify-gui: '&aModify GUI - Admin Only'
-    modify-lore-1: '&7Left-Click to edit this enchant'
-    modify-lore-2: '&7Right-Click to remove this enchant'
-    modifying-config: '&aType in the new value of %entry%.'
-    modified-config: '&aChanged value!'
-    baltop-position: '&e#%position% &a- %player% (&e&l%tokens%&r&a tokens)'
+    cooldown-error: "&cYou must wait %secs% more seconds to use this again!"
+    enderbow-radius-error: "&cYou cannot teleport further than %blocks% blocks!"
+    token-pouch: "&eToken Pouch"
+    token-pouch-lore-1: "&7%tokens% Tokens"
+    token-pouch-lore-2: "&7Right-Click to claim tokens in the pouch!"
+    startup-message: "&2Thank you for using Enchantments+-!"
+    claimed-token-pouch: "&2You received %tokens% tokens from the token pouch!"
+    no-enchant-config-found: "&cCould not find the config for %enchant%!"
+    balance-display-in-gui: "&aYour Tokens » &e%balance%"
+    invalid-enchant: "&cCould not find specified enchant. Try using /eps reload."
+    cannot-open-gui: "&cYou cannot open the GUI at this time."
+    boosted-activate: "&aBoosted fortune!"
+    next-page: "&aNext page"
+    modify-gui: "&aModify GUI - Admin Only"
+    modify-lore-1: "&7Left-Click to edit this enchant"
+    modify-lore-2: "&7Right-Click to remove this enchant"
+    modifying-config: "&aType in the new value of %entry%. (Type &lcancel&r&a to cancel this prompt)"
+    modified-config: "&aChanged value!"
+    modifying-config-expired: "& modifying has expired."
+    baltop-position: "&e#%position% &a- %player% (&e&l%tokens%&r&a tokens)"
+    enchant-sign-initiating-line: "[EPSEnchant]"
 eps-command-usage:
 - "&7-----------[ &a&lEnchantments+- &7]-----------"
 - "&7- &e/eps reload &7- Reloads all configuration files. Some settings may require a full plugin reload."
@@ -53,3 +55,11 @@ eps-command-usage:
 - "&7- &e/eps book [player] [enchant:level] &7- Gives the player a book with the specified enchant and level. (e.g. /eps book efficiency:2)"
 - "&7- &e/eps tokenpouch [player] [amount] &7- Gives the player a token pouch with the specified amount."
 - "&7- &e/eps baltop &7- Shows the baltop. Can be useful for statistical data"
+enchant-gui-item-lore:
+- "&aCost » &e%cost%"
+- "&aMax Level » &e%maxlevel%"
+- "&aCurrent Level » &e%currentlevel%"
+- ""
+- "&7» Left-Click to upgrade once"
+- "&7» Right-Click to upgrade 5 times"
+- "&7» Shift-Right-Click to upgrade 50 times"

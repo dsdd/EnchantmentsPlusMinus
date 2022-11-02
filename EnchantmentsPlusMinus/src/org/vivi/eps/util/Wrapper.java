@@ -35,9 +35,9 @@ public class Wrapper extends Enchantment {
 			if (enchant.equals(arg0))
 				return true;
 
-		for (String key : EPS.incompatibilitiesData.getKeys(false))
+		for (String key : EPS.incompatibilitiesFile.getKeys(false))
 		{
-			List<String> incompatibilities = EPS.incompatibilitiesData.getStringList(key);
+			List<String> incompatibilities = EPS.incompatibilitiesFile.getStringList(key);
 			boolean contains = false;
 			for (String enchantName : incompatibilities)
 				if (enchantName.equalsIgnoreCase(dictionary.getName(this)))

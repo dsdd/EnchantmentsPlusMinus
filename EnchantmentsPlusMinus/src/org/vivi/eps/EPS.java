@@ -3,16 +3,17 @@ package org.vivi.eps;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -39,27 +40,23 @@ import org.vivi.eps.visual.EnchantGUI;
 import org.vivi.eps.visual.EnchantMetaWriter;
 import org.vivi.epsbuiltin.enchants.BuiltInEnchantsLoader;
 import org.vivi.sekai.Sekai;
+import org.vivi.sekai.YamlFile;
 
-public class EPS extends JavaPlugin implements Reloadable {
+public class EPS extends JavaPlugin implements Reloadable
+{
 
 	public static EPS plugin;
 	public static File dataFolder;
 	public static File enchantsFolder;
-	public static File configFile;
-	public static File languageFile;
-	public static File incompatibilitiesFile;
-	public static File guisFile;
-	public static File guiLoreFile;
-	public static File uuidDataStore;
-	public static FileConfiguration configData;
-	public static FileConfiguration languageData;
-	public static FileConfiguration uuidDataStoreData;
-	public static FileConfiguration incompatibilitiesData;
-	public static FileConfiguration guisData;
-	public static FileConfiguration guiLoreData;
+	public static YamlFile configFile;
+	public static YamlFile languageFile;
+	public static YamlFile incompatibilitiesFile;
+	public static YamlFile guisFile;
+	public static YamlFile uuidDataStore;
 	public static EnchantsCommand enchantsCommand;
 	public static EnchantMetaWriter enchantMetaWriter;
 	public static boolean debug = false;
+	public static Logger logger;
 
 	private static EnchantDictionary dictionary = new EnchantDictionary.Defaults();
 	private final static int version = (Bukkit.getVersion().contains("1.8")) ? 8
@@ -91,148 +88,128 @@ public class EPS extends JavaPlugin implements Reloadable {
 	@Override
 	public void onEnable()
 	{
-		long startTime = System.currentTimeMillis();
-		plugin = this;
-		
-		
-		// This is for debugging
-		for (Player player : Bukkit.getOnlinePlayers())
-			if (player.getName().equals("vivisan"))
-			{
-				debug = true;
-				getLogger().log(Level.INFO, "Debugging is enabled.");
-			}
-		
-		saveDefaultConfig();
-		configFile = new File(getDataFolder(), "config.yml");
-		
-		if (configFile.exists() && debug == true)
-			configFile.delete();
-		Sekai.saveDefaultFile(EPS.plugin, "/config.yml", configFile);
-		configData = YamlConfiguration.loadConfiguration(configFile);
-
-		// Create Data Folder
-		dataFolder = new File(getDataFolder(), "data");
-		if (!dataFolder.exists())
-			dataFolder.mkdirs();
-
-		// Create Enchant Folder
-		enchantsFolder = new File(getDataFolder(), "enchants");
-		if (!enchantsFolder.exists())
-			enchantsFolder.mkdirs();
-
-		// Create Language File
-		languageFile = new File(getDataFolder(), "lang.yml");
-		if (languageFile.exists() && debug == true)
-			languageFile.delete();
-		Sekai.saveDefaultFile(EPS.plugin, "/lang.yml", languageFile);
-		languageData = YamlConfiguration.loadConfiguration(languageFile);
-
-		// Create GUIs File
-		guisFile = new File(getDataFolder(), "guis.yml");
-		if (guisFile.exists() && debug == true)
-			guisFile.delete();
-		Sekai.saveDefaultFile(EPS.plugin, "/guis.yml", guisFile);
-		guisData = YamlConfiguration.loadConfiguration(guisFile);
-
-		// Create Incompatibilities File
-		incompatibilitiesFile = new File(getDataFolder(), "incompatibilities.yml");
-		if (incompatibilitiesFile.exists() && debug == true)
-			incompatibilitiesFile.delete();
-		Sekai.saveDefaultFile(EPS.plugin, "/incompatibilities.yml", incompatibilitiesFile);
-		incompatibilitiesData = YamlConfiguration.loadConfiguration(incompatibilitiesFile);
-
-		// Create Gui Lore File
-		guiLoreFile = new File(getDataFolder(), "gui_lore.yml");
-		if (guiLoreFile.exists() && debug == true)
-			guiLoreFile.delete();
-		Sekai.saveDefaultFile(EPS.plugin, "/gui_lore.yml", guiLoreFile);
-		guiLoreData = Sekai.loadUTF8Configuration(guiLoreFile);
-
-		// Create Data Files
-		uuidDataStore = new File(dataFolder, "usernamestore.yml");
-		if (!uuidDataStore.exists())
-			Sekai.createNewFile(uuidDataStore);
-		uuidDataStoreData = YamlConfiguration.loadConfiguration(uuidDataStore);
-
-		// Load Updater
-		updater.makeCompatible();
-
-		// Load Configuration Files
-		ConfigSettings configSettings = new ConfigSettings();
-		configSettings.reload();
-		registerReloader(configSettings);
-		EPS.registerReloader(Language.lang);
-
-		// Load dependencies
-		new Metrics(plugin, 9735);
-		if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
-			new PlaceholderAPIHook();
-
-		VaultHook.setupEconomy();
-		economy = ConfigSettings.isUseVaultEconomy() ? new VaultEconomy() : new TokenEconomy();
-
-		// Load commands
-		enchantsCommand = new EnchantsCommand();
-		Bukkit.getPluginCommand("eps").setExecutor(new EPSCommand());
-		Bukkit.getPluginCommand("enchants").setExecutor(enchantsCommand);
-		Bukkit.getPluginCommand("paytokens").setExecutor(new PayTokensCommand());
-		Bukkit.getPluginCommand("scrap").setExecutor(new ScrapCommand());
-		Bukkit.getPluginCommand("tokens").setExecutor(new TokensCommand());
-		EnchantsCommand.setupGUIs();
-
-		// Load events
-		enchantMetaWriter = new EnchantMetaWriter();
-		Bukkit.getPluginManager().registerEvents(new EnchantGUI(), this);
-		Bukkit.getPluginManager().registerEvents(epsEvents, this);
-
-		EPS.registerReloader(this); // This has to be reloaded first.
-		EPS.registerReloader(enchantMetaWriter);
-		EPS.registerReloader(new EnchantGUI());
-
-		// Finalize loading
 		try
 		{
+			long startTime = System.currentTimeMillis();
+			plugin = this;
+			logger = getLogger();
+
+			// This is for debugging
+			for (Player player : Bukkit.getOnlinePlayers())
+				if (player.getName().equals("vivisan"))
+				{
+					debug = true;
+					getLogger().log(Level.INFO, "Debugging is enabled.");
+				}
+
+			saveDefaultConfig();
+			configFile = new YamlFile(getDataFolder(), "config.yml");
+
+			if (configFile.exists() && debug == true)
+				configFile.delete();
+			Sekai.saveDefaultFile(EPS.plugin, "/config.yml", configFile);
+
+			// Create Data Folder
+			dataFolder = new File(getDataFolder(), "data");
+			if (!dataFolder.exists())
+				dataFolder.mkdirs();
+
+			// Create Enchant Folder
+			enchantsFolder = new File(getDataFolder(), "enchants");
+			if (!enchantsFolder.exists())
+				enchantsFolder.mkdirs();
+
+			// Create Language File
+			languageFile = new YamlFile(getDataFolder(), "lang.yml", Charset.forName("UTF-8"));
+			if (languageFile.exists() && debug == true)
+				languageFile.delete();
+			Sekai.saveDefaultFile(EPS.plugin, "/lang.yml", languageFile);
+
+			// Create GUIs File
+			guisFile = new YamlFile(getDataFolder(), "guis.yml");
+			if (guisFile.exists() && debug == true)
+				guisFile.delete();
+			Sekai.saveDefaultFile(EPS.plugin, "/guis.yml", guisFile);
+
+			// Create Incompatibilities File
+			incompatibilitiesFile = new YamlFile(getDataFolder(), "incompatibilities.yml");
+			if (incompatibilitiesFile.exists() && debug == true)
+				incompatibilitiesFile.delete();
+			Sekai.saveDefaultFile(EPS.plugin, "/incompatibilities.yml", incompatibilitiesFile);
+
+			// Create Data Files
+			uuidDataStore = new YamlFile(dataFolder, "usernamestore.yml");
+			if (!uuidDataStore.exists())
+				uuidDataStore.createNewFile();
+
+			reload();
+
+			// Load Updater
+			updater.makeCompatible();
+
+			// Load Configuration Files
+			ConfigSettings configSettings = new ConfigSettings();
+			configSettings.reload();
+			registerReloader(configSettings);
+			EPS.registerReloader(Language.lang);
+
+			// Load dependencies
+			new Metrics(plugin, 9735);
+			if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
+				new PlaceholderAPIHook();
+
+			VaultHook.setupEconomy();
+			economy = ConfigSettings.isUseVaultEconomy() ? new VaultEconomy() : new TokenEconomy();
+
+			// Load commands
+			enchantsCommand = new EnchantsCommand();
+			Bukkit.getPluginCommand("eps").setExecutor(new EPSCommand());
+			Bukkit.getPluginCommand("enchants").setExecutor(enchantsCommand);
+			Bukkit.getPluginCommand("paytokens").setExecutor(new PayTokensCommand());
+			Bukkit.getPluginCommand("scrap").setExecutor(new ScrapCommand());
+			Bukkit.getPluginCommand("tokens").setExecutor(new TokensCommand());
+			EnchantsCommand.setupGUIs();
+
+			// Load events
+			enchantMetaWriter = new EnchantMetaWriter();
+			Bukkit.getPluginManager().registerEvents(new EnchantGUI(), this);
+			Bukkit.getPluginManager().registerEvents(epsEvents, this);
+
+			EPS.registerReloader(this); // This has to be reloaded first.
+			EPS.registerReloader(enchantMetaWriter);
+			EPS.registerReloader(new EnchantGUI());
+
+			// Finalize loading
 			Field f = Enchantment.class.getDeclaredField("acceptingNew");
 			f.setAccessible(true);
 			f.set(null, true);
-		} catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		for (Enchantment enchant : Enchantment.values())
-			EnchantMetaWriter.init(enchant);
-		try
-		{
-			configData.save(configFile);
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-		}
-		EnchantGUI.setupInCPTS();
-		epsEvents.reload();
-		for (Player player : Bukkit.getOnlinePlayers())
-		{
-			try
+
+			for (Enchantment enchant : Enchantment.values())
+				EnchantMetaWriter.init(enchant);
+
+			configFile.saveYaml();
+			EnchantGUI.setupInCPTS();
+			epsEvents.reload();
+			for (Player player : Bukkit.getOnlinePlayers())
 			{
 				epsEvents.onJoin(new PlayerJoinEvent(player, null));
-			} catch (IOException e)
-			{
-				e.printStackTrace();
+				EnchantGUI.setupGUI(player);
 			}
-			EnchantGUI.setupGUI(player);
+
+			// And load in the built-in enchants.
+
+			NULL_ENCHANT = EPS.newEnchant("null", "null");
+			new BuiltInEnchantsLoader().onEnable();
+
+			getLogger().log(Level.INFO,
+					"Preload time: " + Long.toString(System.currentTimeMillis() - startTime) + " ms (rough approx.)");
+			Language.sendMessage(Bukkit.getConsoleSender(), "startup-message");
+
+			EPS.reloadConfigs(); // hotfix for startup
+		} catch (IOException | NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e)
+		{
+			e.printStackTrace();
 		}
-
-		// And load in the built-in enchants.
-
-		NULL_ENCHANT = EPS.newEnchant("null", "null");
-		new BuiltInEnchantsLoader().onEnable();
-
-		getLogger().log(Level.INFO,
-				"Preload time: " + Long.toString(System.currentTimeMillis() - startTime) + " ms (rough approx.)");
-		Language.sendMessage(Bukkit.getConsoleSender(), "startup-message");
-		
-		EPS.reloadConfigs(); // hotfix for startup
 	}
 
 	@Override
@@ -333,13 +310,11 @@ public class EPS extends JavaPlugin implements Reloadable {
 	@Override
 	public void reload()
 	{
-		plugin.reloadConfig();
-		configData = plugin.getConfig();
-		uuidDataStoreData = YamlConfiguration.loadConfiguration(uuidDataStore);
-		languageData = YamlConfiguration.loadConfiguration(languageFile);
-		incompatibilitiesData = YamlConfiguration.loadConfiguration(incompatibilitiesFile);
-		guisData = YamlConfiguration.loadConfiguration(guisFile);
-		guiLoreData = Sekai.loadUTF8Configuration(guiLoreFile);
+		configFile.loadYaml();
+		uuidDataStore.loadYaml();
+		languageFile.loadYaml();
+		incompatibilitiesFile.loadYaml();
+		guisFile.loadYaml();
 	}
 
 	/**

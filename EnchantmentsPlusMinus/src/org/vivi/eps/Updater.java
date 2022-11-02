@@ -22,6 +22,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.vivi.eps.util.ConfigSettings;
+import org.vivi.eps.util.Language;
 
 public class Updater {
 
@@ -34,85 +35,40 @@ public class Updater {
 		
 		// START 1.9r-8 to 1.9r-9 conversion
 		
-		FileConfiguration configData = EPS.configData;
+		EPS.configFile.supersedePath("show-enchant-lore", "show-enchants");
+		EPS.configFile.supersedePath("use-money-economy-instead-of-tokens", "use-vault-economy");
+		EPS.configFile.supersedePath("use-action-bar-instead-of-chat-inventory-full", "use-action-bar-instead-of-chat-when-inventory-full");
+		EPS.configFile.supersedePath("applyfortuneon", "apply-fortune-on");
+		EPS.configFile.supersedePath("playerkilltokens", "player-kill-reward");
+		EPS.configFile.supersedePath("mobkilltokens", "mob-kill-reward");
+		EPS.configFile.supersedePath("miningtokens", "mining-reward");
+		EPS.configFile.supersedePath("custom-lore-color", "enchant-specific-lore-color");
+		EPS.languageFile.supersedePath("upgradedpickaxe", "upgraded-item");
 		
-		if (configData.contains("show-enchant-lore"))
+		if (EPS.configFile.contains("global-cost-type"))
 		{
-			configData.set("show-enchants", configData.get("show-enchant-lore", true));
-			configData.set("show-enchant-lore", null);
+			EPS.configFile.set("global-cost-type", null);
+			EPS.configFile.set("global-cost.enabled", false);
+			EPS.configFile.set("global-cost.cost", "69420*%lvl%");
 		}
-		
-		if (configData.contains("use-money-economy-instead-of-tokens"))
+
+		File guiLoreFile = new File(EPS.plugin.getDataFolder(), "gui_lore.yml");
+		if (guiLoreFile.exists())
 		{
-			configData.set("use-vault-economy", configData.get("use-money-economy-instead-of-tokens", true));
-			configData.set("use-money-economy-instead-of-tokens", null);
+			EPS.languageFile.set("enchant-gui-item-lore", YamlConfiguration.loadConfiguration(guiLoreFile).getStringList("lore"));
+			guiLoreFile.delete();
 		}
-		
-		if (configData.contains("use-action-bar-instead-of-chat-inventory-full"))
-		{
-			configData.set("use-action-bar-instead-of-chat-when-inventory-full", configData.get("use-action-bar-instead-of-chat-inventory-full", true));
-			configData.set("use-action-bar-instead-of-chat-inventory-full", null);
-		}
-		
-		if (configData.contains("applyfortuneon"))
-		{
-			configData.set("apply-fortune-on", configData.get("applyfortuneon"));
-			configData.set("applyfortuneon", null);
-		}
-		
-		if (configData.contains("playerkilltokens"))
-		{
-			configData.set("player-kill-reward", configData.get("playerkilltokens"));
-			configData.set("playerkilltokens", null);
-		}
-		
-		if (configData.contains("mobkilltokens"))
-		{
-			configData.set("mob-kill-reward", configData.get("mobkilltokens"));
-			configData.set("mobkilltokens", null);
-		}
-		
-		if (configData.contains("miningtokens"))
-		{
-			configData.set("mining-reward", configData.get("miningtokens"));
-			configData.set("miningtokens", null);
-		}
-		
-		if (configData.contains("custom-lore-color"))
-		{
-			configData.set("enchant-specific-lore-color", configData.get("custom-lore-color"));
-			configData.set("custom-lore-color", null);
-		}
-		
-		if (configData.contains("global-cost-type"))
-		{
-			configData.set("global-cost-type", null);
-			configData.set("global-cost.enabled", false);
-			configData.set("global-cost.cost", "69420*%lvl%");
-		}
-		
-		if (EPS.languageData.contains("upgradedpickaxe"))
-		{
-			EPS.languageData.set("upgraded-item", EPS.languageData.get("upgradedpickaxe"));
-			EPS.languageData.set("upgradedpickaxe", null);
-			try {
-				EPS.languageData.save(EPS.languageFile);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
 			
-		}
 		
-		setDefault("abbreviate-large-numbers", true);
-		configData.set("do-not-add-lore-to", new ArrayList<String>(Arrays.asList(new String[] {"an item e.g. BEDROCK that you do not want lore added to due to plugin interference"})));
-		configData.set("use-custom-fortune", null);
-		configData.set("show-vanilla-enchants-in-lore", null);
+		EPS.configFile.setDefault("abbreviate-large-numbers", true);
+		EPS.configFile.set("do-not-add-lore-to", new ArrayList<String>(Arrays.asList(new String[] {"an item e.g. BEDROCK that you do not want lore added to due to plugin interference"})));
+		EPS.configFile.set("use-custom-fortune", null);
+		EPS.configFile.set("show-vanilla-enchants-in-lore", null);
 		
-		for (String key : EPS.incompatibilitiesData.getKeys(false))
-			if (EPS.incompatibilitiesData.contains(key+".items"))
-				EPS.incompatibilitiesData.set(key+".items", null);
+		for (String key : EPS.incompatibilitiesFile.getKeys(false))
+			EPS.incompatibilitiesFile.set(key+".items", null);
 		
-		
+		Language.setDefaultLangMessage("enchant-sign-initiating-line", "[EPSEnchant]");
 		
 		// Convert enchant configs
 		for (File file : (EPS.enchantsFolder.listFiles()))
@@ -135,23 +91,12 @@ public class Updater {
 			}
 		}
 		
-		try {
-			configData.save(EPS.configFile);
-			EPS.incompatibilitiesData.save(EPS.incompatibilitiesFile);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		EPS.configFile.saveYaml();
+		EPS.languageFile.saveYaml();
+		EPS.incompatibilitiesFile.saveYaml();
 		// END
 		
 		
-	}
-	
-	public static void setDefault(String path, Object value)
-	{
-		if (!EPS.configData.isSet(path))
-		{
-			EPS.configData.set(path, value);
-		}
 	}
 	
 	public void autoUpdate()
