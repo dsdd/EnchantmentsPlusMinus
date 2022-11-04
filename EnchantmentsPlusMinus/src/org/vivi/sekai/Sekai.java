@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.Plugin;
+import org.vivi.sekai.CommandProxy.CommandOptions;
 
 /**
  * All in one dumpster fire library class
@@ -16,8 +18,8 @@ import org.bukkit.plugin.Plugin;
  */
 public class Sekai
 {
-	public static char[] suffixes = new char[] { 'k', 'M', 'B', 'T', 'q', 'Q', 's', 'S' };
-
+	private static final CommandProxy commandProxy = new CommandProxy();
+	private static final char[] suffixes = new char[] { 'k', 'M', 'B', 'T', 'q', 'Q', 's', 'S' };
 	/**
 	 * Saves a resource from the specified Spigot plugin JAR to the specified
 	 * destination if it does not exist
@@ -28,16 +30,14 @@ public class Sekai
 	public static void saveDefaultFile(Plugin plugin, String resourcePath, File dest)
 	{
 		if (!dest.exists())
-		{
 			try
 			{
 				dest.createNewFile();
-				Sekai.copyResource(plugin, resourcePath, dest);
+				copyResource(plugin, resourcePath, dest);
 			} catch (IOException e)
 			{
 				e.printStackTrace();
 			}
-		}
 	}
 
 	/**
@@ -76,7 +76,17 @@ public class Sekai
 		}
 	}
 
-	
+	public static void registerCommand(PluginCommand command, CommandOptions options)
+	{
+		commandProxy.commandOptionsMap.put(command, options);
+		command.setExecutor(commandProxy);
+	}
+
+	public static void connectCommand(PluginCommand command, Runnable runnable)
+	{
+		commandProxy.commandActivationMap.put(command, runnable);
+	}
+
 	/**
 	 * Abbreviates a given number using suffixes, rounded to 2 decimal places. e.g.
 	 * Converts 1,581,195 to 1.58M
@@ -87,13 +97,12 @@ public class Sekai
 	public static String abbreviate(double value)
 	{
 		if (value < 1000)
-			return Short.toString((short) value);
+			return Double.toString(value);
 		else
 		{
 			int exp = (int) (Math.log10(value) / 3);
-			char suffix = suffixes[exp - 1];
 			double norm = Math.floor(value * (100 / (Math.pow(1000, exp)))) * 0.01;
-			return String.format("%." + 2 + "f%s", norm, suffix);
+			return String.format("%." + 2 + "f%s", norm, suffixes[exp - 1]);
 		}
 	}
 

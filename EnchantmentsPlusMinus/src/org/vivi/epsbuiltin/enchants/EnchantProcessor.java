@@ -61,15 +61,14 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import org.vivi.eps.EPS;
-import org.vivi.eps.api.UsageTracker;
 import org.vivi.eps.dependencies.VaultHook;
 import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.api.Reloadable;
-import org.vivi.eps.api.TimeTracker;
 import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Language;
 import org.vivi.eps.util.economy.Economy;
 import org.vivi.eps.visual.EnchantGUI;
+import org.vivi.sekai.PlayerKeeper;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -79,17 +78,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 public class EnchantProcessor implements Listener, Reloadable
 {
-
-	private static TimeTracker powerhouseCooldown = new TimeTracker();
-	private static TimeTracker backupSpellsCooldown = new TimeTracker();
-	private static TimeTracker enderbowCooldown = new TimeTracker();
-	private static TimeTracker boostedCooldown = new TimeTracker();
-
-	private static UsageTracker evadeCount = new UsageTracker();
-	private static UsageTracker meltingCount = new UsageTracker();
-	private static UsageTracker machineryCount = new UsageTracker();
-	private static UsageTracker thunderingBlowCount = new UsageTracker();
-
 	private static String cooldownError = Language.getLangMessage("cooldown-error");
 	private static String inventoryFull = Language.getLangMessage("inventoryfull");
 
@@ -198,10 +186,11 @@ public class EnchantProcessor implements Listener, Reloadable
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onEntityDamageByEntity(final EntityDamageByEntityEvent e)
 	{
-		if (e.getDamager() instanceof Player)
+		Entity damager = e.getDamager();
+		if (damager instanceof Player)
 		{
 
-			final Player d = (Player) e.getDamager();
+			final Player d = (Player) damager;
 			final World world = d.getWorld();
 			final ItemStack item = d.getInventory().getItemInMainHand();
 			final ItemMeta meta = item.getItemMeta();
@@ -262,10 +251,9 @@ public class EnchantProcessor implements Listener, Reloadable
 					hit.addPotionEffect(new PotionEffect(PotionEffectType.SLOW,
 							CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "slowness-ticks"),
 							CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "slowness-level") - 1));
-					meltingCount.increase(d);
-					if (meltingCount.get(d) >= CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "freeze-hits"))
+					if (PlayerKeeper.incrementValue(d, CustomEnchants.MELTING, 1) >= CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "freeze-hits"))
 					{
-						meltingCount.reset(d);
+						PlayerKeeper.log(d, CustomEnchants.MELTING, 0);
 						hit.addPotionEffect(new PotionEffect(PotionEffectType.SLOW,
 								CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "freeze-ticks"), 20));
 					}
@@ -297,7 +285,7 @@ public class EnchantProcessor implements Listener, Reloadable
 		if (e.getEntity() instanceof Player)
 		{
 			final Player p = (Player) e.getEntity();
-			final Entity d = e.getDamager();
+			final Entity d = damager;
 			final World world = p.getWorld();
 			final ItemStack item = p.getInventory().getItemInMainHand();
 			final ItemMeta meta = item.getItemMeta();
@@ -314,7 +302,7 @@ public class EnchantProcessor implements Listener, Reloadable
 
 			final ItemStack[] armor = { p.getInventory().getHelmet(), p.getInventory().getChestplate(),
 					p.getInventory().getLeggings(), p.getInventory().getBoots() };
-			if (e.getDamager() instanceof LivingEntity)
+			if (damager instanceof LivingEntity)
 				for (final ItemStack piece : armor)
 				{
 					if (piece != null)
@@ -323,7 +311,7 @@ public class EnchantProcessor implements Listener, Reloadable
 						if (pmeta.hasEnchant(CustomEnchants.POISONOUS))
 						{
 
-							final LivingEntity en = (LivingEntity) e.getDamager();
+							final LivingEntity en = (LivingEntity) damager;
 							final int duration = CustomEnchants.poisonousConfig
 									.getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.POISONOUS), "ticks");
 							PotionCombiner.lengthenEffect(en, new PotionEffect(PotionEffectType.POISON, duration,
@@ -359,15 +347,15 @@ public class EnchantProcessor implements Listener, Reloadable
 						}
 						if (pmeta.hasEnchant(CustomEnchants.EVADE))
 						{
-							evadeCount.increase(p);
 							final int evadeLevel = pmeta.getEnchantLevel(CustomEnchants.EVADE);
 							if (CustomEnchants.evadeConfig.getBoolean("luckbased"))
 								if (getNext() < CustomEnchants.evadeConfig.getAutofilledInt(evadeLevel, "chance"))
 								{
 									e.setCancelled(true);
-								} else if (evadeCount.get(p) > CustomEnchants.evadeConfig.getAutofilledInt(evadeLevel,
+								} else if (PlayerKeeper.incrementValue((Player)e.getEntity(), CustomEnchants.EVADE, 1) > CustomEnchants.evadeConfig.getAutofilledInt(evadeLevel,
 										"hits-to-activate"))
 								{
+									PlayerKeeper.log((Player)e.getEntity(), CustomEnchants.EVADE, 0);
 									e.setCancelled(true);
 								}
 						}
@@ -471,10 +459,11 @@ public class EnchantProcessor implements Listener, Reloadable
 	{
 		if (e.getAction().equals(Action.RIGHT_CLICK_AIR) || e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
 		{
-			final ItemMeta meta = e.getPlayer().getInventory().getItemInMainHand().getItemMeta();
+			Player player = e.getPlayer();
+			final ItemMeta meta = player.getInventory().getItemInMainHand().getItemMeta();
 			if (meta == null)
 				return;
-			if (!e.getPlayer().isSneaking())
+			if (!player.isSneaking())
 				return;
 			if (meta.hasEnchant(CustomEnchants.POWERHOUSE))
 			{
@@ -482,16 +471,16 @@ public class EnchantProcessor implements Listener, Reloadable
 				final double cooldown = CustomEnchants.powerhouseConfig.getAutofilledDouble(enchlvl, "cooldown-seconds")
 						* 1000;
 
-				final long lastuse = powerhouseCooldown.getLastUse(e.getPlayer());
-				if (lastuse < cooldown)
-					e.getPlayer().sendMessage(cooldownError.replaceAll("%secs%",
+				final long lastuse = PlayerKeeper.getLastLog(player, CustomEnchants.POWERHOUSE);
+				if (lastuse - System.currentTimeMillis() < cooldown)
+					player.sendMessage(cooldownError.replaceAll("%secs%",
 							Double.toString(Math.floor(((cooldown - lastuse) / 1000) * 10) / 10)));
 				else
 				{
-					powerhouseCooldown.use(e.getPlayer());
+					PlayerKeeper.log(player, CustomEnchants.POWERHOUSE, System.currentTimeMillis());
 					final int duration = CustomEnchants.powerhouseConfig.getAutofilledInt(enchlvl, "duration-seconds");
 					final int amplifier = CustomEnchants.powerhouseConfig.getAutofilledInt(enchlvl, "amplifier") - 1;
-					e.getPlayer().addPotionEffect(
+					player.addPotionEffect(
 							new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration * 20, amplifier));
 				}
 			}
@@ -500,48 +489,44 @@ public class EnchantProcessor implements Listener, Reloadable
 				final int enchlvl = meta.getEnchantLevel(CustomEnchants.BACKUP_SPELLS);
 				final double cooldown = CustomEnchants.backupSpellsConfig.getAutofilledDouble(enchlvl,
 						"cooldown-seconds") * 1000;
-				final long lastuse = backupSpellsCooldown.getLastUse(e.getPlayer());
-				if (lastuse < cooldown)
-					e.getPlayer().sendMessage(cooldownError.replaceAll("%secs%",
+				final long lastuse = PlayerKeeper.getLastLog(player, CustomEnchants.BACKUP_SPELLS);
+				if (lastuse - System.currentTimeMillis() < cooldown)
+					player.sendMessage(cooldownError.replaceAll("%secs%",
 							Double.toString(Math.floor(((cooldown - lastuse) / 1000) * 10) / 10)));
 				else
 				{
-					backupSpellsCooldown.use(e.getPlayer());
+					PlayerKeeper.log(player, CustomEnchants.BACKUP_SPELLS, System.currentTimeMillis());
 					final ItemStack i = new ItemStack(Material.SPLASH_POTION);
 					final PotionMeta pmeta = (PotionMeta) i.getItemMeta();
 					pmeta.addCustomEffect(new PotionEffect(randomEffect(), 20, 0), true);
 
 					i.setItemMeta(pmeta);
-					final ThrownPotion tPotion = e.getPlayer().launchProjectile(ThrownPotion.class);
+					final ThrownPotion tPotion = player.launchProjectile(ThrownPotion.class);
 					tPotion.setItem(i);
 				}
 			}
 			if (meta.hasEnchant(CustomEnchants.BOOSTED))
 			{
-				final Player player = e.getPlayer();
-				if (player.isSneaking())
+				final int enchlvl = meta.getEnchantLevel(CustomEnchants.BOOSTED);
+				final double cooldown = CustomEnchants.boostedConfig.getAutofilledDouble(enchlvl, "cooldown-seconds")
+						* 1000;
+				final long lastuse = PlayerKeeper.getLastLog(player, CustomEnchants.BOOSTED);
+				if (lastuse - System.currentTimeMillis() < cooldown)
+					player.sendMessage(Language.getLangMessage("cooldown-error").replaceAll("%secs%",
+							Double.toString(Math.floor(((cooldown - lastuse) * 0.001) * 10) * 0.1)));
+				else
 				{
-					final int enchlvl = meta.getEnchantLevel(CustomEnchants.BOOSTED);
-					final double cooldown = CustomEnchants.boostedConfig.getAutofilledDouble(enchlvl,
-							"cooldown-seconds") * 1000;
-					final long lastuse = boostedCooldown.getLastUse(player);
-					if (lastuse <= cooldown)
-						player.sendMessage(Language.getLangMessage("cooldown-error").replaceAll("%secs%",
-								Double.toString(Math.floor(((cooldown - lastuse) * 0.001) * 10) * 0.1)));
-					else
-					{
-						boostedCooldown.use(player);
-						Language.sendMessage(player, "boosted-activate");
-						boosted.add(player);
-						EnchantGUI.setOpenable(player, false);
-						final int duration = CustomEnchants.boostedConfig.getAutofilledInt(enchlvl, "duration-seconds");
-						Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(EPS.plugin, new Runnable() {
-							public void run()
-							{
-								boosted.remove(player);
-							}
-						}, (long) (duration * 20));
-					}
+					PlayerKeeper.log(player, CustomEnchants.BOOSTED, System.currentTimeMillis());
+					Language.sendMessage(player, "boosted-activate");
+					boosted.add(player);
+					EnchantGUI.setOpenable(player, false);
+					final int duration = CustomEnchants.boostedConfig.getAutofilledInt(enchlvl, "duration-seconds");
+					Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(EPS.plugin, new Runnable() {
+						public void run()
+						{
+							boosted.remove(player);
+						}
+					}, (long) (duration * 20));
 				}
 			}
 		}
@@ -631,11 +616,10 @@ public class EnchantProcessor implements Listener, Reloadable
 				final double cooldown = CustomEnchants.enderbowConfig.getAutofilledDouble(
 						mainmeta.getEnchantLevel(CustomEnchants.ENDERBOW), "cooldown-seconds") * 1000;
 
-				// Check if cooldown is met
-				final long time = enderbowCooldown.getLastUse(player);
-				if (time < cooldown)
+				final long lastuse = PlayerKeeper.getLastLog(player, CustomEnchants.ENDERBOW);
+				if (lastuse - System.currentTimeMillis() < cooldown)
 					player.sendMessage(Language.getLangMessage("cooldown-error").replaceAll("%secs%",
-							Double.toString(Math.floor(((cooldown - time) / 1000) * 10) / 10)));
+							Double.toString(Math.floor(((cooldown - lastuse) / 1000) * 10) / 10)));
 				else
 				{
 					final double radius = CustomEnchants.enderbowConfig
@@ -648,7 +632,7 @@ public class EnchantProcessor implements Listener, Reloadable
 								Double.toString(radius)));
 					else
 					{
-						enderbowCooldown.use(player);
+						PlayerKeeper.log(player, CustomEnchants.ENDERBOW, System.currentTimeMillis());
 						player.teleport(arrow.getLocation());
 						player.playSound(player.getLocation(), ENTITY_ENDERMAN_TELEPORT, 1, 1);
 					}
@@ -660,10 +644,10 @@ public class EnchantProcessor implements Listener, Reloadable
 		{
 			final int shotstoactivate = CustomEnchants.machineryConfig
 					.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "shots-to-activate");
-			final int shots = machineryCount.increase(player);
+			final long shots = PlayerKeeper.incrementValue(player, CustomEnchants.MACHINERY, 1);
 			if (shots >= shotstoactivate)
 			{
-				machineryCount.reset(player);
+				PlayerKeeper.log(player, CustomEnchants.MACHINERY, 0);
 				final int radius = CustomEnchants.machineryConfig
 						.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "radius");
 				final int arrows = CustomEnchants.machineryConfig
@@ -683,10 +667,10 @@ public class EnchantProcessor implements Listener, Reloadable
 		{
 			final int shotstoactivate = CustomEnchants.thunderingBlowConfig
 					.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.THUNDERING_BLOW), "shots-to-activate");
-			final int shots = thunderingBlowCount.increase(player);
+			final long shots = PlayerKeeper.incrementValue(player, CustomEnchants.THUNDERING_BLOW, 1);
 			if (shots >= shotstoactivate)
 			{
-				thunderingBlowCount.reset(player);
+				PlayerKeeper.log(player, CustomEnchants.THUNDERING_BLOW, 0);
 				final Entity entity = e.getHitEntity();
 
 				if (entity != null)

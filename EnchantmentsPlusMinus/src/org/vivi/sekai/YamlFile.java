@@ -16,34 +16,32 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import org.vivi.eps.EPS;
 
 /**
- * A File with automatic YamlConfiguration linking
- * 
- * No value caching man
+ * A {@code File} with automatic {@code FileConfiguration} linking. I dont know
+ * the actual term so im calling it linking
  * 
  * @author vivisan
  *
  */
-public class YamlFile extends File
+public class YamlFile<T extends FileConfiguration> extends File
 {
 	private static final long serialVersionUID = -778885166783198770L;
-	private YamlConfiguration yamlConfiguration = new YamlConfiguration();
+	private T fileConfiguration;
 	private Charset charset = null;
 
 	/**
-	 * Creates a new YamlFile instance from a parent abstract path name and a child
-	 * pathname string.
-	 * 
+	 * Creates a new {@code YamlFile} instance from a parent abstract path name and
+	 * a child pathname string.
 	 * 
 	 * @param parent  The parent abstract pathname
 	 * @param child   The child pathname string
-	 * @param charset Charset used to load the YAML configuration in the file.
+	 * @param charset {@code Charset} used to load the configuration in the file.
 	 */
 	public YamlFile(File parent, String child, Charset charset)
 	{
@@ -52,8 +50,8 @@ public class YamlFile extends File
 	}
 
 	/**
-	 * Creates a new YamlFile instance from a parent abstract path name and a child
-	 * pathname string.
+	 * Creates a new {@code YamlFile} instance from a parent abstract path name and
+	 * a child pathname string.
 	 * 
 	 * @param parent The parent abstract pathname
 	 * @param child  The child pathname string
@@ -64,9 +62,11 @@ public class YamlFile extends File
 	}
 
 	/**
-	 * Returns the Charset used to load the YAML configuration in the file
+	 * Returns the {@code Charset} used to load the {@code FileConfiguration} linked
+	 * to the file
 	 * 
-	 * @return Charset used to load the YAML configuration in the file
+	 * @return {@code Charset} used to load the {@code FileConfiguration} linked to
+	 *         the file
 	 */
 	public Charset getCharset()
 	{
@@ -74,9 +74,10 @@ public class YamlFile extends File
 	}
 
 	/**
-	 * Sets the Charset used to load the YAML configuration in the file
+	 * Sets the {@code Charset} used to load the {@code FileConfiguration} linked to
+	 * the file
 	 * 
-	 * @param charset Charset to set to
+	 * @param charset {@code Charset} to set to
 	 */
 	public void setCharset(Charset charset)
 	{
@@ -84,38 +85,37 @@ public class YamlFile extends File
 	}
 
 	/**
-	 * Reads and loads the file to a YamlConfiguration.
-	 * 
-	 * @return YamlConfiguration from YamlConfiguration.loadConfiguration()
+	 * Reads and loads the file to the specified {@code FileConfiguration} using
+	 * predefined {@code Charset} links it to the file.
 	 */
-	public YamlConfiguration loadYaml()
+	public void loadYaml(T configurationToLoad)
 	{
-		if (charset == null)
-			yamlConfiguration = YamlConfiguration.loadConfiguration(this);
-		else
-			try
-			{
-				yamlConfiguration.load(new InputStreamReader(new FileInputStream(this), charset));
-			} catch (IOException | InvalidConfigurationException e)
-			{
-				e.printStackTrace();
-			}
-		return yamlConfiguration;
+		fileConfiguration = configurationToLoad;
+		try
+		{
+			if (charset == null)
+				fileConfiguration.load(this);
+			else
+				fileConfiguration.load(new InputStreamReader(new FileInputStream(this), charset));
+		} catch (IOException | InvalidConfigurationException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	/**
-	 * Gets the YAML configuration linked to this file.
+	 * Gets the {@code FileConfiguration} linked to this file.
 	 * 
-	 * @return YAML configuration linked to this file
+	 * @return {@code FileConfiguration} linked to this file
 	 */
-	public YamlConfiguration getYaml()
+	public FileConfiguration getYaml()
 	{
-		return yamlConfiguration;
+		return fileConfiguration;
 	}
 
 	/**
-	 * Saves the YAML configuration linked to this file to disk. By default, this
-	 * operation is done asynchronously.
+	 * Saves the {@code FileConfiguration} linked to this file to disk. By default,
+	 * this operation is done asynchronously.
 	 * 
 	 * @param isAsync Whether saving should be done asynchronously or not
 	 */
@@ -133,7 +133,7 @@ public class YamlFile extends File
 		else
 			try
 			{
-				yamlConfiguration.save(this);
+				fileConfiguration.save(this);
 			} catch (IOException e)
 			{
 				e.printStackTrace();
@@ -141,8 +141,8 @@ public class YamlFile extends File
 	}
 
 	/**
-	 * Saves the YAML configuration linked to this file to disk. By default, this
-	 * operation is done asynchronously.
+	 * Saves the {@code FileConfiguration} linked to this file to disk. By default,
+	 * this operation is done asynchronously.
 	 * 
 	 */
 	public void saveYaml()
@@ -152,343 +152,343 @@ public class YamlFile extends File
 
 	public Set<String> getKeys(boolean deep)
 	{
-		return yamlConfiguration.getKeys(deep);
+		return fileConfiguration.getKeys(deep);
 	}
 
 	public Map<String, Object> getValues(boolean deep)
 	{
-		return yamlConfiguration.getValues(deep);
+		return fileConfiguration.getValues(deep);
 	}
 
 	public boolean contains(String path)
 	{
-		return yamlConfiguration.contains(path);
+		return fileConfiguration.contains(path);
 	}
 
 	public boolean contains(String path, boolean ignoreDefault)
 	{
-		return yamlConfiguration.contains(path, ignoreDefault);
+		return fileConfiguration.contains(path, ignoreDefault);
 	}
 
 	public boolean isSet(String path)
 	{
-		return yamlConfiguration.isSet(path);
+		return fileConfiguration.isSet(path);
 	}
 
 	public String getCurrentPath()
 	{
-		return yamlConfiguration.getCurrentPath();
+		return fileConfiguration.getCurrentPath();
 	}
 
 	public Configuration getRoot()
 	{
-		return yamlConfiguration.getRoot();
+		return fileConfiguration.getRoot();
 	}
 
 	public Object get(String path)
 	{
-		return yamlConfiguration.get(path);
+		return fileConfiguration.get(path);
 	}
 
 	public Object get(String path, Object def)
 	{
-		return yamlConfiguration.get(path, def);
+		return fileConfiguration.get(path, def);
 	}
 
 	public void set(String path, Object value)
 	{
-		yamlConfiguration.set(path, value);
+		fileConfiguration.set(path, value);
 	}
 
 	public ConfigurationSection createSection(String path)
 	{
-		return yamlConfiguration.createSection(path);
+		return fileConfiguration.createSection(path);
 	}
 
 	public ConfigurationSection createSection(String path, Map<?, ?> map)
 	{
-		return yamlConfiguration.createSection(path, map);
+		return fileConfiguration.createSection(path, map);
 	}
 
 	public String getString(String path)
 	{
-		return yamlConfiguration.getString(path);
+		return fileConfiguration.getString(path);
 	}
 
 	public String getString(String path, String def)
 	{
-		return yamlConfiguration.getString(path, def);
+		return fileConfiguration.getString(path, def);
 	}
 
 	public boolean isString(String path)
 	{
-		return yamlConfiguration.isString(path);
+		return fileConfiguration.isString(path);
 	}
 
 	public int getInt(String path)
 	{
-		return yamlConfiguration.getInt(path);
+		return fileConfiguration.getInt(path);
 	}
 
 	public int getInt(String path, int def)
 	{
-		return yamlConfiguration.getInt(path, def);
+		return fileConfiguration.getInt(path, def);
 	}
 
 	public boolean isInt(String path)
 	{
-		return yamlConfiguration.isInt(path);
+		return fileConfiguration.isInt(path);
 	}
 
 	public boolean getBoolean(String path)
 	{
-		return yamlConfiguration.getBoolean(path);
+		return fileConfiguration.getBoolean(path);
 	}
 
 	public boolean getBoolean(String path, boolean def)
 	{
-		return yamlConfiguration.getBoolean(path, def);
+		return fileConfiguration.getBoolean(path, def);
 	}
 
 	public boolean isBoolean(String path)
 	{
-		return yamlConfiguration.isBoolean(path);
+		return fileConfiguration.isBoolean(path);
 	}
 
 	public double getDouble(String path)
 	{
-		return yamlConfiguration.getDouble(path);
+		return fileConfiguration.getDouble(path);
 	}
 
 	public double getDouble(String path, double def)
 	{
-		return yamlConfiguration.getDouble(path, def);
+		return fileConfiguration.getDouble(path, def);
 	}
 
 	public boolean isDouble(String path)
 	{
-		return yamlConfiguration.isDouble(path);
+		return fileConfiguration.isDouble(path);
 	}
 
 	public long getLong(String path)
 	{
-		return yamlConfiguration.getLong(path);
+		return fileConfiguration.getLong(path);
 	}
 
 	public long getLong(String path, long def)
 	{
-		return yamlConfiguration.getLong(path);
+		return fileConfiguration.getLong(path);
 	}
 
 	public boolean isLong(String path)
 	{
-		return yamlConfiguration.isLong(path);
+		return fileConfiguration.isLong(path);
 	}
 
 	public List<?> getList(String path)
 	{
-		return yamlConfiguration.getList(path);
+		return fileConfiguration.getList(path);
 	}
 
 	public List<?> getList(String path, List<?> def)
 	{
-		return yamlConfiguration.getList(path, def);
+		return fileConfiguration.getList(path, def);
 	}
 
 	public boolean isList(String path)
 	{
-		return yamlConfiguration.isList(path);
+		return fileConfiguration.isList(path);
 	}
 
 	public List<String> getStringList(String path)
 	{
-		return yamlConfiguration.getStringList(path);
+		return fileConfiguration.getStringList(path);
 	}
 
 	public List<Integer> getIntegerList(String path)
 	{
-		return yamlConfiguration.getIntegerList(path);
+		return fileConfiguration.getIntegerList(path);
 	}
 
 	public List<Boolean> getBooleanList(String path)
 	{
-		return yamlConfiguration.getBooleanList(path);
+		return fileConfiguration.getBooleanList(path);
 	}
 
 	public List<Double> getDoubleList(String path)
 	{
-		return yamlConfiguration.getDoubleList(path);
+		return fileConfiguration.getDoubleList(path);
 	}
 
 	public List<Float> getFloatList(String path)
 	{
-		return yamlConfiguration.getFloatList(path);
+		return fileConfiguration.getFloatList(path);
 	}
 
 	public List<Long> getLongList(String path)
 	{
-		return yamlConfiguration.getLongList(path);
+		return fileConfiguration.getLongList(path);
 	}
 
 	public List<Byte> getByteList(String path)
 	{
-		return yamlConfiguration.getByteList(path);
+		return fileConfiguration.getByteList(path);
 	}
 
 	public List<Character> getCharacterList(String path)
 	{
-		return yamlConfiguration.getCharacterList(path);
+		return fileConfiguration.getCharacterList(path);
 	}
 
 	public List<Short> getShortList(String path)
 	{
-		return yamlConfiguration.getShortList(path);
+		return fileConfiguration.getShortList(path);
 	}
 
 	public List<Map<?, ?>> getMapList(String path)
 	{
-		return yamlConfiguration.getMapList(path);
+		return fileConfiguration.getMapList(path);
 	}
 
-	public <T> T getObject(String path, Class<T> clazz)
+	public <A> A getObject(String path, Class<A> clazz)
 	{
-		return yamlConfiguration.getObject(path, clazz);
+		return fileConfiguration.getObject(path, clazz);
 	}
 
-	public <T> T getObject(String path, Class<T> clazz, T def)
+	public <A> A getObject(String path, Class<A> clazz, A def)
 	{
-		return yamlConfiguration.getObject(path, clazz, def);
+		return fileConfiguration.getObject(path, clazz, def);
 	}
 
-	public <T extends ConfigurationSerializable> T getSerializable(String path, Class<T> clazz)
+	public <A extends ConfigurationSerializable> A getSerializable(String path, Class<A> clazz)
 	{
-		return yamlConfiguration.getSerializable(path, clazz);
+		return fileConfiguration.getSerializable(path, clazz);
 	}
 
-	public <T extends ConfigurationSerializable> T getSerializable(String path, Class<T> clazz, T def)
+	public <A extends ConfigurationSerializable> A getSerializable(String path, Class<A> clazz, A def)
 	{
-		return yamlConfiguration.getSerializable(path, clazz, def);
+		return fileConfiguration.getSerializable(path, clazz, def);
 	}
 
 	public Vector getVector(String path)
 	{
-		return yamlConfiguration.getVector(path);
+		return fileConfiguration.getVector(path);
 	}
 
 	public Vector getVector(String path, Vector def)
 	{
-		return yamlConfiguration.getVector(path, def);
+		return fileConfiguration.getVector(path, def);
 	}
 
 	public boolean isVector(String path)
 	{
-		return yamlConfiguration.isVector(path);
+		return fileConfiguration.isVector(path);
 	}
 
 	public OfflinePlayer getOfflinePlayer(String path)
 	{
-		return yamlConfiguration.getOfflinePlayer(path);
+		return fileConfiguration.getOfflinePlayer(path);
 	}
 
 	public OfflinePlayer getOfflinePlayer(String path, OfflinePlayer def)
 	{
-		return yamlConfiguration.getOfflinePlayer(path, def);
+		return fileConfiguration.getOfflinePlayer(path, def);
 	}
 
 	public boolean isOfflinePlayer(String path)
 	{
-		return yamlConfiguration.isOfflinePlayer(path);
+		return fileConfiguration.isOfflinePlayer(path);
 	}
 
 	public ItemStack getItemStack(String path)
 	{
-		return yamlConfiguration.getItemStack(path);
+		return fileConfiguration.getItemStack(path);
 	}
 
 	public ItemStack getItemStack(String path, ItemStack def)
 	{
-		return yamlConfiguration.getItemStack(path, def);
+		return fileConfiguration.getItemStack(path, def);
 	}
 
 	public boolean isItemStack(String path)
 	{
-		return yamlConfiguration.isItemStack(path);
+		return fileConfiguration.isItemStack(path);
 	}
 
 	public Color getColor(String path)
 	{
-		return yamlConfiguration.getColor(path);
+		return fileConfiguration.getColor(path);
 	}
 
 	public Color getColor(String path, Color def)
 	{
-		return yamlConfiguration.getColor(path, def);
+		return fileConfiguration.getColor(path, def);
 	}
 
 	public boolean isColor(String path)
 	{
-		return yamlConfiguration.isColor(path);
+		return fileConfiguration.isColor(path);
 	}
 
 	public Location getLocation(String path)
 	{
-		return yamlConfiguration.getLocation(path);
+		return fileConfiguration.getLocation(path);
 	}
 
 	public Location getLocation(String path, Location def)
 	{
-		return yamlConfiguration.getLocation(path, def);
+		return fileConfiguration.getLocation(path, def);
 	}
 
 	public boolean isLocation(String path)
 	{
-		return yamlConfiguration.isLocation(path);
+		return fileConfiguration.isLocation(path);
 	}
 
 	public ConfigurationSection getConfigurationSection(String path)
 	{
-		return yamlConfiguration.getConfigurationSection(path);
+		return fileConfiguration.getConfigurationSection(path);
 	}
 
 	public boolean isConfigurationSection(String path)
 	{
-		return yamlConfiguration.isConfigurationSection(path);
+		return fileConfiguration.isConfigurationSection(path);
 	}
 
 	public ConfigurationSection getDefaultSection()
 	{
-		return yamlConfiguration.getDefaultSection();
+		return fileConfiguration.getDefaultSection();
 	}
 
 	public void addDefault(String path, Object value)
 	{
-		yamlConfiguration.addDefault(path, value);
+		fileConfiguration.addDefault(path, value);
 	}
 
 	public List<String> getComments(String path)
 	{
-		return yamlConfiguration.getComments(path);
+		return fileConfiguration.getComments(path);
 	}
 
 	public List<String> getInlineComments(String path)
 	{
-		return yamlConfiguration.getInlineComments(path);
+		return fileConfiguration.getInlineComments(path);
 	}
 
 	public void setComments(String path, List<String> comments)
 	{
-		yamlConfiguration.setComments(path, comments);
+		fileConfiguration.setComments(path, comments);
 	}
 
 	public void setInlineComments(String path, List<String> comments)
 	{
-		yamlConfiguration.setInlineComments(path, comments);
+		fileConfiguration.setInlineComments(path, comments);
 	}
 
 	public void setDefault(String path, Object value)
 	{
-		if (!yamlConfiguration.isSet(path))
-			yamlConfiguration.set(path, value);
+		if (!fileConfiguration.isSet(path))
+			fileConfiguration.set(path, value);
 	}
 
 	/**
@@ -501,10 +501,10 @@ public class YamlFile extends File
 	 */
 	public void supersedePath(String pathToSupersede, String supersedingPath)
 	{
-		if (yamlConfiguration.contains(pathToSupersede))
+		if (fileConfiguration.contains(pathToSupersede))
 		{
-			yamlConfiguration.set(supersedingPath, pathToSupersede);
-			yamlConfiguration.set(pathToSupersede, null);
+			fileConfiguration.set(supersedingPath, pathToSupersede);
+			fileConfiguration.set(pathToSupersede, null);
 		}
 	}
 

@@ -236,9 +236,9 @@ public class Events implements Listener, Reloadable {
 
 	public static void setDefault(String path, Object replace)
 	{
-		YamlConfiguration yamlConfiguration = EPS.configFile.getYaml();
-		if (!yamlConfiguration.isSet(path))
-			yamlConfiguration.set(path, replace);
+		FileConfiguration fileConfiguration = EPS.configFile.getYaml();
+		if (!fileConfiguration.isSet(path))
+			fileConfiguration.set(path, replace);
 	}
 
 	@Override

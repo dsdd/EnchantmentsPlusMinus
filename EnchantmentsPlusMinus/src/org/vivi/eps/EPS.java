@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -48,11 +49,11 @@ public class EPS extends JavaPlugin implements Reloadable
 	public static EPS plugin;
 	public static File dataFolder;
 	public static File enchantsFolder;
-	public static YamlFile configFile;
-	public static YamlFile languageFile;
-	public static YamlFile incompatibilitiesFile;
-	public static YamlFile guisFile;
-	public static YamlFile uuidDataStore;
+	public static YamlFile<YamlConfiguration> configFile;
+	public static YamlFile<YamlConfiguration> languageFile;
+	public static YamlFile<YamlConfiguration> incompatibilitiesFile;
+	public static YamlFile<YamlConfiguration> guisFile;
+	public static YamlFile<YamlConfiguration> uuidDataStore;
 	public static EnchantsCommand enchantsCommand;
 	public static EnchantMetaWriter enchantMetaWriter;
 	public static boolean debug = false;
@@ -103,7 +104,7 @@ public class EPS extends JavaPlugin implements Reloadable
 				}
 
 			saveDefaultConfig();
-			configFile = new YamlFile(getDataFolder(), "config.yml");
+			configFile = new YamlFile<YamlConfiguration>(getDataFolder(), "config.yml");
 
 			if (configFile.exists() && debug == true)
 				configFile.delete();
@@ -120,25 +121,25 @@ public class EPS extends JavaPlugin implements Reloadable
 				enchantsFolder.mkdirs();
 
 			// Create Language File
-			languageFile = new YamlFile(getDataFolder(), "lang.yml", Charset.forName("UTF-8"));
+			languageFile = new YamlFile<YamlConfiguration>(getDataFolder(), "lang.yml", Charset.forName("UTF-8"));
 			if (languageFile.exists() && debug == true)
 				languageFile.delete();
 			Sekai.saveDefaultFile(EPS.plugin, "/lang.yml", languageFile);
 
 			// Create GUIs File
-			guisFile = new YamlFile(getDataFolder(), "guis.yml");
+			guisFile = new YamlFile<YamlConfiguration>(getDataFolder(), "guis.yml");
 			if (guisFile.exists() && debug == true)
 				guisFile.delete();
 			Sekai.saveDefaultFile(EPS.plugin, "/guis.yml", guisFile);
 
 			// Create Incompatibilities File
-			incompatibilitiesFile = new YamlFile(getDataFolder(), "incompatibilities.yml");
+			incompatibilitiesFile = new YamlFile<YamlConfiguration>(getDataFolder(), "incompatibilities.yml");
 			if (incompatibilitiesFile.exists() && debug == true)
 				incompatibilitiesFile.delete();
 			Sekai.saveDefaultFile(EPS.plugin, "/incompatibilities.yml", incompatibilitiesFile);
 
 			// Create Data Files
-			uuidDataStore = new YamlFile(dataFolder, "usernamestore.yml");
+			uuidDataStore = new YamlFile<YamlConfiguration>(dataFolder, "usernamestore.yml");
 			if (!uuidDataStore.exists())
 				uuidDataStore.createNewFile();
 
@@ -310,11 +311,11 @@ public class EPS extends JavaPlugin implements Reloadable
 	@Override
 	public void reload()
 	{
-		configFile.loadYaml();
-		uuidDataStore.loadYaml();
-		languageFile.loadYaml();
-		incompatibilitiesFile.loadYaml();
-		guisFile.loadYaml();
+		configFile.loadYaml(new YamlConfiguration());
+		uuidDataStore.loadYaml(new YamlConfiguration());
+		languageFile.loadYaml(new YamlConfiguration());
+		incompatibilitiesFile.loadYaml(new YamlConfiguration());
+		guisFile.loadYaml(new YamlConfiguration());
 	}
 
 	/**
@@ -337,7 +338,7 @@ public class EPS extends JavaPlugin implements Reloadable
 
 		double val = 0;
 		for (int i = 0; i < levels; i++)
-			val = val + getCost(enchant, currentLevel + 1 + i, cost);
+			val += getCost(enchant, currentLevel + 1 + i, cost);
 
 		return val;
 	}
