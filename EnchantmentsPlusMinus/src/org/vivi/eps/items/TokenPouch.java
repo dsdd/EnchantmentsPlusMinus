@@ -8,8 +8,8 @@ import java.util.UUID;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.vivi.eps.EPS;
 import org.vivi.eps.util.Language;
+import org.vivi.sekai.Sekai;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -23,7 +23,7 @@ public class TokenPouch extends ItemStack {
 	
 	public TokenPouch(int tokens)
 	{
-		super(EPS.getMCVersion() < 13 ? Material.matchMaterial("SKULL_ITEM") : Material.matchMaterial("PLAYER_HEAD"), 1);
+		super(Sekai.getMCVersion() < 13 ? Material.matchMaterial("SKULL_ITEM") : Material.matchMaterial("PLAYER_HEAD"), 1);
 		SkullMeta meta = pouchSkullMeta;
 		meta.setDisplayName(Language.getLangMessage("token-pouch", false));
 		meta.setLore(Arrays.asList(new String[] {
@@ -36,7 +36,7 @@ public class TokenPouch extends ItemStack {
 	
 	// �\_(^v^)_/�
 	private static SkullMeta getCustomSkullMeta(String texture) {
-		ItemStack head = EPS.getMCVersion() < 13 ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.matchMaterial("PLAYER_HEAD"), 1);
+		ItemStack head = Sekai.getMCVersion() < 13 ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1) : new ItemStack(Material.matchMaterial("PLAYER_HEAD"), 1);
 		SkullMeta skull = (SkullMeta) head.getItemMeta();
 		GameProfile profile = new GameProfile(UUID.randomUUID(), null);
 

@@ -26,6 +26,7 @@ import org.vivi.eps.items.CustomEnchantedBook;
 import org.vivi.eps.items.TokenPouch;
 import org.vivi.eps.util.Language;
 import org.vivi.eps.visual.EnchantMetaWriter;
+import org.vivi.sekai.enchantment.EnchantmentInfo;
 
 /**
  * Relax its just a colossal mess :)
@@ -146,7 +147,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter
 				if (player.getInventory().getItemInMainHand().getAmount() > 0)
 				{
 					int num = Integer.parseInt(args[2]);
-					Enchantment enchant = EPS.getDictionary().findEnchant(args[1].toLowerCase());
+					Enchantment enchant = EnchantmentInfo.findEnchantByKey(args[1].toLowerCase());
 					if (enchant == null)
 					{
 						Language.sendMessage(player, "invalid-enchant");
@@ -203,7 +204,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter
 				if (parts.length == 0)
 					continue;
 
-				Enchantment enchant = EPS.getDictionary().findEnchant(parts[0]);
+				Enchantment enchant = EnchantmentInfo.findEnchantByKey(parts[0]);
 				if (parts.length == 1)
 				{
 					map.put(enchant, 1);
@@ -213,8 +214,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter
 				Integer lvl = Integer.parseInt(parts[1]);
 				if (enchant == null)
 				{
-					Language.sendMessage(sender, ChatColor.RED + "Invalid enchant "
-							+ EPS.getDictionary().getName(enchant).toUpperCase() + "!");
+					sender.sendMessage(ChatColor.RED + "Invalid enchant " + EnchantmentInfo.getKey(enchant) + "!");
 					continue;
 				}
 				map.put(enchant, lvl);
@@ -286,7 +286,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter
 
 		if (enchantTabList.isEmpty())
 			for (Enchantment e : EPS.getRegisteredEnchants())
-				enchantTabList.add(EPS.getDictionary().getName(e));
+				enchantTabList.add(EnchantmentInfo.getKey(e));
 
 		if (args[0].equalsIgnoreCase("enchant") || args[0].equalsIgnoreCase("book"))
 			return enchantTabList;

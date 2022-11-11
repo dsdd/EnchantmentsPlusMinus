@@ -8,17 +8,19 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.inventory.ItemStack;
 import org.vivi.eps.EPS;
+import org.vivi.sekai.enchantment.EnchantmentInfo;
 
-public class Wrapper extends Enchantment {
+public class EnchantWrapper extends Enchantment {
 
-	private static final EnchantDictionary dictionary = EPS.getDictionary();
+	private final String key;
 	private final String name;
 	private final List<Enchantment> incompatibilities = new ArrayList<Enchantment>();
 
-	public Wrapper(String namespace, String name)
+	public EnchantWrapper(String key, String defaultName)
 	{
-		super(NamespacedKey.minecraft(namespace));
-		this.name = name;
+		super(NamespacedKey.minecraft(key));
+		this.name = defaultName;
+		this.key = key;
 	}
 
 	// Defaults to true for now.
@@ -40,14 +42,14 @@ public class Wrapper extends Enchantment {
 			List<String> incompatibilities = EPS.incompatibilitiesFile.getStringList(key);
 			boolean contains = false;
 			for (String enchantName : incompatibilities)
-				if (enchantName.equalsIgnoreCase(dictionary.getName(this)))
+				if (enchantName.equalsIgnoreCase(this.key))
 				{
 					contains = true;
 					break;
 				}
 			if (contains)
 				for (String enchantName : incompatibilities)
-					if (enchantName.equalsIgnoreCase(dictionary.getName(arg0)))
+					if (enchantName.equalsIgnoreCase(EnchantmentInfo.getKey(arg0)))
 					{
 						this.incompatibilities.add(arg0);
 						return true;
@@ -91,12 +93,12 @@ public class Wrapper extends Enchantment {
 		return false;
 	}
 
-	public static class LegacyWrapper extends Enchantment {
+	public static class Legacy extends Enchantment {
 
 		private String name;
 		private int maxLvl;
 
-		public LegacyWrapper(String namespace, String name)
+		public Legacy(String namespace, String name)
 		{
 			super(convertLetters(namespace).intValue());
 			this.name = name;

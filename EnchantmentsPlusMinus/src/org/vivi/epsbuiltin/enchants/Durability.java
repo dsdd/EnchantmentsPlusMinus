@@ -2,7 +2,7 @@ package org.vivi.epsbuiltin.enchants;
 
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.vivi.eps.EPS;
+import org.vivi.sekai.Sekai;
 
 @SuppressWarnings("deprecation")
 public class Durability {
@@ -21,7 +21,7 @@ public class Durability {
 		if (item.getItemMeta() == null)
 			return;
 		maxdurability = item.getType().getMaxDurability();
-		if (EPS.getMCVersion() < 13)
+		if (Sekai.getMCVersion() < 13)
 			durability = item.getDurability();
 		else
 		{
@@ -51,7 +51,7 @@ public class Durability {
 	{
 		if (item == null)
 			return;
-		if (EPS.getMCVersion() < 13)
+		if (Sekai.getMCVersion() < 13)
 			item.setDurability((short) (maxdurability-dmg));
 		else
 		{
@@ -65,7 +65,7 @@ public class Durability {
 	{
 		if (item == null)
 			return;
-		if (EPS.getMCVersion() < 13)
+		if (Sekai.getMCVersion() < 13)
 			item.setDurability((short)durability);
 		else
 		{

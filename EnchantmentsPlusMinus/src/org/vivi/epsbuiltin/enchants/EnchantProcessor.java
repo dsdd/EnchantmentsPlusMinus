@@ -23,6 +23,7 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Container;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Damageable;
@@ -61,14 +62,14 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import org.vivi.eps.EPS;
-import org.vivi.eps.dependencies.VaultHook;
-import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Language;
 import org.vivi.eps.util.economy.Economy;
 import org.vivi.eps.visual.EnchantGUI;
 import org.vivi.sekai.PlayerKeeper;
+import org.vivi.sekai.Sekai;
+import org.vivi.sekai.dependencies.VaultHook;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -91,11 +92,11 @@ public class EnchantProcessor implements Listener, Reloadable
 	private static boolean modifiedByEnchant = false;
 	private static boolean looping = false;
 	private final static Collection<Location> saves = new ArrayList<Location>();
-	private final static Material endframe = EPS.getMCVersion() < 13 ? Material.matchMaterial("ENDER_PORTAL_FRAME")
+	private final static Material endframe = Sekai.getMCVersion() < 13 ? Material.matchMaterial("ENDER_PORTAL_FRAME")
 			: Material.matchMaterial("END_PORTAL_FRAME");
 	private final static Economy economy = EPS.getEconomy();
 	private static Map<Material, Material> smeltResults = new HashMap<Material, Material>();
-	private final static Sound ENTITY_ENDERMAN_TELEPORT = EPS.getMCVersion() < 13
+	private final static Sound ENTITY_ENDERMAN_TELEPORT = Sekai.getMCVersion() < 13
 			? Sound.valueOf("ENTITY_ENDERMEN_TELEPORT")
 			: Sound.valueOf("ENTITY_ENDERMAN_TELEPORT");
 
@@ -156,10 +157,10 @@ public class EnchantProcessor implements Listener, Reloadable
 			CustomEnchants.beheadingConfig.set("mob-chance", s);
 			CustomEnchants.beheadingConfig.set("player-chance", s);
 			CustomEnchants.beheadingConfig.set("chance", null);
-			CustomEnchants.beheadingConfig.save();
+			CustomEnchants.beheadingConfig.saveYaml();
 		}
 
-		if (EPS.getMCVersion() > 12)
+		if (Sekai.getMCVersion() > 12)
 			for (final Map.Entry<EntityType, String> entry : mobHeads.entrySet())
 				mobSkulls.put(entry.getKey(), getCustomSkull(mobHeads.get(entry.getKey()),
 						WordUtils.capitalizeFully(entry.getKey().name()) + " Head"));
@@ -206,7 +207,7 @@ public class EnchantProcessor implements Listener, Reloadable
 				if (dp < dtp)
 				{
 					e.setDamage(e.getDamage() + enchlvl);
-					if (EPS.getMCVersion() > 12)
+					if (Sekai.getMCVersion() > 12)
 						world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1,
 								new Particle.DustOptions(Color.RED, 5));
 					else
@@ -271,7 +272,7 @@ public class EnchantProcessor implements Listener, Reloadable
 						final double damage = CustomEnchants.insatiableConfig.getAutofilledDouble(
 								piece.getItemMeta().getEnchantLevel(CustomEnchants.INSATIABLE), "extradamage");
 						e.setDamage(e.getDamage() + (damage - (damage * (d.getHealth() * 0.05))));
-						if (EPS.getMCVersion() > 12)
+						if (Sekai.getMCVersion() > 12)
 							world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1,
 									new org.bukkit.Particle.DustOptions(Color.RED, 5));
 						else
@@ -440,11 +441,11 @@ public class EnchantProcessor implements Listener, Reloadable
 				final double chance = CustomEnchants.beheadingConfig.getAutofilledInt(enchlvl, "player-chance");
 				if (getNext() <= chance)
 				{
-					final ItemStack head = EPS.getMCVersion() < 13
+					final ItemStack head = Sekai.getMCVersion() < 13
 							? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1)
 							: new ItemStack(Material.matchMaterial("PLAYER_HEAD"), 1);
 					final SkullMeta skull = (SkullMeta) head.getItemMeta();
-					if (EPS.getMCVersion() < 12)
+					if (Sekai.getMCVersion() < 12)
 						skull.setOwner(e.getEntity().getName());
 					else
 						skull.setOwningPlayer(e.getEntity());
@@ -1036,7 +1037,7 @@ public class EnchantProcessor implements Listener, Reloadable
 				if (!drop.getType().equals(Material.AIR) && !drop.getType().equals(Material.matchMaterial("CAVE_AIR"))
 						&& !drop.getType().equals(Material.matchMaterial("VOID_AIR")))
 					if (telepathyEnabled && player.getInventory().firstEmpty() != -1)
-						if (EPS.getMCVersion() < 14)
+						if (Sekai.getMCVersion() < 14)
 							return;
 						else
 							e.getPlayer().getInventory().addItem(drop);
@@ -1102,7 +1103,7 @@ public class EnchantProcessor implements Listener, Reloadable
 	@SuppressWarnings("deprecation")
 	private static ItemStack getHead(final LivingEntity e)
 	{
-		if (EPS.getMCVersion() < 12 && e instanceof Skeleton)
+		if (Sekai.getMCVersion() < 12 && e instanceof Skeleton)
 			return new ItemStack(Material.matchMaterial("SKULL_HEAD"), 1,
 					(short) (((Skeleton) e).getSkeletonType() == org.bukkit.entity.Skeleton.SkeletonType.NORMAL ? 0
 							: 1));
@@ -1110,32 +1111,32 @@ public class EnchantProcessor implements Listener, Reloadable
 		switch (e.getType())
 		{
 		case SKELETON:
-			if (EPS.getMCVersion() > 12)
+			if (Sekai.getMCVersion() > 12)
 				return new ItemStack(Material.matchMaterial("SKELETON_SKULL"), 1);
 			else
 				return new ItemStack(Material.matchMaterial("SKULL_HEAD"), 1, (short) 0);
 		case WITHER_SKELETON:
-			if (EPS.getMCVersion() > 12)
+			if (Sekai.getMCVersion() > 12)
 				return new ItemStack(Material.matchMaterial("WITHER_SKELETON_SKULL"), 1);
 			else
 				return new ItemStack(Material.matchMaterial("SKULL_HEAD"), 1, (short) 1);
 		case ZOMBIE:
-			if (EPS.getMCVersion() > 12)
+			if (Sekai.getMCVersion() > 12)
 				return new ItemStack(Material.matchMaterial("ZOMBIE_HEAD"), 1);
 			else
 				return new ItemStack(Material.matchMaterial("SKULL_HEAD"), 1, (short) 2);
 		case CREEPER:
-			if (EPS.getMCVersion() > 12)
+			if (Sekai.getMCVersion() > 12)
 				return new ItemStack(Material.matchMaterial("CREEPER_HEAD"), 1);
 			else
 				return new ItemStack(Material.matchMaterial("SKULL_HEAD"), 1, (short) 4);
 		case ENDER_DRAGON:
-			if (EPS.getMCVersion() > 12)
+			if (Sekai.getMCVersion() > 12)
 				return new ItemStack(Material.matchMaterial("DRAGON_HEAD"), 1);
 			else
 				return new ItemStack(Material.matchMaterial("SKULL_HEAD"), 1, (short) 5);
 		default:
-			if (EPS.getMCVersion() > 12)
+			if (Sekai.getMCVersion() > 12)
 				if (mobHeads.containsKey(e.getType()))
 					return mobSkulls.get(e.getType());
 			return null;
@@ -1144,7 +1145,7 @@ public class EnchantProcessor implements Listener, Reloadable
 
 	private static ItemStack getCustomSkull(final String texture, final String name)
 	{
-		final ItemStack head = EPS.getMCVersion() < 13 ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1)
+		final ItemStack head = Sekai.getMCVersion() < 13 ? new ItemStack(Material.matchMaterial("SKULL_ITEM"), 1)
 				: new ItemStack(Material.matchMaterial("PLAYER_HEAD"), 1);
 
 		final SkullMeta skull = (SkullMeta) head.getItemMeta();
@@ -1298,31 +1299,31 @@ public class EnchantProcessor implements Listener, Reloadable
 	@Override
 	public void reload()
 	{
-		CustomEnchants.flyConfig = EPSConfiguration.getConfiguration(CustomEnchants.FLY);
-		CustomEnchants.repairConfig = EPSConfiguration.getConfiguration(CustomEnchants.REPAIR);
-		CustomEnchants.experienceConfig = EPSConfiguration.getConfiguration(CustomEnchants.EXPERIENCE);
-		CustomEnchants.soulDestructionConfig = EPSConfiguration.getConfiguration(CustomEnchants.SOUL_DESTRUCTION);
-		CustomEnchants.jaggedConfig = EPSConfiguration.getConfiguration(CustomEnchants.JAGGED);
-		CustomEnchants.lifeStealConfig = EPSConfiguration.getConfiguration(CustomEnchants.LIFESTEAL);
-		CustomEnchants.momentumConfig = EPSConfiguration.getConfiguration(CustomEnchants.MOMENTUM);
-		CustomEnchants.poisonousConfig = EPSConfiguration.getConfiguration(CustomEnchants.POISONOUS);
-		CustomEnchants.volcanicConfig = EPSConfiguration.getConfiguration(CustomEnchants.VOLCANIC);
-		CustomEnchants.saturatedConfig = EPSConfiguration.getConfiguration(CustomEnchants.SATURATED);
-		CustomEnchants.insatiableConfig = EPSConfiguration.getConfiguration(CustomEnchants.INSATIABLE);
-		CustomEnchants.lastResortConfig = EPSConfiguration.getConfiguration(CustomEnchants.LAST_RESORT);
-		CustomEnchants.retaliateConfig = EPSConfiguration.getConfiguration(CustomEnchants.RETALIATE);
-		CustomEnchants.beheadingConfig = EPSConfiguration.getConfiguration(CustomEnchants.BEHEADING);
-		CustomEnchants.powerhouseConfig = EPSConfiguration.getConfiguration(CustomEnchants.POWERHOUSE);
-		CustomEnchants.meltingConfig = EPSConfiguration.getConfiguration(CustomEnchants.MELTING);
-		CustomEnchants.backupSpellsConfig = EPSConfiguration.getConfiguration(CustomEnchants.BACKUP_SPELLS);
-		CustomEnchants.overhealedConfig = EPSConfiguration.getConfiguration(CustomEnchants.OVERHEALED);
-		CustomEnchants.evadeConfig = EPSConfiguration.getConfiguration(CustomEnchants.EVADE);
-		CustomEnchants.enderbowConfig = EPSConfiguration.getConfiguration(CustomEnchants.ENDERBOW);
-		CustomEnchants.machineryConfig = EPSConfiguration.getConfiguration(CustomEnchants.MACHINERY);
-		CustomEnchants.thunderingBlowConfig = EPSConfiguration.getConfiguration(CustomEnchants.THUNDERING_BLOW);
-		CustomEnchants.energizedConfig = EPSConfiguration.getConfiguration(CustomEnchants.ENERGIZED);
-		CustomEnchants.shockwaveConfig = EPSConfiguration.getConfiguration(CustomEnchants.SHOCKWAVE);
-		CustomEnchants.fireworksConfig = EPSConfiguration.getConfiguration(CustomEnchants.FIREWORKS);
+		CustomEnchants.flyConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.repairConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.experienceConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.soulDestructionConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.jaggedConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.lifeStealConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.momentumConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.poisonousConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.volcanicConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.saturatedConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.insatiableConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.lastResortConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.retaliateConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.beheadingConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.powerhouseConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.meltingConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.backupSpellsConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.overhealedConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.evadeConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.enderbowConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.machineryConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.thunderingBlowConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.energizedConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.shockwaveConfig.loadYaml(new YamlConfiguration());
+		CustomEnchants.fireworksConfig.loadYaml(new YamlConfiguration());
 		inventoryFull = Language.getLangMessage("inventoryfull");
 		cooldownError = Language.getLangMessage("cooldown-error");
 		itemsToKeep.clear();

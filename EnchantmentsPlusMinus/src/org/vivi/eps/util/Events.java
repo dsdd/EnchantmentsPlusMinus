@@ -28,13 +28,13 @@ import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.vivi.eps.EPS;
-import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.items.CustomEnchantedBook;
 import org.vivi.eps.util.economy.Economy;
 import org.vivi.eps.visual.EnchantGUI;
 import org.vivi.eps.visual.EnchantMetaWriter;
 import org.vivi.epsbuiltin.enchants.Durability;
+import org.vivi.sekai.Sekai;
 
 public class Events implements Listener, Reloadable {
 
@@ -157,7 +157,7 @@ public class Events implements Listener, Reloadable {
 	@EventHandler(ignoreCancelled = true)
 	public void onInventoryClick(PrepareAnvilEvent e)
 	{
-		if (!ConfigSettings.isAnvilCombiningEnabled() || EPS.getMCVersion() < 12)
+		if (!ConfigSettings.isAnvilCombiningEnabled() || Sekai.getMCVersion() < 12)
 			return;
 		AnvilInventory anvil = e.getInventory();
 
@@ -181,11 +181,11 @@ public class Events implements Listener, Reloadable {
 		int cost = 1;
 		for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet())
 		{
-			int maxlevel = EPSConfiguration.getConfiguration(entry.getKey()).getInt("maxlevel");
-			if (maxlevel != 0 && entry.getValue() > maxlevel)
+			int maxLevel = EPS.getEnchantFile(entry.getKey()).getMaxLevel();
+			if (maxLevel != 0 && entry.getValue() > maxLevel)
 			{
-				item.addUnsafeEnchantment(entry.getKey(), maxlevel);
-				cost = cost + maxlevel;
+				item.addUnsafeEnchantment(entry.getKey(), maxLevel);
+				cost = cost + maxLevel;
 			} else
 			{
 				item.addUnsafeEnchantment(entry.getKey(), entry.getValue());
@@ -236,7 +236,7 @@ public class Events implements Listener, Reloadable {
 
 	public static void setDefault(String path, Object replace)
 	{
-		FileConfiguration fileConfiguration = EPS.configFile.getYaml();
+		FileConfiguration fileConfiguration = EPS.configFile.yaml;
 		if (!fileConfiguration.isSet(path))
 			fileConfiguration.set(path, replace);
 	}
@@ -244,8 +244,6 @@ public class Events implements Listener, Reloadable {
 	@Override
 	public void reload()
 	{
-		EPSConfiguration.reloadConfigurations();
-
 		setDefault("playerkilltokens.enabled", true);
 		setDefault("playerkilltokens.min", 25);
 		setDefault("playerkilltokens.max", 50);

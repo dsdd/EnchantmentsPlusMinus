@@ -60,7 +60,8 @@ public class Updater {
 		}
 			
 		
-		EPS.configFile.setDefault("abbreviate-large-numbers", true);
+		EPS.configFile.addDefault("abbreviate-large-numbers", true);
+		EPS.configFile.yaml.options().copyDefaults(true);
 		EPS.configFile.set("do-not-add-lore-to", new ArrayList<String>(Arrays.asList(new String[] {"an item e.g. BEDROCK that you do not want lore added to due to plugin interference"})));
 		EPS.configFile.set("use-custom-fortune", null);
 		EPS.configFile.set("show-vanilla-enchants-in-lore", null);

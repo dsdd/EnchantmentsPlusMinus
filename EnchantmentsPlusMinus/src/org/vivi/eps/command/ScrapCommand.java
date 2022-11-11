@@ -10,8 +10,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.vivi.eps.EPS;
-import org.vivi.eps.api.EPSConfiguration;
 import org.vivi.eps.util.Language;
+import org.vivi.sekai.Sekai;
 
 /**
  * Planned for removal. Though, this concept may still be improved on.
@@ -37,22 +37,21 @@ public class ScrapCommand implements CommandExecutor
 
 		if (player.hasPermission("eps.scrap"))
 		{
-			ItemStack item = EPS.getMCVersion() < 9 ? playerInventory.getItemInHand()
+			ItemStack item = Sekai.getMCVersion() < 9 ? playerInventory.getItemInHand()
 					: playerInventory.getItemInMainHand();
 			Map<Enchantment, Integer> map = item.getItemMeta().getEnchants();
 			int scrapvalue = 0;
 
 			for (Map.Entry<Enchantment, Integer> entry : map.entrySet())
 			{
-				scrapvalue = scrapvalue
-						+ EPSConfiguration.getConfiguration(entry.getKey()).getInt("scrapvalue") * entry.getValue();
+				scrapvalue += EPS.getEnchantFile(entry.getKey()).getScrapValue() * entry.getValue();
 			}
 
 			if (scrapvalue > 0)
 			{
 				EPS.getEconomy().changeBalance(player, scrapvalue);
 				playerInventory.removeItem(
-						EPS.getMCVersion() < 9 ? playerInventory.getItemInHand() : playerInventory.getItemInMainHand());
+						Sekai.getMCVersion() < 9 ? playerInventory.getItemInHand() : playerInventory.getItemInMainHand());
 				player.sendMessage(
 						Language.getLangMessage("scrapsuccess").replaceAll("%tokens%", Integer.toString(scrapvalue)));
 			} else

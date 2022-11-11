@@ -4,36 +4,33 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.vivi.eps.api.EPSConfiguration;
+import org.vivi.eps.api.EnchantFile;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.command.EPSCommand;
 import org.vivi.eps.command.EnchantsCommand;
 import org.vivi.eps.command.PayTokensCommand;
 import org.vivi.eps.command.ScrapCommand;
 import org.vivi.eps.command.TokensCommand;
-import org.vivi.eps.dependencies.Metrics;
 import org.vivi.eps.dependencies.PlaceholderAPIHook;
-import org.vivi.eps.dependencies.VaultHook;
 import org.vivi.eps.util.ConfigSettings;
-import org.vivi.eps.util.EnchantDictionary;
 import org.vivi.eps.util.Events;
 import org.vivi.eps.util.Language;
-import org.vivi.eps.util.Wrapper;
+import org.vivi.eps.util.EnchantWrapper;
 import org.vivi.eps.util.economy.Economy;
 import org.vivi.eps.util.economy.TokenEconomy;
 import org.vivi.eps.util.economy.VaultEconomy;
@@ -41,7 +38,10 @@ import org.vivi.eps.visual.EnchantGUI;
 import org.vivi.eps.visual.EnchantMetaWriter;
 import org.vivi.epsbuiltin.enchants.BuiltInEnchantsLoader;
 import org.vivi.sekai.Sekai;
-import org.vivi.sekai.YamlFile;
+import org.vivi.sekai.dependencies.Metrics;
+import org.vivi.sekai.dependencies.VaultHook;
+import org.vivi.sekai.enchantment.EnchantmentInfo;
+import org.vivi.sekai.yaml.YamlFile;
 
 public class EPS extends JavaPlugin implements Reloadable
 {
@@ -54,35 +54,14 @@ public class EPS extends JavaPlugin implements Reloadable
 	public static YamlFile<YamlConfiguration> incompatibilitiesFile;
 	public static YamlFile<YamlConfiguration> guisFile;
 	public static YamlFile<YamlConfiguration> uuidDataStore;
+	public static Map<Enchantment, EnchantFile> enchantmentFilesMap = new HashMap<Enchantment, EnchantFile>();
 	public static EnchantsCommand enchantsCommand;
 	public static EnchantMetaWriter enchantMetaWriter;
-	public static boolean debug = false;
 	public static Logger logger;
-
-	private static EnchantDictionary dictionary = new EnchantDictionary.Defaults();
-	private final static int version = (Bukkit.getVersion().contains("1.8")) ? 8
-			: ((Bukkit.getVersion().contains("1.9")) ? 9
-					: (Bukkit.getVersion().contains("1.10")) ? 10
-							: (Bukkit.getVersion().contains("1.11") ? 11
-									: (Bukkit.getVersion().contains("1.12") ? 12
-											: (Bukkit.getVersion().contains("1.13") ? 13
-													: (Bukkit.getVersion().contains("1.14") ? 14
-															: (Bukkit.getVersion().contains("1.15") ? 15
-																	: (Bukkit.getVersion().contains("1.16") ? 16
-																			: (Bukkit.getVersion().contains("1.17") ? 17
-																					: (Bukkit.getVersion()
-																							.contains("1.18")
-																									? 18
-																									: (Bukkit
-																											.getVersion()
-																											.contains(
-																													"1.19") ? 19
-																															: 20))))))))));
 
 	private static Economy economy = null;
 	private static Updater updater = new Updater();
 	private static Events epsEvents = new Events();
-	private static ArrayList<Enchantment> registeredEnchants = new ArrayList<Enchantment>(Arrays.asList());
 	private static HashMap<Enchantment, HashMap<Integer, Double>> cachedCosts = new HashMap<Enchantment, HashMap<Integer, Double>>();
 	private static Enchantment NULL_ENCHANT = null;
 
@@ -95,53 +74,10 @@ public class EPS extends JavaPlugin implements Reloadable
 			plugin = this;
 			logger = getLogger();
 
-			// This is for debugging
-			for (Player player : Bukkit.getOnlinePlayers())
-				if (player.getName().equals("vivisan"))
-				{
-					debug = true;
-					getLogger().log(Level.INFO, "Debugging is enabled.");
-				}
-
 			saveDefaultConfig();
 			configFile = new YamlFile<YamlConfiguration>(getDataFolder(), "config.yml");
 
-			if (configFile.exists() && debug == true)
-				configFile.delete();
 			Sekai.saveDefaultFile(EPS.plugin, "/config.yml", configFile);
-
-			// Create Data Folder
-			dataFolder = new File(getDataFolder(), "data");
-			if (!dataFolder.exists())
-				dataFolder.mkdirs();
-
-			// Create Enchant Folder
-			enchantsFolder = new File(getDataFolder(), "enchants");
-			if (!enchantsFolder.exists())
-				enchantsFolder.mkdirs();
-
-			// Create Language File
-			languageFile = new YamlFile<YamlConfiguration>(getDataFolder(), "lang.yml", Charset.forName("UTF-8"));
-			if (languageFile.exists() && debug == true)
-				languageFile.delete();
-			Sekai.saveDefaultFile(EPS.plugin, "/lang.yml", languageFile);
-
-			// Create GUIs File
-			guisFile = new YamlFile<YamlConfiguration>(getDataFolder(), "guis.yml");
-			if (guisFile.exists() && debug == true)
-				guisFile.delete();
-			Sekai.saveDefaultFile(EPS.plugin, "/guis.yml", guisFile);
-
-			// Create Incompatibilities File
-			incompatibilitiesFile = new YamlFile<YamlConfiguration>(getDataFolder(), "incompatibilities.yml");
-			if (incompatibilitiesFile.exists() && debug == true)
-				incompatibilitiesFile.delete();
-			Sekai.saveDefaultFile(EPS.plugin, "/incompatibilities.yml", incompatibilitiesFile);
-
-			// Create Data Files
-			uuidDataStore = new YamlFile<YamlConfiguration>(dataFolder, "usernamestore.yml");
-			if (!uuidDataStore.exists())
-				uuidDataStore.createNewFile();
 
 			reload();
 
@@ -159,7 +95,8 @@ public class EPS extends JavaPlugin implements Reloadable
 			if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
 				new PlaceholderAPIHook();
 
-			VaultHook.setupEconomy();
+			if (VaultHook.hook())
+				logger.log(Level.INFO, "Successfully hooked into Vault.");
 			economy = ConfigSettings.isUseVaultEconomy() ? new VaultEconomy() : new TokenEconomy();
 
 			// Load commands
@@ -207,7 +144,8 @@ public class EPS extends JavaPlugin implements Reloadable
 			Language.sendMessage(Bukkit.getConsoleSender(), "startup-message");
 
 			EPS.reloadConfigs(); // hotfix for startup
-		} catch (IOException | NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e)
+		} catch (IOException | NoSuchFieldException | SecurityException | IllegalArgumentException
+				| IllegalAccessException e)
 		{
 			e.printStackTrace();
 		}
@@ -260,38 +198,6 @@ public class EPS extends JavaPlugin implements Reloadable
 	}
 
 	/**
-	 * Gets the main dictionary of EPS.
-	 * 
-	 * @return The main dictionary of EPS.
-	 */
-	public static EnchantDictionary getDictionary()
-	{
-		return dictionary;
-	}
-
-	/**
-	 * Sets the main dictionary of EPS.
-	 * 
-	 * @return The main dictionary of EPS.
-	 */
-	public static void setDictionary(EnchantDictionary dictionary)
-	{
-		EPS.dictionary = dictionary;
-	}
-
-	/**
-	 * Returns the version of the Minecraft server in numerical form. e.g. 1.8.6,
-	 * 1.8.2 and 1.8.8 will all return 8. 1.16, 1.14.2 and 1.19.84 will return 16,
-	 * 14 and 19 respectively.
-	 * 
-	 * @return Returns the version of the Minecraft server in numerical form.
-	 */
-	public static int getMCVersion()
-	{
-		return version;
-	}
-
-	/**
 	 * Registers the specified Reloadable to be ready for listening.
 	 */
 	public static void registerReloader(Reloadable r)
@@ -311,6 +217,40 @@ public class EPS extends JavaPlugin implements Reloadable
 	@Override
 	public void reload()
 	{
+		if (configFile == null)
+			configFile = new YamlFile<YamlConfiguration>(getDataFolder(), "config.yml");
+		if (languageFile == null)
+			languageFile = new YamlFile<YamlConfiguration>(getDataFolder(), "lang.yml", Charset.forName("UTF-8"));
+		if (guisFile == null)
+			guisFile = new YamlFile<YamlConfiguration>(getDataFolder(), "guis.yml");
+		if (incompatibilitiesFile == null)
+			incompatibilitiesFile = new YamlFile<YamlConfiguration>(getDataFolder(), "incompatibilities.yml");
+		if (uuidDataStore == null)
+			uuidDataStore = new YamlFile<YamlConfiguration>(dataFolder, "usernamestore.yml");
+		if (dataFolder == null)
+			dataFolder = new File(getDataFolder(), "data");
+		if (enchantsFolder == null)
+			enchantsFolder = new File(getDataFolder(), "enchants");
+
+		if (!dataFolder.exists())
+			dataFolder.mkdirs();
+
+		if (!enchantsFolder.exists())
+			enchantsFolder.mkdirs();
+
+		Sekai.saveDefaultFile(EPS.plugin, "/config.yml", configFile);
+		Sekai.saveDefaultFile(EPS.plugin, "/lang.yml", languageFile);
+		Sekai.saveDefaultFile(EPS.plugin, "/guis.yml", guisFile);
+		Sekai.saveDefaultFile(EPS.plugin, "/incompatibilities.yml", incompatibilitiesFile);
+
+		if (!uuidDataStore.exists())
+			try
+			{
+				uuidDataStore.createNewFile();
+			} catch (IOException e)
+			{
+				e.printStackTrace();
+			}
 		configFile.loadYaml(new YamlConfiguration());
 		uuidDataStore.loadYaml(new YamlConfiguration());
 		languageFile.loadYaml(new YamlConfiguration());
@@ -329,9 +269,10 @@ public class EPS extends JavaPlugin implements Reloadable
 	 */
 	public static double getCost(Enchantment enchant, int currentLevel, int levels)
 	{
-		EPSConfiguration config = EPSConfiguration.getConfiguration(enchant);
+		EnchantFile enchantFile = getEnchantFile(enchant);
 
-		Object cost = ConfigSettings.isGlobalCostEnabled() ? ConfigSettings.getGlobalCost() : config.get("cost");
+		Object cost = ConfigSettings.isGlobalCostEnabled() ? ConfigSettings.getGlobalCost()
+				: enchantFile.getCostExpression();
 
 		if (!(cost instanceof ConfigurationSection) && !(cost instanceof String))
 			return Double.MAX_VALUE;
@@ -367,7 +308,7 @@ public class EPS extends JavaPlugin implements Reloadable
 		if (cost instanceof ConfigurationSection)
 			val = ((ConfigurationSection) cost).getLong(Integer.toString(level));
 		else if (cost instanceof String)
-			val = EPSConfiguration.eval(((String) cost).replaceAll("%lvl%", Integer.toString(level)));
+			val = EnchantFile.evaluateExpression(((String) cost).replaceAll("%lvl%", Integer.toString(level)));
 
 		cachedCosts.get(enchant).put(level, val);
 		return val;
@@ -384,18 +325,16 @@ public class EPS extends JavaPlugin implements Reloadable
 	{
 		if (enchant == NULL_ENCHANT)
 			return false;
-		registeredEnchants.add(enchant);
-		File enchantfile = new File(enchantsFolder, getDictionary().getName(enchant) + ".yml");
-		if (enchantfile.exists())
-			EPSConfiguration.loadConfiguration(enchantfile, enchant);
+
+		getEnchantFile(enchant);
+
 		if (!Arrays.asList(Enchantment.values()).contains(enchant))
 		{
 			try
 			{
 				Enchantment.registerEnchantment(enchant);
 				EnchantMetaWriter.init(enchant);
-				Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GREEN + "Registered enchant "
-						+ getDictionary().getName(enchant).toUpperCase() + "!");
+				logger.log(Level.INFO, "Registered " + EnchantmentInfo.getKey(enchant).toUpperCase());
 				return true;
 			} catch (Exception e)
 			{
@@ -407,6 +346,27 @@ public class EPS extends JavaPlugin implements Reloadable
 			EnchantMetaWriter.init(enchant);
 			return false;
 		}
+	}
+
+	public static EnchantFile getEnchantFile(Enchantment enchant)
+	{
+		EnchantFile enchantFile = enchantmentFilesMap.get(enchant);
+
+		if (enchantFile == null || !enchantFile.exists())
+		{
+			enchantFile = new EnchantFile(enchantsFolder, EnchantmentInfo.getKey(enchant) + ".yml");
+			if (!enchantFile.exists())
+				try
+				{
+					enchantFile.createNewFile();
+				} catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+			enchantFile.loadYaml(new YamlConfiguration());
+			enchantmentFilesMap.put(enchant, enchantFile);
+		}
+		return enchantFile;
 	}
 
 	/**
@@ -426,16 +386,14 @@ public class EPS extends JavaPlugin implements Reloadable
 	}
 
 	/**
-	 * Gets all registered enchants, not including vanilla minecraft enchants. This
-	 * list is in-mutable.
+	 * Gets all registered {@link Enchantment}s, not including vanilla Minecraft
+	 * enchants.
 	 * 
-	 * @return List of all registered enchants, not including vanilla minecraft
-	 *         enchants
+	 * @return Requested registered {@link Enchantment} Set
 	 */
-	@SuppressWarnings("unchecked")
-	public static List<Enchantment> getRegisteredEnchants()
+	public static Set<Enchantment> getRegisteredEnchants()
 	{
-		return (List<Enchantment>) registeredEnchants.clone();
+		return enchantmentFilesMap.keySet();
 	}
 
 	/**
@@ -452,8 +410,8 @@ public class EPS extends JavaPlugin implements Reloadable
 			return NULL_ENCHANT;
 		if (disabledEnchants.contains(namespace))
 			return NULL_ENCHANT;
-		return getMCVersion() < 13 ? new Wrapper.LegacyWrapper(namespace, name.replaceAll(" ", "_"))
-				: new Wrapper(namespace, name.replaceAll(" ", "_"));
+		return Sekai.getMCVersion() < 13 ? new EnchantWrapper.Legacy(namespace, name.replaceAll(" ", "_"))
+				: new EnchantWrapper(namespace, name.replaceAll(" ", "_"));
 	}
 
 }

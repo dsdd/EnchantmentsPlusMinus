@@ -9,6 +9,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.vivi.eps.EPS;
 import org.vivi.eps.api.Reloadable;
+import org.vivi.sekai.Sekai;
 
 public class ConfigSettings implements Reloadable
 {
@@ -61,7 +62,7 @@ public class ConfigSettings implements Reloadable
 		for (String name : applyFortuneOnStringList)
 		{
 			Material material = Material.matchMaterial(name);
-			if (material == null && EPS.getMCVersion() > 12)
+			if (material == null && Sekai.getMCVersion() > 12)
 				material = Material.matchMaterial(name, true);
 			if (material != null)
 				getApplyFortuneOn().add(material);

@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.vivi.eps.dependencies.VaultHook;
+import org.vivi.sekai.dependencies.VaultHook;
 
 import net.milkbowl.vault.economy.EconomyResponse;
 

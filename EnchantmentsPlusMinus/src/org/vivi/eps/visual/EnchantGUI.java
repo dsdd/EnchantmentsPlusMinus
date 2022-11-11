@@ -14,7 +14,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -29,13 +28,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.vivi.eps.EPS;
-import org.vivi.eps.api.EPSConfiguration;
+import org.vivi.eps.api.EnchantFile;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.util.ConfigSettings;
-import org.vivi.eps.util.EnchantDictionary;
 import org.vivi.eps.util.Language;
 import org.vivi.eps.util.economy.Economy;
 import org.vivi.sekai.Sekai;
+import org.vivi.sekai.enchantment.EnchantmentInfo;
+import org.vivi.sekai.yaml.YamlFile;
 
 @SuppressWarnings("deprecation")
 public class EnchantGUI implements Listener, Reloadable
@@ -49,18 +49,17 @@ public class EnchantGUI implements Listener, Reloadable
 			Material.IRON_HOE, Material.matchMaterial("GOLDEN_HOE"), Material.matchMaterial("GOLD_HOE"),
 			Material.DIAMOND_HOE, Material.matchMaterial("NETHERITE_HOE") }));
 	private static final Economy economy = EPS.getEconomy();
-	private static final EnchantDictionary dictionary = EPS.getDictionary();
 	private static List<Player> disabled = new ArrayList<Player>();
 	private static Player modifying = null;
 	private static String nextPageName = Language.getLangMessage("next-page", false);
 	private static String modifyGuiName = Language.getLangMessage("modify-gui", false);
 	private static String modifyLore1 = Language.getLangMessage("modify-lore-1", false);
 	private static String modifyLore2 = Language.getLangMessage("modify-lore-2", false);
-	private static ItemStack filler = EPS.getMCVersion() < 13
+	private static ItemStack filler = Sekai.getMCVersion() < 13
 			? new ItemStack(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short) 15)
 			: new ItemStack(Material.matchMaterial("BLACK_STAINED_GLASS_PANE"), 1);
 	private static ItemStack modifyingBook = new ItemStack(Material.BOOK, 1);
-	private static ItemStack glasspane = EPS.getMCVersion() < 13
+	private static ItemStack glasspane = Sekai.getMCVersion() < 13
 			? new ItemStack(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short) 13)
 			: new ItemStack(Material.matchMaterial("GREEN_STAINED_GLASS_PANE"), 1);
 
@@ -184,68 +183,65 @@ public class EnchantGUI implements Listener, Reloadable
 			gui.setItem(i, slot);
 	}
 
-	private static void add(Player p, Inventory inv, String name)
+	private static void add(Player player, Inventory inventory, String key)
 	{
-		if (inv.firstEmpty() == -1)
+		if (inventory.firstEmpty() == -1)
 			return;
-		ItemStack mainhand = p.getInventory().getItemInMainHand();
-		ItemMeta mainmeta = mainhand.getItemMeta();
-		String displayCost;
-		Enchantment enchant = dictionary.findEnchant(name);
+		ItemStack itemStack = player.getInventory().getItemInMainHand();
+		ItemMeta itemMeta = itemStack.getItemMeta();
+		Enchantment enchant = EnchantmentInfo.findEnchantByKey(key);
 		if (enchant == null)
 		{
-			Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "Invalid enchantment name " + name + "!");
+			EPS.logger.log(Level.INFO, "Invalid enchantment " + key);
 			return;
 		}
-		EPSConfiguration config = EPSConfiguration.getConfiguration(enchant);
-		String enchantDisplayName = EnchantMetaWriter.enchantnames.get(enchant);
-		Material material = config.getMaterial("upgradeicon");
-		String desc = config.getString("upgradedesc");
-		Integer maxlevel = config.getInt("maxlevel");
+		YamlFile<?> enchantFile = EPS.getEnchantFile(enchant);
+		Material upgradeIcon = enchantFile.getMaterialBySekai("upgradeicon");
+		String desc = enchantFile.getString("upgradedesc");
+		Integer maxlevel = enchantFile.getInt("maxlevel");
+		String displayCost;
 
-		if (!(mainmeta.getEnchantLevel(enchant) >= maxlevel) || p.hasPermission("eps.admin.bypassmaxlevel"))
+		if (!(itemMeta.getEnchantLevel(enchant) >= maxlevel) || player.hasPermission("eps.admin.bypassmaxlevel"))
 		{
-			long cost = (long) Math.floor(EPS.getCost(enchant, mainmeta.getEnchantLevel(enchant), 1));
+			long cost = (long) Math.floor(EPS.getCost(enchant, itemMeta.getEnchantLevel(enchant), 1));
 			displayCost = ConfigSettings.isAbbreviateLargeNumbers() ? Sekai.abbreviate(cost) : Long.toString(cost);
 		} else
 			displayCost = "Maxed!";
 
 		if (desc == null)
 			EPS.plugin.getLogger().log(Level.WARNING,
-					"Invalid upgrade description for enchant " + name.toUpperCase() + "!");
+					"Invalid upgrade description for enchant " + key.toUpperCase() + "!");
 		if (maxlevel == 0)
 			EPS.plugin.getLogger().log(Level.WARNING,
-					"Max level for enchant " + name.toUpperCase() + " is zero! Is this intentional?");
-		if (material == null)
+					"Max level for enchant " + key.toUpperCase() + " is zero! Is this intentional?");
+		if (upgradeIcon == null)
 			EPS.plugin.getLogger().log(Level.WARNING,
-					"Invalid material type for enchantment " + name.toUpperCase() + ". Setting to default BOOK.");
+					"Invalid material type for enchantment " + key.toUpperCase() + ". Setting to default BOOK.");
 
-		ItemStack slot = material == null ? new ItemStack(Material.BOOK, 1) : new ItemStack(material, 1);
+		ItemStack slot = upgradeIcon == null ? new ItemStack(Material.BOOK, 1) : new ItemStack(upgradeIcon, 1);
 		ItemMeta meta = slot.getItemMeta();
-		meta.setDisplayName(ChatColor.AQUA + enchantDisplayName);
+		meta.setDisplayName(ChatColor.AQUA + EnchantmentInfo.getDefaultName(enchant));
 
 		List<String> lore = EnchantMetaWriter.getDescription(enchant);
 
 		for (String s : EPS.languageFile.getStringList("enchant-gui-item-lore"))
 			lore.add(ChatColor.translateAlternateColorCodes('&',
 					s.replaceAll("%cost%", displayCost).replaceAll("%maxlevel%", maxlevel.toString())
-							.replaceAll("%currentlevel%", Integer.toString(mainmeta.getEnchantLevel(enchant)))));
+							.replaceAll("%currentlevel%", Integer.toString(itemMeta.getEnchantLevel(enchant)))));
 
 		meta.setLore(lore);
 		meta.addEnchant(enchant, 1, true);
 		meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 		slot.setItemMeta(meta);
-		inv.setItem(inv.firstEmpty(), slot);
+		inventory.setItem(inventory.firstEmpty(), slot);
 	}
 
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onInventoryDrag(final InventoryDragEvent e)
 	{
-		if (EPS.getMCVersion() < 13)
+		if (Sekai.getMCVersion() < 13)
 		{
-			if (!isSimilarInventory(e.getInventory(), GUIs.get(e.getWhoClicked())))
-				return;
-			if (!compareInvs(e.getInventory(), GUIs.get(e.getWhoClicked())))
+			if (!Sekai.isSameInventory(e.getInventory(), GUIs.get(e.getWhoClicked())))
 				return;
 			e.setCancelled(true);
 		} else
@@ -269,18 +265,16 @@ public class EnchantGUI implements Listener, Reloadable
 		if (clickedItem == null || clickedItem.getType() == Material.AIR)
 			return;
 
-		final Player p = (Player) e.getWhoClicked();
+		final Player player = (Player) e.getWhoClicked();
 
-		if (EPS.getMCVersion() < 13)
+		if (Sekai.getMCVersion() < 13)
 		{
-			if (!isSimilarInventory(e.getInventory(), GUIs.get(p)))
-				return;
-			if (!compareInvs(e.getInventory(), GUIs.get(p)))
+			if (!Sekai.isSameInventory(e.getInventory(), GUIs.get(player)))
 				return;
 			e.setCancelled(true);
 		} else
 		{
-			if (e.getInventory() != GUIs.get(p))
+			if (e.getInventory() != GUIs.get(player))
 				return;
 			e.setCancelled(true);
 		}
@@ -289,10 +283,10 @@ public class EnchantGUI implements Listener, Reloadable
 
 		if (displayName.equals(nextPageName))
 		{
-			nextPage(p, EPS.guisFile.getStringList("guis." + guiNames.get(p) + ".enchants"));
+			nextPage(player, EPS.guisFile.getStringList("guis." + guiNames.get(player) + ".enchants"));
 		} else if (displayName.equals(modifyGuiName))
 		{
-			modifying = p;
+			modifying = player;
 			Inventory inv = e.getInventory();
 			for (ItemStack i : inv.getContents())
 			{
@@ -304,62 +298,63 @@ public class EnchantGUI implements Listener, Reloadable
 		}
 
 		Map<Enchantment, Integer> enchs = clickedItem.getItemMeta().getEnchants();
-		Enchantment ench = null;
+		Enchantment enchant = null;
 
 		for (Map.Entry<Enchantment, Integer> entry : enchs.entrySet())
-			ench = entry.getKey();
+			enchant = entry.getKey();
 
-		if (ench == null)
+		if (enchant == null)
 			return;
 
-		if (modifying == p)
+		if (modifying == player)
 		{
 			if (e.isRightClick())
 			{
-				String path = "guis." + guiNames.get(p) + ".enchants";
+				String path = "guis." + guiNames.get(player) + ".enchants";
 				List<String> list = EPS.guisFile.getStringList(path);
-				list.remove(dictionary.getName(ench));
+				list.remove(EnchantmentInfo.getKey(enchant));
 				EPS.guisFile.set(path, list);
 				EPS.guisFile.saveYaml();
 				e.getInventory().remove(clickedItem);
 				EPS.reloadConfigs();
 			} else
-				new EditEnchantGUI(p, ench);
+				new EditEnchantGUI(player, enchant);
 			return;
 		}
 
 		if (e.isLeftClick())
-			upgradeItem(ench, p, 1);
+			upgradeItemInMainHand(enchant, player, 1);
 
 		else if (e.isRightClick())
-			upgradeItem(ench, p, 5);
+			upgradeItemInMainHand(enchant, player, 5);
 
 		else if (e.isShiftClick())
-			upgradeItem(ench, p, 50);
+			upgradeItemInMainHand(enchant, player, 50);
 
 	}
 
-	private void upgradeItem(Enchantment enchant, Player player, Integer multi)
+	private void upgradeItemInMainHand(Enchantment enchant, Player player, Integer levelsToIncrease)
 	{
-		EPSConfiguration config = EPSConfiguration.getConfiguration(enchant);
-		ItemStack mainhand = player.getInventory().getItemInMainHand();
-		ItemMeta mainmeta = mainhand.getItemMeta();
-		int currentLevel = mainmeta.getEnchantLevel(enchant);
-		int upgradedLevel = currentLevel + multi;
-
-		double cost = EPS.getCost(enchant, currentLevel, multi);
-		if (!(upgradedLevel - 1 >= config.getInt("maxlevel")) || player.hasPermission("eps.admin.bypassmaxlevel"))
+		EnchantFile enchantFile = EPS.getEnchantFile(enchant);
+		ItemStack itemStack = player.getInventory().getItemInMainHand();
+		ItemMeta itemMeta = itemStack.getItemMeta();
+		int currentLevel = itemMeta.getEnchantLevel(enchant);
+		int upgradedLevel = currentLevel + levelsToIncrease;
+		
+		double cost = EPS.getCost(enchant, currentLevel, upgradedLevel);
+		if (!(upgradedLevel - 1 >= enchantFile.getMaxLevel()
+				|| player.hasPermission("eps.admin.bypassmaxlevel")))
 		{
 			if (!player.hasPermission("eps.admin.bypassincompatibilities"))
 			{
 				for (Map.Entry<List<String>, List<Enchantment>> entry : incpts.entrySet())
 				{
-					if (entry.getKey().contains(mainhand.getType().name()))
+					if (entry.getKey().contains(itemStack.getType().name()))
 					{
 						if (entry.getValue().contains(enchant))
 							for (Enchantment e : entry.getValue())
 								if (e != null)
-									if (mainmeta.hasEnchant(e) && e != enchant)
+									if (itemMeta.hasEnchant(e) && e != enchant)
 									{
 										Language.sendMessage(player, "lockedupgrade");
 										return;
@@ -371,17 +366,17 @@ public class EnchantGUI implements Listener, Reloadable
 			if (economy.getBalance(player) >= cost)
 			{
 				player.sendMessage(Language.getLangMessage("upgraded-item")
-						.replaceAll("%enchant%", EnchantMetaWriter.enchantnames.get(enchant))
+						.replaceAll("%enchant%", EnchantmentInfo.getDefaultName(enchant))
 						.replaceAll("%lvl%", Integer.toString(upgradedLevel)));
-				mainhand.addUnsafeEnchantment(enchant, upgradedLevel);
+				itemStack.addUnsafeEnchantment(enchant, upgradedLevel);
 				economy.setBalance(player, economy.getBalance(player) - cost);
-				mainhand.setItemMeta(EnchantMetaWriter.getWrittenMeta(mainhand));
+				itemStack.setItemMeta(EnchantMetaWriter.getWrittenMeta(itemStack));
 				loadInventory(player, guiNames.get(player));
 			} else
 			{
 				Language.sendMessage(player, "insufficienttokens");
 			}
-		} else if ((currentLevel >= config.getInt("maxlevel")))
+		} else if ((currentLevel >= enchantFile.getInt("maxlevel")))
 		{
 			Language.sendMessage(player, "exceedmaxlvl");
 		} else
@@ -389,63 +384,6 @@ public class EnchantGUI implements Listener, Reloadable
 			Language.sendMessage(player, "maxedupgrade");
 		}
 
-	}
-
-	private static boolean isSimilarInventory(Inventory first, Inventory second)
-	{
-		if (first == null && second == null)
-			return true;
-		if ((first == null && second != null) || (first != null && second == null))
-			return false;
-		if (first.getType() != second.getType())
-			return false;
-		ItemStack[] firstContents = first.getContents();
-		ItemStack[] secondContents = second.getContents();
-		if (firstContents.length != secondContents.length)
-			return false;
-		for (int i = 0; i < firstContents.length; i++)
-		{
-			if (firstContents[i] == null && secondContents[i] == null)
-				continue;
-			else if (firstContents[i] == null && secondContents[i] != null)
-				return false;
-			else if (secondContents[i] == null && firstContents[i] != null)
-				return false;
-			else if (!firstContents[i].isSimilar(secondContents[i]))
-				return false;
-		}
-		return true;
-	}
-
-	private static boolean compareInvs(Inventory inv0, Inventory inv1)
-	{
-		if (!inv0.getHolder().equals(inv1.getHolder()))
-			return false;
-		if (inv0.getSize() != inv1.getSize())
-			return false;
-		if (!inv0.getType().equals(inv1.getType()))
-			return false;
-		if (inv0.getSize() != inv1.getSize())
-			return false;
-		if (inv0.getViewers().size() != inv1.getViewers().size())
-			return false;
-		for (int index = 0; index < inv0.getSize(); index++)
-		{
-			ItemStack a = inv0.getItem(index);
-			ItemStack b = inv1.getItem(index);
-			if (!((a == null && b == null) || a.equals(b)))
-				return false;
-		}
-		for (int index = 0; index < inv0.getViewers().size(); index++)
-		{
-			HumanEntity a = inv0.getViewers().get(index);
-			HumanEntity b = inv1.getViewers().get(index);
-			if (!a.getOpenInventory().getTitle().equals(b.getOpenInventory().getTitle()))
-				return false;
-			if (!((a == null && b == null) || a.equals(b)))
-				return false;
-		}
-		return true;
 	}
 
 	@EventHandler
@@ -459,10 +397,10 @@ public class EnchantGUI implements Listener, Reloadable
 			Material m = inv.getItemInMainHand().getType();
 			if (m.equals(Material.BOW) || m.equals(Material.matchMaterial("CROSSBOW"))
 					|| inv.getItemInOffHand().getType().equals(Material.SHIELD) || hoes.contains(m)
-					|| m.equals(Material.FISHING_ROD) || (EPS.getMCVersion() > 11 && e.getClickedBlock() != null
+					|| m.equals(Material.FISHING_ROD) || (Sekai.getMCVersion() > 11 && e.getClickedBlock() != null
 							&& e.getClickedBlock().getType().isInteractable()))
 				return;
-			if (EPS.configFile.getYaml().getBoolean("open-enchant-gui-on-right-click") == true)
+			if (EPS.configFile.yaml.getBoolean("open-enchant-gui-on-right-click") == true)
 				EPS.enchantsCommand.onCommand(e.getPlayer(), Bukkit.getPluginCommand("enchants"), "enchants",
 						new String[] { "dontshow" });
 		}
@@ -484,7 +422,7 @@ public class EnchantGUI implements Listener, Reloadable
 		{
 			List<Enchantment> enchs = new ArrayList<Enchantment>();
 			for (String s : EPS.incompatibilitiesFile.getStringList("incompatibilities." + i + ".enchants"))
-				enchs.add(dictionary.findEnchant(s));
+				enchs.add(EnchantmentInfo.findEnchantByKey(s));
 			incpts.put(EPS.incompatibilitiesFile.getStringList("incompatibilities." + i + ".items"), enchs);
 		}
 	}
