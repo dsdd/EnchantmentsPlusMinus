@@ -192,10 +192,12 @@ public class EnchantMetaWriter implements Reloadable
 			item.setItemMeta(meta);
 	}
 
-	public static void init(Enchantment enchant)
+	public static void prepareLore(Enchantment enchant)
 	{
 		EnchantmentInfo enchantmentInfo = EnchantmentInfo.getEnchantmentInfo(enchant);
-		EnchantFile enchantFile = EPS.getEnchantFile(enchant);
+		EnchantFile enchantFile = EPS.getEnchantFile(enchant, false);
+		if (enchantFile == null)
+			return;
 		final String desc = enchantFile.getUpgradeDescription() == null ? enchantmentInfo.defaultDescription
 				: enchantFile.getUpgradeDescription();
 		descriptionMap.put(enchant, new ArrayList<String>() {
@@ -226,32 +228,6 @@ public class EnchantMetaWriter implements Reloadable
 		for (String s : ConfigSettings.getLoreExemptions())
 			exemptions.add(Material.matchMaterial(s));
 		for (Enchantment enchant : Enchantment.values())
-		{
-			EnchantmentInfo enchantmentInfo = EnchantmentInfo.getEnchantmentInfo(enchant);
-			EnchantFile enchantFile = EPS.getEnchantFile(enchant);
-			final String desc = enchantFile.getUpgradeDescription() == null ? enchantmentInfo.defaultDescription
-					: enchantFile.getUpgradeDescription();
-
-			descriptionMap.put(enchant, new ArrayList<String>() {
-				private static final long serialVersionUID = -5686650364578005499L;
-				{
-					add("");
-					if (desc.length() > 120)
-						for (int i = 0; i <= (desc.length() / 90); i++)
-						{
-							String str = ChatColor.GRAY
-									+ desc.substring(45 * i, 45 * i + 45 > desc.length() ? desc.length() : 45 * i + 45);
-							add(str);
-							allDescriptionLines.add(str);
-						}
-					else
-					{
-						add(ChatColor.GRAY + desc);
-						allDescriptionLines.add(ChatColor.GRAY + desc);
-					}
-					add("");
-				}
-			});
-		}
+			prepareLore(enchant);
 	}
 }

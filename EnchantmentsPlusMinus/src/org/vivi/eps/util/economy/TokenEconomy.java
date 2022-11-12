@@ -2,7 +2,6 @@ package org.vivi.eps.util.economy;
 
 import java.util.UUID;
 
-import org.bukkit.entity.Player;
 import org.vivi.eps.api.EPSPlayerData;
 
 public class TokenEconomy implements Economy {
@@ -28,24 +27,4 @@ public class TokenEconomy implements Economy {
 		playerData.setTokens(value);
 		return playerData.getTokens();
 	}
-	
-	@Override
-	public double getBalance(Player player)
-	{
-		return getBalance(player.getUniqueId());
-	}
-	
-	@Override
-	public double changeBalance(Player player, double amount)
-	{
-		return changeBalance(player.getUniqueId(), amount);
-	}
-	
-	@Override
-	public double setBalance(Player player, double value)
-	{
-		return setBalance(player.getUniqueId(), value);
-	}
-
-	
 }

@@ -47,7 +47,7 @@ public class Events implements Listener, Reloadable {
 
 	public Events()
 	{
-		EPS.registerReloader(this);
+		EPS.registerReloadable(this);
 	}
 
 	@EventHandler

@@ -64,8 +64,8 @@ public class EnchantmentInfo
 		getEnchantmentInfo(Enchantment.LOOT_BONUS_MOBS).key("looting").defaultName("Looting")
 				.defaultDescription("Increases mob loot. Higher levels increase loot dropped.");
 
-		getEnchantmentInfo(Enchantment.DIG_SPEED).key("efficiency").defaultName("Efficiency").defaultDescription(
-				"Increases mining speed. When applied to an Axe it increases the chance that the axe may stun a shield, with the base chance being 25% and a 5% increase for each level of efficiency.");
+		getEnchantmentInfo(Enchantment.DIG_SPEED).key("efficiency").defaultName("Efficiency")
+				.defaultDescription("Increases mining speed.");
 
 		getEnchantmentInfo(Enchantment.SILK_TOUCH).key("silk_touch").defaultName("Silk Touch")
 				.defaultDescription("Mined blocks drop themselves, with a few exceptions.");

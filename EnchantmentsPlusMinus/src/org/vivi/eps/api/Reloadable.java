@@ -7,7 +7,7 @@ public interface Reloadable {
 
 	static List<Reloadable> CLASSES = new ArrayList<Reloadable>();
 	
-	static void addReloader(Reloadable r)
+	static void addReloadable(Reloadable r)
 	{
 		CLASSES.add(r);
 	}

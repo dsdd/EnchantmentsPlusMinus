@@ -24,7 +24,7 @@ public class ConfigSettings implements Reloadable
 	private static boolean useVaultEconomy = true;
 	private static boolean useActionBar = true;
 	private static boolean globalCostEnabled = false;
-	private static Object globalCost = "69420*%lvl%";
+	private static String globalCostExpression = "69420*%lvl%";
 	private static String enchantLoreColor = "&9";
 	private static List<Material> applyFortuneOn = new ArrayList<Material>();
 	private static boolean playerKillRewardEnabled = true;
@@ -54,7 +54,7 @@ public class ConfigSettings implements Reloadable
 		useVaultEconomy = EPS.configFile.getBoolean("use-vault-economyy");
 		useActionBar = EPS.configFile.getBoolean("use-action-bar-instead-of-chat-when-inventory-full");
 		globalCostEnabled = EPS.configFile.getBoolean("global-cost.enabled");
-		globalCost = EPS.configFile.get("global-cost.cost");
+		globalCostExpression = EPS.configFile.getString("global-cost.cost");
 		enchantLoreColor = EPS.configFile.getString("enchant-lore-color");
 
 		getApplyFortuneOn().clear();
@@ -137,9 +137,9 @@ public class ConfigSettings implements Reloadable
 		return globalCostEnabled;
 	}
 
-	public static Object getGlobalCost()
+	public static String getGlobalCostExpression()
 	{
-		return globalCost;
+		return globalCostExpression;
 	}
 
 	public static String getEnchantLoreColor()

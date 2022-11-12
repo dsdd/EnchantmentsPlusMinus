@@ -285,8 +285,8 @@ public class EPSCommand implements CommandExecutor, TabCompleter
 			return null;
 
 		if (enchantTabList.isEmpty())
-			for (Enchantment e : EPS.getRegisteredEnchants())
-				enchantTabList.add(EnchantmentInfo.getKey(e));
+			for (Enchantment enchant : Enchantment.values())
+				enchantTabList.add(EnchantmentInfo.getKey(enchant));
 
 		if (args[0].equalsIgnoreCase("enchant") || args[0].equalsIgnoreCase("book"))
 			return enchantTabList;

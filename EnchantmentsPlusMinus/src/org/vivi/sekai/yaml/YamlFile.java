@@ -544,7 +544,7 @@ public class YamlFile<T extends FileConfiguration> extends File
 
 	public Material getMaterialBySekai(String path)
 	{
-		return Material.matchMaterial(getString(path));
+		return Material.matchMaterial(getString(path, ""));
 	}
 
 	public void supersedePath(String pathToSupersede, String supersedingPath)

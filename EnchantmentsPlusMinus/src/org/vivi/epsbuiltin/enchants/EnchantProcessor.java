@@ -149,7 +149,7 @@ public class EnchantProcessor implements Listener, Reloadable
 		Bukkit.getPluginManager().registerEvents(this, plugin);
 		Language.setDefaultLangMessage("cooldown-error", "&cYou must wait %secs% more seconds to use this again!");
 		Language.setDefaultLangMessage("enderbow-radius-error", "&cYou cannot teleport further than %blocks% blocks!");
-		EPS.registerReloader(this);
+		EPS.registerReloadable(this);
 
 		if (CustomEnchants.beheadingConfig.isSet("chance"))
 		{
