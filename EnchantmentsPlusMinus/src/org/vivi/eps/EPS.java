@@ -135,7 +135,7 @@ public class EPS extends JavaPlugin implements Reloadable
 			new BuiltInEnchantsLoader().onEnable();
 
 			logger.log(Level.INFO,
-					"Load time: " + Long.toString(System.nanoTime() - startTime) + " ms (rough approx.)");
+					"Load time: " + Long.toString(System.currentTimeMillis() - startTime) + " ms (rough approx.)");
 
 			EPS.reloadConfigs(); // hotfix for startup
 		} catch (IOException | NoSuchFieldException | SecurityException | IllegalArgumentException
@@ -395,10 +395,11 @@ public class EPS extends JavaPlugin implements Reloadable
 	{
 		EnchantFile enchantFile = enchantmentFilesMap.get(enchant);
 
-		if ((enchantFile == null || !enchantFile.exists()) && autoCreateIfNull)
+		if ((enchantFile == null || !enchantFile.exists()))
 		{
 			enchantFile = new EnchantFile(enchantsFolder, EnchantmentInfo.getKey(enchant) + ".yml");
-			if (!enchantFile.exists())
+			
+			if (autoCreateIfNull)
 				try
 				{
 					enchantFile.createNewFile();
@@ -406,8 +407,12 @@ public class EPS extends JavaPlugin implements Reloadable
 				{
 					e.printStackTrace();
 				}
-			enchantFile.loadYaml(new YamlConfiguration());
-			enchantmentFilesMap.put(enchant, enchantFile);
+			
+			if (enchantFile.exists())
+			{
+				enchantFile.loadYaml(new YamlConfiguration());
+				enchantmentFilesMap.put(enchant, enchantFile);
+			}
 		}
 		return enchantFile;
 	}

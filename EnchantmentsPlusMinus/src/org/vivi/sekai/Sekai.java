@@ -11,6 +11,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.vivi.sekai.CommandProxy.CommandConnection;
 import org.vivi.sekai.CommandProxy.CommandOptions;
 
 /**
@@ -104,9 +105,9 @@ public class Sekai
 		command.setExecutor(commandProxy);
 	}
 
-	public static void connectCommand(PluginCommand command, Runnable runnable)
+	public static void connectCommand(PluginCommand command, CommandConnection connection)
 	{
-		commandProxy.commandActivationMap.put(command, runnable);
+		commandProxy.commandActivationMap.put(command, connection);
 	}
 
 	public static boolean isSameInventory(Inventory first, Inventory second)

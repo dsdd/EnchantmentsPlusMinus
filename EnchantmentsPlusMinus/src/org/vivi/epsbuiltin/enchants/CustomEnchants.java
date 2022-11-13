@@ -147,7 +147,7 @@ public class CustomEnchants
 		// names won't be affected and will default to BOOK
 		EPS.getEnchantFile(Enchantment.DIG_SPEED).fillEnchantConfig(10, 30, Material.matchMaterial("DIAMOND_PICKAXE"),
 				EnchantmentInfo.getDefaultDescription(Enchantment.DIG_SPEED), "30 * 1.4^%lvl%");
-		EPS.getEnchantFile(Enchantment.DURABILITY).fillEnchantConfig(10, 10, Material.matchMaterial("UNBREAKING"),
+		EPS.getEnchantFile(Enchantment.DURABILITY).fillEnchantConfig(10, 10, Material.matchMaterial("BEDROCK"),
 				EnchantmentInfo.getDefaultDescription(Enchantment.DURABILITY), "10 * 1.2^%lvl%");
 		EPS.getEnchantFile(Enchantment.LOOT_BONUS_BLOCKS).fillEnchantConfig(10, 40, Material.matchMaterial("DIAMOND"),
 				EnchantmentInfo.getDefaultDescription(Enchantment.LOOT_BONUS_BLOCKS), "40 * 1.5^%lvl%");

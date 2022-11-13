@@ -13,8 +13,8 @@ import org.bukkit.permissions.Permission;
 public class CommandProxy implements CommandExecutor
 {
 	protected Map<Command, CommandOptions> commandOptionsMap = new HashMap<Command, CommandOptions>();
-	protected Map<Command, Runnable> commandActivationMap = new HashMap<Command, Runnable>();
-	
+	protected Map<Command, CommandConnection> commandActivationMap = new HashMap<Command, CommandConnection>();
+
 	private boolean validateCommand(CommandSender sender, String[] collapsingArgs, CommandOptions commandOptions)
 	{
 		boolean isPlayer = sender instanceof Player;
@@ -60,12 +60,12 @@ public class CommandProxy implements CommandExecutor
 		if (!validateCommand(sender, args, commandOptions))
 			return false;
 		
-		Runnable runnable = commandActivationMap.get(command);
-		if (runnable == null)
+		CommandConnection connection = commandActivationMap.get(command);
+		if (connection == null)
 			return false;
 		else
 		{
-			runnable.run();
+			connection.onCommand(sender, command, label, args);
 			return true;
 		}
 	}
@@ -145,5 +145,10 @@ public class CommandProxy implements CommandExecutor
 			argumentOptionsMap.put(argument, argumentOptions);
 			return this;
 		}
+	}
+
+	public static interface CommandConnection
+	{
+		public void onCommand(CommandSender sender, Command command, String label, String[] args);
 	}
 }

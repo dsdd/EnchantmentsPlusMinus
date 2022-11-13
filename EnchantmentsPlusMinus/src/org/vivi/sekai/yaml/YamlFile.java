@@ -26,7 +26,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
-import org.vivi.eps.EPS;
 import org.vivi.sekai.GUIHolder;
 import org.vivi.sekai.enchantment.EnchantmentInfo;
 
@@ -113,40 +112,19 @@ public class YamlFile<T extends FileConfiguration> extends File
 	}
 
 	/**
-	 * Saves the {@code FileConfiguration} linked to this file to disk. By default,
-	 * this operation is done asynchronously.
+	 * Saves the {@code FileConfiguration} linked to this file to disk.
 	 * 
-	 * @param isAsync Whether saving should be done asynchronously or not
 	 */
-	public void saveYaml(boolean isAsync)
+	public void saveYaml()
 	{
-		if (isAsync)
-			Bukkit.getScheduler().runTaskAsynchronously(EPS.plugin, new Runnable() {
-
-				public void run()
-				{
-					saveYaml(false);
-				}
-
-			});
-		else
-			try
-			{
+		try
+		{
+			if (yaml != null)
 				yaml.save(this);
-			} catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-	}
-
-	/**
-	 * Saves the {@code FileConfiguration} linked to this file to disk. By default,
-	 * this operation is done asynchronously.
-	 * 
-	 */
-	public final void saveYaml()
-	{
-		saveYaml(true);
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public Set<String> getKeys(boolean deep)

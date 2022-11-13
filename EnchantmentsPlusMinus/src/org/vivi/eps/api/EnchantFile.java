@@ -23,11 +23,11 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 {
 	private static final long serialVersionUID = 112837910008494619L;
 	private Map<String, Map<Integer, Double>> cachedAutofillsMap = new HashMap<String, Map<Integer, Double>>();
-	private int maxLevel = 0;
-	private int scrapValue = 0;
+	private Integer maxLevel = 0;
+	private Integer scrapValue = 0;
 	private Material upgradeIcon = Material.getMaterial("BOOK");
-	private String enchantDescription = "Blank description";
-	private String costExpression = "0";
+	private String enchantDescription = null;
+	private String costExpression = null;
 	private Map<Integer, Double> cachedCosts = new HashMap<Integer, Double>();
 
 	public EnchantFile(File parent, String child)
@@ -39,11 +39,11 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 	public void loadYaml(YamlConfiguration configurationToLoad)
 	{
 		super.loadYaml(configurationToLoad);
-		maxLevel = getInt("maxlevel", 0);
-		scrapValue = getInt("scrapvalue", 0);
+		maxLevel = isSet("maxlevel") ? getInt("maxlevel") : null;
+		scrapValue = isSet("scrapvalue") ? getInt("scrapvalue") : null;
 		upgradeIcon = getMaterialBySekai("upgradeicon");
-		enchantDescription = getString("upgradedesc", "Blank description");
-		costExpression = getString("cost", "0");
+		enchantDescription = getString("upgradedesc");
+		costExpression = getString("cost");
 		Bukkit.getScheduler().runTaskAsynchronously(EPS.plugin, new Runnable() {
 			@Override
 			public void run()
@@ -77,6 +77,8 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 
 	public double getCost(int enchantmentLevel)
 	{
+		if (costExpression == null)
+			return 0;
 		Double cost = cachedCosts.get(enchantmentLevel);
 		if (cost == null)
 		{
@@ -113,14 +115,20 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 	}
 
 	@Override
-	public void saveYaml(boolean isAsync)
+	public void saveYaml()
 	{
-		set("maxlevel", maxLevel);
-		set("scrapvalue", scrapValue);
-		setBySekai("upgradeicon", upgradeIcon);
-		set("upgradedesc", enchantDescription);
-		set("cost", costExpression);
-		super.saveYaml(isAsync);
+		if (maxLevel != null)
+			set("maxlevel", maxLevel);
+		if (scrapValue != null)
+			set("scrapvalue", scrapValue);
+		if (upgradeIcon != null)
+			setBySekai("upgradeicon", upgradeIcon);
+		if (enchantDescription != null)
+			set("upgradedesc", enchantDescription);
+		if (costExpression != null)
+			set("cost", costExpression);
+		
+		super.saveYaml();
 	}
 
 	/**
@@ -189,7 +197,6 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 				((upgradeIcon == null || upgradeIcon == Material.AIR) ? Material.BOOK : upgradeIcon).name());
 		fill("upgradedesc", enchantDescription == null ? "Blank description" : enchantDescription);
 		fill("cost", cost == null ? "9999999" : cost);
-		saveYaml();
 	}
 
 	/**
