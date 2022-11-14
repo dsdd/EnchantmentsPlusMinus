@@ -12,7 +12,7 @@
 # |     Configuration      |
 # |                        |
 # +------------------------+
-#        
+#
 # Enchant configuration has been moved to the /enchants/ folder!
 #
 #                                                                             -#-
@@ -28,30 +28,30 @@ use-vault-economy: false
 use-action-bar-instead-of-chat-when-inventory-full: true
 global-cost:
    enabled: false
-   cost: "69420*%lvl%"
-enchant-lore-color: "&9"
-apply-fortune-on: 
-  - COAL
-  - LAPIS_LAZULI
-  - REDSTONE
-  - DIAMOND  
-  - EMERALD
-  - QUARTZ
-player-kill-reward: 
-  enabled: true
-  min: 25
-  max: 50
+   cost: 69420*%lvl%
+enchant-lore-color: '&9'
+apply-fortune-on:
+- COAL
+- LAPIS_LAZULI
+- REDSTONE
+- DIAMOND
+- EMERALD
+- QUARTZ
+player-kill-reward:
+   enabled: true
+   min: 25
+   max: 50
 mob-kill-reward:
-  enabled: true
-  min: 5
-  max: 10
+   enabled: true
+   min: 5
+   max: 10
 mining-reward:
-  enabled: true
-  min: 25
-  max: 50
-  blockstobreak: 1000
+   enabled: true
+   min: 25
+   max: 50
+   blockstobreak: 1000
 enchant-specific-lore-color:
-  depth_strider: &2
+   depth_strider: null
 do-not-add-lore-to:
 - an item e.g. BEDROCK that you do not want lore added to due to plugin interference
 disabled-enchants:

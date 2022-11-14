@@ -183,13 +183,13 @@ public class EPSCommand implements CommandExecutor, TabCompleter
 				return false;
 			}
 
-			Player p = Bukkit.getPlayer(args[1]);
-			if (p == null)
+			Player player = Bukkit.getPlayer(args[1]);
+			if (player == null)
 			{
 				Language.sendMessage(sender, "invalidplayer");
 				return false;
 			}
-			if (p.getInventory().firstEmpty() == -1)
+			if (player.getInventory().firstEmpty() == -1)
 			{
 				Language.sendMessage(sender, "inventoryfull");
 				return false;
@@ -222,7 +222,7 @@ public class EPSCommand implements CommandExecutor, TabCompleter
 
 			CustomEnchantedBook book = new CustomEnchantedBook(map);
 			book.setItemMeta(EnchantMetaWriter.getWrittenMetaBook(book));
-			p.getInventory().addItem(book);
+			player.getInventory().addItem(book);
 		} else if (args[0].equalsIgnoreCase("tokenpouch"))
 		{
 			if (!sender.hasPermission("eps.admin.tokenpouch"))

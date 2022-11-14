@@ -67,7 +67,8 @@ import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Language;
 import org.vivi.eps.util.economy.Economy;
 import org.vivi.eps.visual.EnchantGUI;
-import org.vivi.sekai.PlayerKeeper;
+import org.vivi.sekai.PlayerKeeper.PlayerStopwatch;
+import org.vivi.sekai.PlayerAttributes;
 import org.vivi.sekai.Sekai;
 import org.vivi.sekai.dependencies.VaultHook;
 
@@ -83,8 +84,6 @@ public class EnchantProcessor implements Listener, Reloadable
 	private static String inventoryFull = Language.getLangMessage("inventoryfull");
 
 	private final static Map<Player, List<ItemStack>> itemsToKeep = new HashMap<Player, List<ItemStack>>();
-	private final static List<Player> flying = new ArrayList<Player>();
-	private final static List<Player> boosted = new ArrayList<Player>();
 
 	private static boolean repairDebounce = false;
 	private static Material crossbowMaterial = Material.matchMaterial("CROSSBOW");
@@ -164,43 +163,66 @@ public class EnchantProcessor implements Listener, Reloadable
 			for (final Map.Entry<EntityType, String> entry : mobHeads.entrySet())
 				mobSkulls.put(entry.getKey(), getCustomSkull(mobHeads.get(entry.getKey()),
 						WordUtils.capitalizeFully(entry.getKey().name()) + " Head"));
-		
+
 		Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(EPS.plugin, new Runnable() {
-            public void run() {
-            	for (Player player : Bukkit.getOnlinePlayers())
-            	{
-            		ItemStack itemStack = player.getInventory().getItemInMainHand();
-            		if (itemStack == null)
-            			return;
-            		
-            		ItemMeta itemMeta = itemStack.getItemMeta();
-            		
-            		if (itemMeta != null && itemMeta.hasEnchant(CustomEnchants.NIGHT_VISION))
-                		PotionCombiner.lengthenEffect(player, new PotionEffect(PotionEffectType.NIGHT_VISION, 5, 1));
-            	}
-            }
-		}, 0, 100);
-		
-		
+			public void run()
+			{
+				for (Player player : Bukkit.getOnlinePlayers())
+				{
+					ItemStack itemStack = player.getInventory().getItemInMainHand();
+					if (itemStack == null)
+						return;
+
+					ItemMeta itemMeta = itemStack.getItemMeta();
+
+					if (itemMeta == null)
+						return;
+
+					if (itemMeta.hasEnchant(CustomEnchants.NIGHT_VISION))
+					{
+						PlayerAttributes.addAttribute(player, CustomEnchants.NIGHT_VISION);
+						player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 500, 0));
+					} else if (PlayerAttributes.hasAttribute(player, CustomEnchants.NIGHT_VISION))
+						player.removePotionEffect(PotionEffectType.NIGHT_VISION);
+
+					if (itemMeta.hasEnchant(CustomEnchants.SPEED))
+					{
+						PlayerAttributes.addAttribute(player, CustomEnchants.SPEED);
+						player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 500,
+								itemMeta.getEnchantLevel(CustomEnchants.SPEED) - 1));
+					} else if (PlayerAttributes.hasAttribute(player, CustomEnchants.SPEED))
+						player.removePotionEffect(PotionEffectType.SPEED);
+
+					if (itemMeta.hasEnchant(CustomEnchants.JUMP_BOOST))
+					{
+						PlayerAttributes.addAttribute(player, CustomEnchants.JUMP_BOOST);
+						player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 500,
+								itemMeta.getEnchantLevel(CustomEnchants.JUMP_BOOST) - 1));
+					} else if (PlayerAttributes.hasAttribute(player, CustomEnchants.JUMP_BOOST))
+						player.removePotionEffect(PotionEffectType.JUMP);
+				}
+			}
+		}, 0, 20);
+
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onEntityDamageByEntity(final EntityDamageByEntityEvent e)
 	{
-		Entity damager = e.getDamager();
-		if (damager instanceof Player)
+		Entity entityDamager = e.getDamager();
+		if (entityDamager instanceof Player)
 		{
 
-			final Player d = (Player) damager;
-			final World world = d.getWorld();
-			final ItemStack item = d.getInventory().getItemInMainHand();
-			final ItemMeta meta = item.getItemMeta();
-			if (item == null || meta == null)
+			final Player damager = (Player) entityDamager;
+			final World world = damager.getWorld();
+			final ItemStack itemStack = damager.getInventory().getItemInMainHand();
+			final ItemMeta itemMeta = itemStack.getItemMeta();
+			if (itemStack == null || itemMeta == null)
 				return;
-			if (meta.hasEnchant(CustomEnchants.JAGGED))
+			if (itemMeta.hasEnchant(CustomEnchants.JAGGED))
 			{
-				final Durability dmg = new Durability(item);
-				final int enchlvl = meta.getEnchantLevel(CustomEnchants.JAGGED);
+				final Durability dmg = new Durability(itemStack);
+				final int enchlvl = itemMeta.getEnchantLevel(CustomEnchants.JAGGED);
 				final double dtp = CustomEnchants.jaggedConfig.getAutofilledDouble(enchlvl,
 						"durabilitythresholdpercent");
 				final double dp = (double) (dmg.getMaxDurability() / dmg.getDurability() * 100);
@@ -215,54 +237,55 @@ public class EnchantProcessor implements Listener, Reloadable
 				}
 			}
 
-			if (meta.hasEnchant(CustomEnchants.LIFESTEAL))
+			if (itemMeta.hasEnchant(CustomEnchants.LIFESTEAL))
 			{
-				double hp = d.getHealth() + CustomEnchants.lifeStealConfig.getAutofilledDouble(
-						meta.getEnchantLevel(CustomEnchants.LIFESTEAL), "hearts") * (e.getDamage() / 10);
+				double hp = damager.getHealth() + CustomEnchants.lifeStealConfig.getAutofilledDouble(
+						itemMeta.getEnchantLevel(CustomEnchants.LIFESTEAL), "hearts") * (e.getDamage() / 10);
 				if (hp > 20)
 					hp = 20.0;
-				d.setHealth(hp);
+				damager.setHealth(hp);
 				world.spawnParticle(Particle.HEART, e.getEntity().getLocation(), 1);
 			}
 
-			if (meta.hasEnchant(CustomEnchants.MOMENTUM))
+			if (itemMeta.hasEnchant(CustomEnchants.MOMENTUM))
 			{
-				final int enchlvl = meta.getEnchantLevel(CustomEnchants.MOMENTUM);
+				final int enchlvl = itemMeta.getEnchantLevel(CustomEnchants.MOMENTUM);
 				final int duration = CustomEnchants.momentumConfig.getAutofilledInt(enchlvl, "duration-seconds") * 20;
-				d.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration, enchlvl - 1));
+				damager.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration, enchlvl - 1));
 				world.spawnParticle(Particle.CLOUD, e.getEntity().getLocation(), 1);
 			}
 
-			if (meta.hasEnchant(CustomEnchants.LAST_RESORT))
+			if (itemMeta.hasEnchant(CustomEnchants.LAST_RESORT))
 			{
 				final double healththreshold = CustomEnchants.lastResortConfig
-						.getAutofilledDouble(meta.getEnchantLevel(CustomEnchants.LAST_RESORT), "healththreshold");
-				if (d.getHealth() <= healththreshold)
+						.getAutofilledDouble(itemMeta.getEnchantLevel(CustomEnchants.LAST_RESORT), "healththreshold");
+				if (damager.getHealth() <= healththreshold)
 					e.setDamage(e.getDamage() * 3);
 			}
 
-			if (meta.hasEnchant(CustomEnchants.MELTING))
+			if (itemMeta.hasEnchant(CustomEnchants.MELTING))
 			{
 				if (e.getEntity() instanceof LivingEntity)
 				{
-					final int enchlvl = meta.getEnchantLevel(CustomEnchants.MELTING);
+					final int enchlvl = itemMeta.getEnchantLevel(CustomEnchants.MELTING);
 					final LivingEntity hit = (LivingEntity) e.getEntity();
 					hit.setFireTicks(
 							hit.getFireTicks() + CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "fire-ticks"));
 					hit.addPotionEffect(new PotionEffect(PotionEffectType.SLOW,
 							CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "slowness-ticks"),
 							CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "slowness-level") - 1));
-					if (PlayerKeeper.incrementValue(d, CustomEnchants.MELTING, 1) >= CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "freeze-hits"))
+					if (PlayerStopwatch.incrementValue(damager, CustomEnchants.MELTING,
+							1) >= CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "freeze-hits"))
 					{
-						PlayerKeeper.log(d, CustomEnchants.MELTING, 0);
+						PlayerStopwatch.log(damager, CustomEnchants.MELTING, 0);
 						hit.addPotionEffect(new PotionEffect(PotionEffectType.SLOW,
 								CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "freeze-ticks"), 20));
 					}
 				}
 			}
 
-			final ItemStack[] armor = { d.getInventory().getHelmet(), d.getInventory().getChestplate(),
-					d.getInventory().getLeggings(), d.getInventory().getBoots() };
+			final ItemStack[] armor = { damager.getInventory().getHelmet(), damager.getInventory().getChestplate(),
+					damager.getInventory().getLeggings(), damager.getInventory().getBoots() };
 			for (final ItemStack piece : armor)
 			{
 				if (piece != null)
@@ -271,7 +294,7 @@ public class EnchantProcessor implements Listener, Reloadable
 					{
 						final double damage = CustomEnchants.insatiableConfig.getAutofilledDouble(
 								piece.getItemMeta().getEnchantLevel(CustomEnchants.INSATIABLE), "extradamage");
-						e.setDamage(e.getDamage() + (damage - (damage * (d.getHealth() * 0.05))));
+						e.setDamage(e.getDamage() + (damage - (damage * (damager.getHealth() * 0.05))));
 						if (Sekai.getMCVersion() > 12)
 							world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1,
 									new org.bukkit.Particle.DustOptions(Color.RED, 5));
@@ -286,7 +309,7 @@ public class EnchantProcessor implements Listener, Reloadable
 		if (e.getEntity() instanceof Player)
 		{
 			final Player p = (Player) e.getEntity();
-			final Entity d = damager;
+			final Entity d = entityDamager;
 			final World world = p.getWorld();
 			final ItemStack item = p.getInventory().getItemInMainHand();
 			final ItemMeta meta = item.getItemMeta();
@@ -303,7 +326,7 @@ public class EnchantProcessor implements Listener, Reloadable
 
 			final ItemStack[] armor = { p.getInventory().getHelmet(), p.getInventory().getChestplate(),
 					p.getInventory().getLeggings(), p.getInventory().getBoots() };
-			if (damager instanceof LivingEntity)
+			if (entityDamager instanceof LivingEntity)
 				for (final ItemStack piece : armor)
 				{
 					if (piece != null)
@@ -312,7 +335,7 @@ public class EnchantProcessor implements Listener, Reloadable
 						if (pmeta.hasEnchant(CustomEnchants.POISONOUS))
 						{
 
-							final LivingEntity en = (LivingEntity) damager;
+							final LivingEntity en = (LivingEntity) entityDamager;
 							final int duration = CustomEnchants.poisonousConfig
 									.getAutofilledInt(pmeta.getEnchantLevel(CustomEnchants.POISONOUS), "ticks");
 							PotionCombiner.lengthenEffect(en, new PotionEffect(PotionEffectType.POISON, duration,
@@ -353,10 +376,11 @@ public class EnchantProcessor implements Listener, Reloadable
 								if (getNext() < CustomEnchants.evadeConfig.getAutofilledInt(evadeLevel, "chance"))
 								{
 									e.setCancelled(true);
-								} else if (PlayerKeeper.incrementValue((Player)e.getEntity(), CustomEnchants.EVADE, 1) > CustomEnchants.evadeConfig.getAutofilledInt(evadeLevel,
-										"hits-to-activate"))
+								} else if (PlayerStopwatch.incrementValue((Player) e.getEntity(), CustomEnchants.EVADE,
+										1) > CustomEnchants.evadeConfig.getAutofilledInt(evadeLevel,
+												"hits-to-activate"))
 								{
-									PlayerKeeper.log((Player)e.getEntity(), CustomEnchants.EVADE, 0);
+									PlayerStopwatch.log((Player) e.getEntity(), CustomEnchants.EVADE, 0);
 									e.setCancelled(true);
 								}
 						}
@@ -472,13 +496,13 @@ public class EnchantProcessor implements Listener, Reloadable
 				final double cooldown = CustomEnchants.powerhouseConfig.getAutofilledDouble(enchlvl, "cooldown-seconds")
 						* 1000;
 
-				final long lastuse = PlayerKeeper.getLastLog(player, CustomEnchants.POWERHOUSE);
+				final long lastuse = PlayerStopwatch.getLastLog(player, CustomEnchants.POWERHOUSE);
 				if (lastuse - System.currentTimeMillis() < cooldown)
 					player.sendMessage(cooldownError.replaceAll("%secs%",
 							Double.toString(Math.floor(((cooldown - lastuse) / 1000) * 10) / 10)));
 				else
 				{
-					PlayerKeeper.log(player, CustomEnchants.POWERHOUSE, System.currentTimeMillis());
+					PlayerStopwatch.log(player, CustomEnchants.POWERHOUSE, System.currentTimeMillis());
 					final int duration = CustomEnchants.powerhouseConfig.getAutofilledInt(enchlvl, "duration-seconds");
 					final int amplifier = CustomEnchants.powerhouseConfig.getAutofilledInt(enchlvl, "amplifier") - 1;
 					player.addPotionEffect(
@@ -490,13 +514,13 @@ public class EnchantProcessor implements Listener, Reloadable
 				final int enchlvl = meta.getEnchantLevel(CustomEnchants.BACKUP_SPELLS);
 				final double cooldown = CustomEnchants.backupSpellsConfig.getAutofilledDouble(enchlvl,
 						"cooldown-seconds") * 1000;
-				final long lastuse = PlayerKeeper.getLastLog(player, CustomEnchants.BACKUP_SPELLS);
+				final long lastuse = PlayerStopwatch.getLastLog(player, CustomEnchants.BACKUP_SPELLS);
 				if (lastuse - System.currentTimeMillis() < cooldown)
 					player.sendMessage(cooldownError.replaceAll("%secs%",
 							Double.toString(Math.floor(((cooldown - lastuse) / 1000) * 10) / 10)));
 				else
 				{
-					PlayerKeeper.log(player, CustomEnchants.BACKUP_SPELLS, System.currentTimeMillis());
+					PlayerStopwatch.log(player, CustomEnchants.BACKUP_SPELLS, System.currentTimeMillis());
 					final ItemStack i = new ItemStack(Material.SPLASH_POTION);
 					final PotionMeta pmeta = (PotionMeta) i.getItemMeta();
 					pmeta.addCustomEffect(new PotionEffect(randomEffect(), 20, 0), true);
@@ -511,21 +535,21 @@ public class EnchantProcessor implements Listener, Reloadable
 				final int enchlvl = meta.getEnchantLevel(CustomEnchants.BOOSTED);
 				final double cooldown = CustomEnchants.boostedConfig.getAutofilledDouble(enchlvl, "cooldown-seconds")
 						* 1000;
-				final long lastuse = PlayerKeeper.getLastLog(player, CustomEnchants.BOOSTED);
+				final long lastuse = PlayerStopwatch.getLastLog(player, CustomEnchants.BOOSTED);
 				if (lastuse - System.currentTimeMillis() < cooldown)
 					player.sendMessage(Language.getLangMessage("cooldown-error").replaceAll("%secs%",
 							Double.toString(Math.floor(((cooldown - lastuse) * 0.001) * 10) * 0.1)));
 				else
 				{
-					PlayerKeeper.log(player, CustomEnchants.BOOSTED, System.currentTimeMillis());
+					PlayerStopwatch.log(player, CustomEnchants.BOOSTED, System.currentTimeMillis());
+					PlayerAttributes.addAttribute(player, CustomEnchants.BOOSTED);
 					Language.sendMessage(player, "boosted-activate");
-					boosted.add(player);
 					EnchantGUI.setOpenable(player, false);
 					final int duration = CustomEnchants.boostedConfig.getAutofilledInt(enchlvl, "duration-seconds");
 					Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(EPS.plugin, new Runnable() {
 						public void run()
 						{
-							boosted.remove(player);
+							PlayerAttributes.removeAttribute(player, CustomEnchants.BOOSTED);
 						}
 					}, (long) (duration * 20));
 				}
@@ -542,13 +566,13 @@ public class EnchantProcessor implements Listener, Reloadable
 		final Player player = e.getPlayer();
 		final ItemStack itemStack = player.getInventory().getItem(e.getNewSlot());
 
-		if (flying.contains(player))
+		if (PlayerAttributes.hasAttribute(player, CustomEnchants.FLY))
 		{
 			player.setAllowFlight(false);
 			player.setFlying(false);
-			flying.remove(player);
+			PlayerAttributes.removeAttribute(player, CustomEnchants.FLY);
 		}
-		
+
 		if (itemStack == null)
 			return;
 
@@ -557,8 +581,8 @@ public class EnchantProcessor implements Listener, Reloadable
 		{
 			player.setAllowFlight(true);
 			player.setFlying(true);
-			flying.add(player);
-		}		
+			PlayerAttributes.addAttribute(player, CustomEnchants.FLY);
+		}
 	}
 
 	@EventHandler
@@ -617,7 +641,7 @@ public class EnchantProcessor implements Listener, Reloadable
 				final double cooldown = CustomEnchants.enderbowConfig.getAutofilledDouble(
 						mainmeta.getEnchantLevel(CustomEnchants.ENDERBOW), "cooldown-seconds") * 1000;
 
-				final long lastuse = PlayerKeeper.getLastLog(player, CustomEnchants.ENDERBOW);
+				final long lastuse = PlayerStopwatch.getLastLog(player, CustomEnchants.ENDERBOW);
 				if (lastuse - System.currentTimeMillis() < cooldown)
 					player.sendMessage(Language.getLangMessage("cooldown-error").replaceAll("%secs%",
 							Double.toString(Math.floor(((cooldown - lastuse) / 1000) * 10) / 10)));
@@ -633,7 +657,7 @@ public class EnchantProcessor implements Listener, Reloadable
 								Double.toString(radius)));
 					else
 					{
-						PlayerKeeper.log(player, CustomEnchants.ENDERBOW, System.currentTimeMillis());
+						PlayerStopwatch.log(player, CustomEnchants.ENDERBOW, System.currentTimeMillis());
 						player.teleport(arrow.getLocation());
 						player.playSound(player.getLocation(), ENTITY_ENDERMAN_TELEPORT, 1, 1);
 					}
@@ -645,10 +669,10 @@ public class EnchantProcessor implements Listener, Reloadable
 		{
 			final int shotstoactivate = CustomEnchants.machineryConfig
 					.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "shots-to-activate");
-			final long shots = PlayerKeeper.incrementValue(player, CustomEnchants.MACHINERY, 1);
+			final long shots = PlayerStopwatch.incrementValue(player, CustomEnchants.MACHINERY, 1);
 			if (shots >= shotstoactivate)
 			{
-				PlayerKeeper.log(player, CustomEnchants.MACHINERY, 0);
+				PlayerStopwatch.log(player, CustomEnchants.MACHINERY, 0);
 				final int radius = CustomEnchants.machineryConfig
 						.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.MACHINERY), "radius");
 				final int arrows = CustomEnchants.machineryConfig
@@ -668,10 +692,10 @@ public class EnchantProcessor implements Listener, Reloadable
 		{
 			final int shotstoactivate = CustomEnchants.thunderingBlowConfig
 					.getAutofilledInt(mainmeta.getEnchantLevel(CustomEnchants.THUNDERING_BLOW), "shots-to-activate");
-			final long shots = PlayerKeeper.incrementValue(player, CustomEnchants.THUNDERING_BLOW, 1);
+			final long shots = PlayerStopwatch.incrementValue(player, CustomEnchants.THUNDERING_BLOW, 1);
 			if (shots >= shotstoactivate)
 			{
-				PlayerKeeper.log(player, CustomEnchants.THUNDERING_BLOW, 0);
+				PlayerStopwatch.log(player, CustomEnchants.THUNDERING_BLOW, 0);
 				final Entity entity = e.getHitEntity();
 
 				if (entity != null)
@@ -779,7 +803,7 @@ public class EnchantProcessor implements Listener, Reloadable
 		if (e.getBlock().getState() instanceof Container)
 			return;
 		modifiedByEnchant = false;
-		final Collection<ItemStack> drops = getDrops(mainhand, e.getBlock(), player);
+		final Collection<ItemStack> drops = getDrops(e.getBlock(), mainhand, player);
 		final ItemMeta mainmeta = mainhand.getItemMeta();
 
 		if (mainmeta.hasEnchant(CustomEnchants.EXPERIENCE))
@@ -905,7 +929,7 @@ public class EnchantProcessor implements Listener, Reloadable
 						continue;
 
 					player.giveExp(getExp(block));
-					drops.addAll(getDrops(mainhand, block, player));
+					drops.addAll(getDrops(block, mainhand, player));
 					block.setType(Material.AIR);
 				}
 
@@ -941,7 +965,7 @@ public class EnchantProcessor implements Listener, Reloadable
 						continue;
 
 					player.giveExp(getExp(block));
-					drops.addAll(getDrops(mainhand, block, player));
+					drops.addAll(getDrops(block, mainhand, player));
 					block.setType(Material.AIR);
 				}
 
@@ -971,7 +995,7 @@ public class EnchantProcessor implements Listener, Reloadable
 						continue;
 
 					player.giveExp(getExp(block));
-					drops.addAll(getDrops(mainhand, block, player));
+					drops.addAll(getDrops(block, mainhand, player));
 					block.setType(Material.AIR);
 				}
 
@@ -1011,7 +1035,7 @@ public class EnchantProcessor implements Listener, Reloadable
 						continue;
 
 					player.giveExp(getExp(block));
-					drops.addAll(getDrops(mainhand, block, player));
+					drops.addAll(getDrops(block, mainhand, player));
 					block.setType(Material.AIR);
 				}
 
@@ -1168,25 +1192,27 @@ public class EnchantProcessor implements Listener, Reloadable
 		return head;
 	}
 
-	private Collection<ItemStack> getDrops(final ItemStack item, final Block block, final Player p)
+	private Collection<ItemStack> getDrops(final Block block, final ItemStack tool, final Player player)
 	{
-		final ItemMeta mainmeta = item.getItemMeta();
-		final Collection<ItemStack> drops = block.getDrops(item);
-		final int fortunelvl = mainmeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS);
-		final int aslvl = mainmeta.getEnchantLevel(CustomEnchants.AUTOSMELT);
+		final ItemMeta itemMeta = tool.getItemMeta();
+		final Collection<ItemStack> drops = block.getDrops(tool);
+		final int fortuneLevel = itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS);
+		final int autoSmeltLevel = itemMeta.getEnchantLevel(CustomEnchants.AUTOSMELT);
 
 		if (drops.isEmpty() || drops == null)
 			return (new ArrayList<ItemStack>());
 
 		for (final ItemStack drop : drops)
 		{
-			if (fortunelvl > 0)
+			if (fortuneLevel > 0)
 			{
 				if (ConfigSettings.getApplyFortuneOn().contains(drop.getType())
 						&& !(saves.contains(block.getLocation())))
-					drop.setAmount(getDropCount(fortunelvl, random) * (boosted.contains(p) ? 5 : 1));
+					drop.setAmount(getDropCount(fortuneLevel, random)
+							* (PlayerAttributes.hasAttribute(player, CustomEnchants.BOOSTED) ? 5 : 1));
 			}
-			if (aslvl > 0 && getNext() < CustomEnchants.autosmeltConfig.getAutofilledDouble(aslvl, "chance"))
+			if (autoSmeltLevel > 0
+					&& getNext() < CustomEnchants.autosmeltConfig.getAutofilledDouble(autoSmeltLevel, "chance"))
 			{
 				final Material smelted = getSmelted(drop.getType());
 				if (smelted != null)

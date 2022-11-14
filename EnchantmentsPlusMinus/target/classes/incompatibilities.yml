@@ -12,11 +12,11 @@ incompatibilities:
    - smite
    - bane_of_arthropods
    - cleaving
-      
+
    fortune-silk-touch:
    - fortune
    - silk_touch
-      
+
    armor:
    - protection
    - projectile_protection
@@ -24,12 +24,12 @@ incompatibilities:
    - blast_protection
    - depth_strider
    - frost_walker
-      
+
    trident:
    - channeling
    - loyalty
    - riptide
-      
+
    crossbow:
    - piercing
    - multishot

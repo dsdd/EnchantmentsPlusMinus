@@ -197,6 +197,7 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 				((upgradeIcon == null || upgradeIcon == Material.AIR) ? Material.BOOK : upgradeIcon).name());
 		fill("upgradedesc", enchantDescription == null ? "Blank description" : enchantDescription);
 		fill("cost", cost == null ? "9999999" : cost);
+		saveYaml();
 	}
 
 	/**
@@ -218,6 +219,7 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 		fillEnchantConfig(maxLevel, scrapValue, upgradeIcon, description, cost);
 		for (Parameter param : params)
 			fill(param.key, param.value);
+		saveYaml();
 	}
 	
 	private void fill(String key, Object value)

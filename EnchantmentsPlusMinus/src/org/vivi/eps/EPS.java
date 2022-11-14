@@ -372,7 +372,7 @@ public class EPS extends JavaPlugin implements Reloadable
 			{
 				Enchantment.registerEnchantment(enchant);
 				EnchantMetaWriter.prepareLore(enchant);
-				logger.log(Level.INFO, "Registered " + EnchantmentInfo.getKey(enchant).toUpperCase());
+				logger.log(Level.FINE, "Registered " + EnchantmentInfo.getKey(enchant).toUpperCase());
 				return true;
 			} catch (Exception e)
 			{

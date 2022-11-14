@@ -11,6 +11,8 @@ public class CustomEnchants
 {
 
 	public static final Enchantment FLY = EPS.newEnchant("fly", "Fly");
+	public static final Enchantment SPEED = EPS.newEnchant("speed", "Speed");
+	public static final Enchantment JUMP_BOOST = EPS.newEnchant("jump_boost", "Jump Boost");
 	public static final Enchantment REPAIR = EPS.newEnchant("repair", "Repair");
 	public static final Enchantment SOULBOUND = EPS.newEnchant("soulbound", "Soulbound");
 	public static final Enchantment EXPERIENCE = EPS.newEnchant("experience", "Experience");
@@ -53,6 +55,8 @@ public class CustomEnchants
 	public static final Enchantment BOOSTED = EPS.newEnchant("boosted", "Boosted");
 
 	public static EnchantFile flyConfig = EPS.getEnchantFile(FLY);
+	public static EnchantFile speedConfig = EPS.getEnchantFile(SPEED);
+	public static EnchantFile jumpBoostConfig = EPS.getEnchantFile(JUMP_BOOST);
 	public static EnchantFile repairConfig = EPS.getEnchantFile(REPAIR);
 	public static EnchantFile soulboundConfig = EPS.getEnchantFile(SOULBOUND);
 	public static EnchantFile experienceConfig = EPS.getEnchantFile(EXPERIENCE);
@@ -97,6 +101,8 @@ public class CustomEnchants
 	public static void register()
 	{
 		EPS.registerEnchant(FLY);
+		EPS.registerEnchant(SPEED);
+		EPS.registerEnchant(JUMP_BOOST);
 		EPS.registerEnchant(REPAIR);
 		EPS.registerEnchant(SOULBOUND);
 		EPS.registerEnchant(EXPERIENCE);
@@ -173,6 +179,8 @@ public class CustomEnchants
 
 		flyConfig.fillEnchantConfig(1, 6400, Material.matchMaterial("ELYTRA"),
 				"Allows you to fly while holding this item.", "51200", new Parameter("enabled", true));
+		speedConfig.fillEnchantConfig(4, 500, Material.matchMaterial("FEATHER"), "Move faster while holding this item.", "500 * 2 ^ %lvl%");
+		jumpBoostConfig.fillEnchantConfig(4, 400, Material.matchMaterial("EMERALD_BLOCK"), "Jump higher while holding this item.", "400 * 2 ^ %lvl%");
 		repairConfig.fillEnchantConfig(1, 2400, Material.matchMaterial("ANVIL"),
 				"While moving, this item will be automatically repaired.", "12800");
 		experienceConfig.fillEnchantConfig(3, 750, Material.matchMaterial("EXPERIENCE_BOTTLE"),
@@ -282,7 +290,7 @@ public class CustomEnchants
 		diamondConfig.fillEnchantConfig(10, 75, Material.matchMaterial("IRON_PICKAXE"),
 				"Has a chance to destroy blocks in a diamond shape.", "100 * 1.35^%lvl%",
 				new Parameter("chance", "%lvl%"));
-		veinMinerConfig.fillEnchantConfig(10, 50, Material.matchMaterial("VINES"),
+		veinMinerConfig.fillEnchantConfig(10, 50, Material.matchMaterial("VINES", true),
 				"Has a chance to break all blocks in a vein of ores.", "75 * 1.2^%lvl%",
 				new Parameter("chance", "%lvl%*4"));
 		boostedConfig.fillEnchantConfig(3, 100, Material.matchMaterial("DIAMOND_BLOCK"),

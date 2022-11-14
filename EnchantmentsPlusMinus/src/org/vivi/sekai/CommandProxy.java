@@ -8,7 +8,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
 
 public class CommandProxy implements CommandExecutor
 {
@@ -59,24 +58,21 @@ public class CommandProxy implements CommandExecutor
 
 		if (!validateCommand(sender, args, commandOptions))
 			return false;
-		
+
 		CommandConnection connection = commandActivationMap.get(command);
 		if (connection == null)
 			return false;
 		else
-		{
-			connection.onCommand(sender, command, label, args);
-			return true;
-		}
+			return connection.onCommand(sender, command, label, args);
 	}
 
 	public static class CommandOptions
 	{
 		protected boolean playerOnly = false;
 		protected boolean consoleOnly = false;
-		protected short requiredArgumentsConsole = 0;
-		protected short requiredArgumentsPlayer = 0;
-		protected Permission executionPermission = null;
+		protected byte requiredArgumentsConsole = 0;
+		protected byte requiredArgumentsPlayer = 0;
+		protected String executionPermission = null;
 		protected String playerOnlyMessage = null;
 		protected String consoleOnlyMessage = null;
 		protected String insufficientArgumentsMessage = null;
@@ -113,14 +109,14 @@ public class CommandProxy implements CommandExecutor
 		 *                                       does not have permission to run the
 		 *                                       command
 		 */
-		public CommandOptions(boolean playerOnly, boolean consoleOnly, short requiredArgumentsConsole,
-				short requiredArgumentsPlayer, Permission executionPermission, String playerOnlyMessage,
+		public CommandOptions(boolean playerOnly, boolean consoleOnly, int requiredArgumentsConsole,
+				int requiredArgumentsPlayer, String executionPermission, String playerOnlyMessage,
 				String consoleOnlyMessage, String insufficientArgumentsMessage, String insufficientPermissionsMessage)
 		{
 			this.playerOnly = playerOnly;
 			this.consoleOnly = consoleOnly;
-			this.requiredArgumentsConsole = requiredArgumentsConsole;
-			this.requiredArgumentsPlayer = requiredArgumentsPlayer;
+			this.requiredArgumentsConsole = (byte) requiredArgumentsConsole;
+			this.requiredArgumentsPlayer = (byte) requiredArgumentsPlayer;
 			this.executionPermission = executionPermission;
 			this.playerOnlyMessage = playerOnlyMessage;
 			this.consoleOnlyMessage = consoleOnlyMessage;
@@ -149,6 +145,6 @@ public class CommandProxy implements CommandExecutor
 
 	public static interface CommandConnection
 	{
-		public void onCommand(CommandSender sender, Command command, String label, String[] args);
+		public boolean onCommand(CommandSender sender, Command command, String label, String[] args);
 	}
 }

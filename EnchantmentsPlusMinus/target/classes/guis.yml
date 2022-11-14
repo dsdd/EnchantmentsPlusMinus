@@ -1,186 +1,210 @@
 guis:
-  examplegui:
-    enchants:
-    - depth_strider
-    items:
-    - BEDROCK
-  pickaxe:
-    enchants:
-    - efficiency
-    - unbreaking
-    - fortune
-    - mending
-    - haste
-    - explosive
-    - excavate
-    - diamond
-    - boosted
-    - autosmelt
-    - telepathy
-    - tokenblocks
-    - tokencharity
-    - vein_miner
-    - fly
-    - repair
-    - soulbound
-    - experience
-    items:
-    - WOODEN_PICKAXE
-    - STONE_PICKAXE
-    - IRON_PICKAXE
-    - GOLDEN_PICKAXE
-    - DIAMOND_PICKAXE
-    - NETHERITE_PICKAXE
-  sword:
-    enchants:
-    - sharpness
-    - unbreaking
-    - fire_aspect
-    - mending
-    - jagged
-    - retaliate
-    - lifesteal
-    - momentum
-    - beheading
-    - last_resort
-    - powerhouse
-    - melting
-    - fly
-    - repair
-    - soulbound
-    - experience
-    - soul_destruction
-    items:
-    - WOODEN_SWORD
-    - STONE_SWORD
-    - IRON_SWORD
-    - GOLDEN_SWORD
-    - DIAMOND_SWORD
-    - NETHERITE_SWORD
-  axe:
-    enchants:
-    - sharpness
-    - unbreaking
-    - mending
-    - efficiency
-    - retaliate
-    - beheading
-    - powerhouse
-    - melting
-    - overhealed
-    - fly
-    - repair
-    - soulbound
-    - experience
-    - soul_destruction
-    items:
-    - WOODEN_AXE
-    - STONE_AXE
-    - IRON_AXE
-    - GOLDEN_AXE
-    - DIAMOND_AXE
-    - NETHERITE_AXE
-  shovel:
-    enchants:
-    - efficiency
-    - unbreaking
-    - mending
-    - fly
-    - repair
-    - soulbound
-    - experience
-    items:
-    - WOODEN_SHOVEL
-    - STONE_SHOVEL
-    - IRON_SHOVEL
-    - GOLDEN_SHOVEL
-    - DIAMOND_SHOVEL
-    - NETHERITE_SHOVEL
-  hoe:
-    enchants:
-    - unbreaking
-    - mending
-    - fly
-    - repair
-    - soulbound
-    - experience
-    items:
-    - WOODEN_HOE
-    - STONE_HOE
-    - IRON_HOE
-    - GOLDEN_HOE
-    - DIAMOND_HOE
-    - NETHERITE_HOE
-  bow:
-    enchants:
-    - power
-    - flame
-    - infinity
-    - unbreaking
-    - mending
-    - enderbow
-    - machinery
-    - energized
-    - shockwave
-    - fireworks
-    - flammable
-    - fly
-    - repair
-    - soulbound
-    - experience
-    items:
-    - BOW
-    - CROSSBOW
-  armor:
-    enchants:
-    - protection
-    - unbreaking
-    - thorns
-    - poisonous
-    - volcanic
-    - saturated
-    - insatiable
-    - stiffen
-    - overhealed
-    - evade
-    - fly
-    - repair
-    - soulbound
-    - experience
-    items:
-    - LEATHER_HELMET
-    - LEATHER_CHESTPLATE
-    - LEATHER_LEGGINGS
-    - LEATHER_BOOTS
-    - CHAINMAIL_HELMET
-    - CHAINMAIL_CHESTPLATE
-    - CHAINMAIL_LEGGINGS
-    - CHAINMAIL_BOOTS
-    - GOLDEN_HELMET
-    - GOLDEN_CHESTPLATE
-    - GOLDEN_LEGGINGS
-    - GOLDEN_BOOTS
-    - IRON_HELMET
-    - IRON_CHESTPLATE
-    - IRON_LEGGINGS
-    - IRON_BOOTS
-    - DIAMOND_HELMET
-    - DIAMOND_CHESTPLATE
-    - DIAMOND_LEGGINGS
-    - DIAMOND_BOOTS
-    - NETHERITE_HELMET
-    - NETHERITE_CHESTPLATE
-    - NETHERITE_LEGGINGS
-    - NETHERITE_BOOTS
-  fishing_rod:
-    enchants:
-    - unbreaking
-    - mending
-    - lure
-    - luck_of_the_sea
-    - fly
-    - repair
-    - soulbound
-    - experience
-    items:
-    - FISHING_ROD
+   examplegui:
+      enchants:
+      - depth_strider
+      items:
+      - BEDROCK
+   pickaxe:
+      enchants:
+      - efficiency
+      - unbreaking
+      - fortune
+      - mending
+      - haste
+      - explosive
+      - excavate
+      - diamond
+      - boosted
+      - autosmelt
+      - telepathy
+      - tokenblocks
+      - tokencharity
+      - vein_miner
+      - fly
+      - speed
+      - jump_boost
+      - repair
+      - soulbound
+      - experience
+      - night_vision
+      items:
+      - WOODEN_PICKAXE
+      - STONE_PICKAXE
+      - IRON_PICKAXE
+      - GOLDEN_PICKAXE
+      - DIAMOND_PICKAXE
+      - NETHERITE_PICKAXE
+   sword:
+      enchants:
+      - sharpness
+      - unbreaking
+      - fire_aspect
+      - mending
+      - jagged
+      - retaliate
+      - lifesteal
+      - momentum
+      - beheading
+      - last_resort
+      - powerhouse
+      - melting
+      - fly
+      - speed
+      - jump_boost
+      - repair
+      - soulbound
+      - experience
+      - night_vision
+      - soul_destruction
+      items:
+      - WOODEN_SWORD
+      - STONE_SWORD
+      - IRON_SWORD
+      - GOLDEN_SWORD
+      - DIAMOND_SWORD
+      - NETHERITE_SWORD
+   axe:
+      enchants:
+      - sharpness
+      - unbreaking
+      - mending
+      - efficiency
+      - retaliate
+      - beheading
+      - powerhouse
+      - melting
+      - overhealed
+      - fly
+      - speed
+      - jump_boost
+      - repair
+      - soulbound
+      - experience
+      - night_vision
+      - soul_destruction
+      items:
+      - WOODEN_AXE
+      - STONE_AXE
+      - IRON_AXE
+      - GOLDEN_AXE
+      - DIAMOND_AXE
+      - NETHERITE_AXE
+   shovel:
+      enchants:
+      - efficiency
+      - unbreaking
+      - mending
+      - fly
+      - speed
+      - jump_boost
+      - repair
+      - soulbound
+      - experience
+      - night_vision
+      items:
+      - WOODEN_SHOVEL
+      - STONE_SHOVEL
+      - IRON_SHOVEL
+      - GOLDEN_SHOVEL
+      - DIAMOND_SHOVEL
+      - NETHERITE_SHOVEL
+   hoe:
+      enchants:
+      - unbreaking
+      - mending
+      - fly
+      - speed
+      - jump_boost
+      - repair
+      - soulbound
+      - experience
+      - night_vision
+      items:
+      - WOODEN_HOE
+      - STONE_HOE
+      - IRON_HOE
+      - GOLDEN_HOE
+      - DIAMOND_HOE
+      - NETHERITE_HOE
+   bow:
+      enchants:
+      - power
+      - flame
+      - infinity
+      - unbreaking
+      - mending
+      - enderbow
+      - machinery
+      - energized
+      - shockwave
+      - fireworks
+      - flammable
+      - fly
+      - speed
+      - jump_boost
+      - repair
+      - soulbound
+      - experience
+      - night_vision
+      items:
+      - BOW
+      - CROSSBOW
+   armor:
+      enchants:
+      - protection
+      - unbreaking
+      - thorns
+      - poisonous
+      - volcanic
+      - saturated
+      - insatiable
+      - stiffen
+      - overhealed
+      - evade
+      - fly
+      - speed
+      - jump_boost
+      - repair
+      - soulbound
+      - experience
+      - night_vision
+      items:
+      - LEATHER_HELMET
+      - LEATHER_CHESTPLATE
+      - LEATHER_LEGGINGS
+      - LEATHER_BOOTS
+      - CHAINMAIL_HELMET
+      - CHAINMAIL_CHESTPLATE
+      - CHAINMAIL_LEGGINGS
+      - CHAINMAIL_BOOTS
+      - GOLDEN_HELMET
+      - GOLDEN_CHESTPLATE
+      - GOLDEN_LEGGINGS
+      - GOLDEN_BOOTS
+      - IRON_HELMET
+      - IRON_CHESTPLATE
+      - IRON_LEGGINGS
+      - IRON_BOOTS
+      - DIAMOND_HELMET
+      - DIAMOND_CHESTPLATE
+      - DIAMOND_LEGGINGS
+      - DIAMOND_BOOTS
+      - NETHERITE_HELMET
+      - NETHERITE_CHESTPLATE
+      - NETHERITE_LEGGINGS
+      - NETHERITE_BOOTS
+   fishing_rod:
+      enchants:
+      - unbreaking
+      - mending
+      - lure
+      - luck_of_the_sea
+      - fly
+      - speed
+      - jump_boost
+      - repair
+      - soulbound
+      - experience
+      - night_vision
+      items:
+      - FISHING_ROD
