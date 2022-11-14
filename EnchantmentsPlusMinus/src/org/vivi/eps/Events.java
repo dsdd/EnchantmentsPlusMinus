@@ -1,14 +1,19 @@
-package org.vivi.eps.util;
+package org.vivi.eps;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Level;
 
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
@@ -27,16 +32,19 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.vivi.eps.EPS;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.items.CustomEnchantedBook;
+import org.vivi.eps.util.ConfigSettings;
+import org.vivi.eps.util.Language;
 import org.vivi.eps.util.economy.Economy;
 import org.vivi.eps.visual.EnchantGUI;
 import org.vivi.eps.visual.EnchantMetaWriter;
 import org.vivi.epsbuiltin.enchants.Durability;
 import org.vivi.sekai.Sekai;
+import org.vivi.sekai.enchantment.EnchantmentInfo;
 
-public class Events implements Listener, Reloadable {
+public class Events implements Listener, Reloadable
+{
 
 	public Map<Player, Integer> blocklog;
 	private Random random;
@@ -113,28 +121,81 @@ public class Events implements Listener, Reloadable {
 		}
 	}
 
-	@EventHandler
+	@EventHandler(ignoreCancelled = true)
 	public void onInteract(PlayerInteractEvent e)
 	{
-		if (e.getAction().equals(Action.RIGHT_CLICK_AIR))
-		{
-			Player p = e.getPlayer();
-			ItemStack item = p.getInventory().getItemInMainHand();
+		Player player = e.getPlayer();
+		ItemStack itemStack = player.getInventory().getItemInMainHand();
 
-			if (item.getItemMeta() != null)
-				if (item.getItemMeta().hasLore())
+		if (e.getAction() == Action.RIGHT_CLICK_AIR)
+		{
+			if (itemStack.getItemMeta() != null)
+				if (itemStack.getItemMeta().hasLore())
 				{
-					String str = item.getItemMeta().getLore().get(0);
+					String str = itemStack.getItemMeta().getLore().get(0);
 					if (str.startsWith(ChatColor.BLACK + "T:"))
 					{
 						int tokens = Integer.parseInt(str.split(":")[1]);
-						EPS.getEconomy().changeBalance(p, tokens);
-						item.setAmount(item.getAmount() - 1);
-						p.sendMessage(Language.getLangMessage("claimed-token-pouch").replaceAll("%tokens%",
+						EPS.getEconomy().changeBalance(player, tokens);
+						itemStack.setAmount(itemStack.getAmount() - 1);
+						player.sendMessage(Language.getLangMessage("claimed-token-pouch").replaceAll("%tokens%",
 								Integer.toString(tokens)));
 					}
 				}
+		} else if (e.getAction() == Action.RIGHT_CLICK_BLOCK)
+		{
+			Block clickedBlock = e.getClickedBlock();
+
+			if (itemStack != null && itemStack.getItemMeta() != null && clickedBlock.getState() instanceof Sign)
+			{
+				Sign sign = (Sign) clickedBlock.getState();
+				if (sign.getLine(0).equals(Language.getLangMessage("enchant-sign-success", false)))
+				{
+					Enchantment enchant = EnchantmentInfo.findEnchantByDefaultName(sign.getLine(1));
+					if (enchant == null)
+					{
+						EPS.logger.log(Level.WARNING,
+								"Invalid enchant in enchant sign at " + clickedBlock.getLocation().toString());
+						return;
+					}
+
+					String enchantKey = EnchantmentInfo.getKey(enchant);
+
+					double amount = Sekai.parseAbbreviated(sign.getLine(2));
+					if (EPS.getEconomy().getBalance(player) < amount)
+					{
+						Language.sendMessage(player, "insufficienttokens");
+						return;
+					}
+
+					int currentEnchantLevel = itemStack.getItemMeta().getEnchantLevel(enchant);
+					if (currentEnchantLevel + 1 > EPS.getEnchantFile(enchant).getMaxLevel())
+					{
+						Language.sendMessage(player, "maxedupgrade");
+						return;
+					}
+
+					for (Map.Entry<List<Material>, String> entry : EPS.guis.entrySet())
+						if (entry.getKey().contains(itemStack.getType()))
+						{
+							for (String foundEnchantKey : EPS.guisFile.getConfigurationSection("guis")
+									.getConfigurationSection(entry.getValue()).getStringList("enchants"))
+								if (foundEnchantKey.equalsIgnoreCase(enchantKey))
+								{
+									EPS.getEconomy().changeBalance(player, -amount);
+									itemStack.addUnsafeEnchantment(enchant, currentEnchantLevel + 1);
+									itemStack.setItemMeta(EnchantMetaWriter.getWrittenMeta(itemStack));
+									player.sendMessage(Language.getLangMessage("upgraded-item")
+											.replaceAll("%enchant%", sign.getLine(1))
+											.replaceAll("%lvl%", Integer.toString(currentEnchantLevel + 1)));
+									break;
+								}
+							break;
+						}
+				}
+			}
 		}
+
 	}
 
 	@EventHandler
@@ -198,13 +259,43 @@ public class Events implements Listener, Reloadable {
 		e.setResult(item);
 		Bukkit.getServer().getScheduler().runTask(EPS.plugin, () -> e.getInventory().setRepairCost(cost1));
 	}
-	
+
 	@EventHandler(ignoreCancelled = true)
 	public void onSignChangeEvent(SignChangeEvent e)
 	{
-		if (e.getLines()[0].equalsIgnoreCase(Language.getLangMessage("enchant-sign-initiating-line", false)))
+		if (e.getLine(0).equalsIgnoreCase(Language.getLangMessage("enchant-sign-initiating-line", false)))
 		{
-			
+			try
+			{
+				Enchantment enchant = EnchantmentInfo.findEnchantByKey(e.getLine(1));
+				if (enchant == null)
+				{
+					enchant = EnchantmentInfo.findEnchantByDefaultName(e.getLine(1));
+					if (enchant == null)
+						throw new Exception();
+				}
+
+				String enchantName = EnchantmentInfo.getDefaultName(enchant);
+				double amount = Sekai.parseAbbreviated(e.getLine(2));
+
+				e.setLine(1, enchantName);
+				e.setLine(2, Sekai.abbreviate(amount));
+				EPS.logger.log(Level.INFO,
+						"Created enchant sign, selling " + enchantName + " for " + Double.toString(amount));
+				EPS.logger.log(Level.FINE, e.getBlock().getLocation().toString());
+			} catch (NumberFormatException e1)
+			{
+				EPS.logger.log(Level.WARNING, "Attempted creating enchant sign with invalid cost");
+				e.setLine(0, Language.getLangMessage("enchant-sign-failure", false));
+				return;
+			} catch (Exception e1)
+			{
+				EPS.logger.log(Level.WARNING, "Attempted creating enchant sign with invalid enchant");
+				e.setLine(0, Language.getLangMessage("enchant-sign-failure", false));
+				return;
+			}
+
+			e.setLine(0, Language.getLangMessage("enchant-sign-success", false));
 		}
 	}
 

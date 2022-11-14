@@ -173,6 +173,27 @@ public class Sekai
 	}
 
 	/**
+	 * Parses an abbreviated value such as 1.58M into a {@code double}.
+	 * 
+	 * @param abbreviated Abbreviated value stored in a {@code String}
+	 * @return Parsed value
+	 */
+	public static double parseAbbreviated(String abbreviated)
+	{
+		char suffix = abbreviated.charAt(abbreviated.length() - 1);
+		for (int i = 0; i < suffixes.length; i++)
+		{
+			if (suffixes[i] == suffix)
+			{
+				Double parsedValue = Double.parseDouble(abbreviated.substring(0, abbreviated.length() - 1));
+				parsedValue *= Math.pow(1000, i+1);
+				return parsedValue;
+			}
+		}
+		return Double.parseDouble(abbreviated);
+	}
+
+	/**
 	 * Gets the Roman numeral of the specified value.
 	 * 
 	 * @param value The value

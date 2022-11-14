@@ -26,6 +26,7 @@ open-enchant-gui-on-right-click: true
 anvil-combining-enabled: true
 use-vault-economy: false
 use-action-bar-instead-of-chat-when-inventory-full: true
+enable-enchant-signs: false
 global-cost:
    enabled: false
    cost: 69420*%lvl%

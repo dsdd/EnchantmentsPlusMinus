@@ -46,6 +46,8 @@ messages:
    modifying-config-expired: '& modifying has expired.'
    baltop-position: '&e#%position% &a- %player% (&e&l%tokens%&r&a tokens)'
    enchant-sign-initiating-line: '[EPSEnchant]'
+   enchant-sign-success: '&1[Enchant]'
+   enchant-sign-failure: '&4[Enchant]'
 eps-command-usage:
 - '&7-----------[ &a&lEnchantments+- &7]-----------'
 - '&7- &e/eps reload &7- Reloads all configuration files. Some settings may require a full plugin reload.'

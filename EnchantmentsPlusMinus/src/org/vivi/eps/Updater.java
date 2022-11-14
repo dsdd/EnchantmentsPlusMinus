@@ -59,7 +59,7 @@ public class Updater {
 			guiLoreFile.delete();
 		}
 			
-		
+		EPS.configFile.addDefault("enable-enchant-signs", false);
 		EPS.configFile.addDefault("abbreviate-large-numbers", true);
 		EPS.configFile.yaml.options().copyDefaults(true);
 		EPS.configFile.set("do-not-add-lore-to", new ArrayList<String>(Arrays.asList(new String[] {"an item e.g. BEDROCK that you do not want lore added to due to plugin interference"})));
@@ -70,6 +70,8 @@ public class Updater {
 			EPS.incompatibilitiesFile.set(key+".items", null);
 		
 		Language.setDefaultLangMessage("enchant-sign-initiating-line", "[EPSEnchant]");
+		Language.setDefaultLangMessage("enchant-sign-success", "&1[Enchant]");
+		Language.setDefaultLangMessage("enchant-sign-failure", "&4[Enchant]");
 		
 		// Convert enchant configs
 		for (File file : (EPS.enchantsFolder.listFiles()))

@@ -24,14 +24,12 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.vivi.eps.api.EnchantFile;
 import org.vivi.eps.api.Reloadable;
-import org.vivi.eps.command.EPSCommand;
 import org.vivi.eps.command.EnchantsCommand;
 import org.vivi.eps.command.PayTokensCommand;
 import org.vivi.eps.command.ScrapCommand;
 import org.vivi.eps.command.TokensCommand;
 import org.vivi.eps.dependencies.PlaceholderAPIHook;
 import org.vivi.eps.util.ConfigSettings;
-import org.vivi.eps.util.Events;
 import org.vivi.eps.util.Language;
 import org.vivi.eps.util.EnchantWrapper;
 import org.vivi.eps.util.economy.Economy;
@@ -105,7 +103,7 @@ public class EPS extends JavaPlugin implements Reloadable
 			// Load commands
 			enchantsCommand = new EnchantsCommand();
 			enchantMetaWriter = new EnchantMetaWriter();
-			Bukkit.getPluginCommand("eps").setExecutor(new EPSCommand());
+			Commands.registerEPSCommand();
 			Bukkit.getPluginCommand("enchants").setExecutor(enchantsCommand);
 			Bukkit.getPluginCommand("paytokens").setExecutor(new PayTokensCommand());
 			Bukkit.getPluginCommand("scrap").setExecutor(new ScrapCommand());

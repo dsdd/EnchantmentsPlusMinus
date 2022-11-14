@@ -94,7 +94,7 @@ public class Commands
 						return false;
 					}
 					sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-							"&aSet " + args[1] + "'s balance to " + Long.parseLong(args[2])));
+							"&aSet " + args[1] + "'s balance to " + Sekai.parseAbbreviated(args[2])));
 				} else if (args[0].equalsIgnoreCase("changebal"))
 				{
 					if (!changeBalance(args[1], args[2]))
@@ -104,7 +104,7 @@ public class Commands
 						return false;
 					}
 					sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-							"&cChanged " + args[1] + "'s balance by " + Long.parseLong(args[2])));
+							"&cChanged " + args[1] + "'s balance by " + Sekai.parseAbbreviated(args[2])));
 				} else if (args[0].equalsIgnoreCase("enchant"))
 				{
 					Player player = (Player) sender;
@@ -204,7 +204,7 @@ public class Commands
 						sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
 								baltopPosition.replaceAll("%position%", Integer.toString(i + 1))
 										.replaceAll("%player%", entry.getKey())
-										.replaceAll("%tokens%", Double.toString(entry.getValue()))));
+										.replaceAll("%tokens%", Sekai.abbreviate(entry.getValue()))));
 						i++;
 					}
 				}
@@ -223,7 +223,7 @@ public class Commands
 		UUID targetUUID = EPSPlayerData.getUUID(playerName);
 		if (targetUUID != null)
 		{
-			EPS.getEconomy().setBalance(targetUUID, Long.parseLong(amountLabel));
+			EPS.getEconomy().setBalance(targetUUID, Sekai.parseAbbreviated(amountLabel));
 			return true;
 
 		} else
@@ -235,7 +235,7 @@ public class Commands
 		UUID targetUUID = EPSPlayerData.getUUID(playerName);
 		if (targetUUID != null)
 		{
-			EPS.getEconomy().changeBalance(targetUUID, Long.parseLong(amountLabel));
+			EPS.getEconomy().changeBalance(targetUUID, Sekai.parseAbbreviated(amountLabel));
 			return true;
 
 		} else
