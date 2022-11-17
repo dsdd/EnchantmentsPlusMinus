@@ -9,7 +9,6 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.vivi.eps.EPS;
 import org.vivi.eps.api.Reloadable;
-import org.vivi.sekai.Sekai;
 
 public class ConfigSettings implements Reloadable
 {
@@ -38,7 +37,7 @@ public class ConfigSettings implements Reloadable
 	private static int miningRewardMax = 50;
 	private static int miningRewardBlocksToBreak = 1000;
 	private static Map<String, String> enchantSpecificLoreColors = new HashMap<String, String>();
-	private static List<String> loreExemptions = new ArrayList<String>();
+	private static List<Material> loreExemptions = new ArrayList<Material>();
 	private static List<String> disabledEnchants = new ArrayList<String>();
 
 	@Override
@@ -56,18 +55,7 @@ public class ConfigSettings implements Reloadable
 		globalCostEnabled = EPS.configFile.getBoolean("global-cost.enabled");
 		globalCostExpression = EPS.configFile.getString("global-cost.cost");
 		enchantLoreColor = EPS.configFile.getString("enchant-lore-color");
-
-		getApplyFortuneOn().clear();
-		List<String> applyFortuneOnStringList = EPS.configFile.getStringList("apply-fortune-on");
-		for (String name : applyFortuneOnStringList)
-		{
-			Material material = Material.matchMaterial(name);
-			if (material == null && Sekai.getMCVersion() > 12)
-				material = Material.matchMaterial(name, true);
-			if (material != null)
-				getApplyFortuneOn().add(material);
-		}
-
+		applyFortuneOn = EPS.configFile.getMaterialListBySekai("apply-fortune-on");
 		playerKillRewardEnabled = EPS.configFile.getBoolean("player-kill-reward.enabled");
 		playerKillRewardMin = EPS.configFile.getInt("player-kill-reward.min");
 		playerKillRewardMax = EPS.configFile.getInt("player-kill-reward.max");
@@ -83,7 +71,7 @@ public class ConfigSettings implements Reloadable
 		for (String key : enchantSpecificLoreColors.getKeys(false))
 			getEnchantSpecificLoreColors().put(key, enchantSpecificLoreColors.getString(key));
 
-		loreExemptions = EPS.configFile.getStringList("do-not-add-lore-to");
+		loreExemptions = EPS.configFile.getMaterialListBySekai("do-not-add-lore-to");
 		disabledEnchants = EPS.configFile.getStringList("disabled-enchants");
 	}
 
@@ -212,7 +200,7 @@ public class ConfigSettings implements Reloadable
 		return disabledEnchants;
 	}
 
-	public static List<String> getLoreExemptions()
+	public static List<Material> getLoreExemptions()
 	{
 		return loreExemptions;
 	}

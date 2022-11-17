@@ -1,4 +1,4 @@
-package org.vivi.sekai;
+package org.vivi.sekai.inventory;
 
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;

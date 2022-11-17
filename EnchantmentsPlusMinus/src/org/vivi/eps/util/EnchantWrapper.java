@@ -1,7 +1,6 @@
 package org.vivi.eps.util;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -12,15 +11,9 @@ import org.vivi.sekai.enchantment.EnchantmentInfo;
 
 public class EnchantWrapper extends Enchantment {
 
-	private final String key;
-	private final String name;
-	private final List<Enchantment> incompatibilities = new ArrayList<Enchantment>();
-
-	public EnchantWrapper(String key, String defaultName)
+	public EnchantWrapper(String key)
 	{
 		super(NamespacedKey.minecraft(key));
-		this.name = defaultName;
-		this.key = key;
 	}
 
 	// Defaults to true for now.
@@ -33,30 +26,7 @@ public class EnchantWrapper extends Enchantment {
 	@Override
 	public boolean conflictsWith(Enchantment arg0)
 	{
-		for (Enchantment enchant : incompatibilities)
-			if (enchant.equals(arg0))
-				return true;
-
-		for (String key : EPS.incompatibilitiesFile.getKeys(false))
-		{
-			List<String> incompatibilities = EPS.incompatibilitiesFile.getStringList(key);
-			boolean contains = false;
-			for (String enchantName : incompatibilities)
-				if (enchantName.equalsIgnoreCase(this.key))
-				{
-					contains = true;
-					break;
-				}
-			if (contains)
-				for (String enchantName : incompatibilities)
-					if (enchantName.equalsIgnoreCase(EnchantmentInfo.getKey(arg0)))
-					{
-						this.incompatibilities.add(arg0);
-						return true;
-					}
-
-		}
-		return false;
+		return conflicts(this, arg0);
 	}
 
 	@Override
@@ -74,7 +44,7 @@ public class EnchantWrapper extends Enchantment {
 	@Override
 	public String getName()
 	{
-		return name;
+		return EnchantmentInfo.getName(this);
 	}
 
 	@Override
@@ -92,22 +62,28 @@ public class EnchantWrapper extends Enchantment {
 	{
 		return false;
 	}
+	
+	private static boolean conflicts(Enchantment enchant0, Enchantment enchant1)
+	{
+		for (Set<Enchantment> enchantSet : EPS.incompatibilities)
+			if (enchantSet.contains(enchant0) && enchantSet.contains(enchant1))
+				return true;
+		return false;
+	}
 
 	public static class Legacy extends Enchantment {
 
-		private String name;
 		private int maxLvl;
 
-		public Legacy(String namespace, String name)
+		public Legacy(String namespace)
 		{
 			super(convertLetters(namespace).intValue());
-			this.name = name;
 			this.maxLvl = 32767;
 		}
 
 		public String getName()
 		{
-			return this.name;
+			return EnchantmentInfo.getName(this);
 		}
 
 		public int getMaxLevel()

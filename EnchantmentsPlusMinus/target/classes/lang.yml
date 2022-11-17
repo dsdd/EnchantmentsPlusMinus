@@ -7,6 +7,7 @@ messages:
    invalidplayer: '&cCannot find specified player.'
    reloadconfig: '&aReloaded config!'
    openenchantsgui: '&2Opening enchants GUI...'
+   enchants-gui-label: 'Enchantments'
    invaliditem: '&cYou must hold a tool or armor to use this command.'
    unspecifiedplayer: '&cYou must specify a player.'
    unspecifiedtokenspay: '&cYou must specify the amount of tokens to give.'
@@ -66,3 +67,11 @@ enchant-gui-item-lore:
 - '&7» Left-Click to upgrade once'
 - '&7» Right-Click to upgrade 5 times'
 - '&7» Shift-Right-Click to upgrade 50 times'
+modify-gui:
+   toggle-label: '&aModify GUI - Admin Only'
+   modify-enchant-lore:
+   - &7Left-Click to edit this enchant
+   - &7Right-Click to remove this enchant
+   - &7Shift-Left-Click to enable slot movement
+   add-enchant: &aAdd Enchant
+   move-notification: '&aChoose a slot to move this enchant.'

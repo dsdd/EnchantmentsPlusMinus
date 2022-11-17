@@ -2,6 +2,7 @@ package org.vivi.eps.visual;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -17,19 +18,20 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.vivi.eps.EPS;
+import org.vivi.eps.api.EnchantFile;
 import org.vivi.eps.util.Language;
 import org.vivi.sekai.Sekai;
 import org.vivi.sekai.enchantment.EnchantmentInfo;
-import org.vivi.sekai.yaml.YamlFile;
+import org.vivi.sekai.inventory.GUIHolder;
 
 public class EditEnchantGUI implements Listener
 {
 
-	private Inventory inv = null;
+	private Inventory inventory = null;
 	private Player player = null;
 	private boolean editing = false;
 	private String key = null;
-	private YamlFile<?> currentEnchantFile = null;
+	private EnchantFile currentEnchantFile = null;
 
 	public EditEnchantGUI(Player player, Enchantment enchant)
 	{
@@ -38,22 +40,21 @@ public class EditEnchantGUI implements Listener
 		currentEnchantFile = EPS.getEnchantFile(enchant);
 		Map<String, Object> entries = currentEnchantFile.getValues(true);
 		int size = (int) (Math.ceil((double) entries.size() / 9) * 9);
-		inv = Bukkit.createInventory(null, size, "Modifying " + EnchantmentInfo.getKey(enchant).toUpperCase());
+		inventory = Bukkit.createInventory(new GUIHolder(), size,
+				"Modifying " + EnchantmentInfo.getKey(enchant).toUpperCase() + "...");
 		for (Map.Entry<String, Object> entry : entries.entrySet())
 		{
 			if (entry.getValue() instanceof MemorySection)
 				continue;
 
-			ItemStack i = new ItemStack(Material.BOOK, 1);
-			ItemMeta meta = i.getItemMeta();
-			meta.setDisplayName(ChatColor.GREEN + entry.getKey().substring(0, 1).toUpperCase()
-					+ entry.getKey().substring(1).toLowerCase().replace(".", ": "));
-			meta.setLore(Arrays.asList(ChatColor.DARK_GREEN + entry.getValue().toString(),
-					ChatColor.BLACK + entry.getKey()));
-			i.setItemMeta(meta);
-			inv.addItem(i);
+			ItemStack itemStack = new ItemStack(Material.BOOK, 1);
+			ItemMeta itemMeta = itemStack.getItemMeta();
+			itemMeta.setDisplayName(ChatColor.GREEN + (ChatColor.BOLD + entry.getKey()));
+			itemMeta.setLore(Arrays.asList(ChatColor.DARK_GREEN + "Value: " + entry.getValue().toString()));
+			itemStack.setItemMeta(itemMeta);
+			inventory.addItem(itemStack);
 		}
-		player.openInventory(inv);
+		player.openInventory(inventory);
 	}
 
 	@EventHandler
@@ -62,7 +63,7 @@ public class EditEnchantGUI implements Listener
 		if (e.getClickedInventory() != e.getInventory())
 			return;
 
-		if (!Sekai.isSameInventory(inv, e.getInventory()))
+		if (!Sekai.isSameInventory(inventory, e.getInventory()))
 			return;
 
 		ItemStack clickedItem = e.getCurrentItem();
@@ -71,7 +72,7 @@ public class EditEnchantGUI implements Listener
 			return;
 
 		player.closeInventory();
-		key = clickedItem.getItemMeta().getLore().get(1).replace("�0", "");
+		key = clickedItem.getItemMeta().getDisplayName().substring(4);
 		player.sendMessage(Language.getLangMessage("modifying-config").replace("%entry%", key));
 		editing = true;
 	}
@@ -88,12 +89,13 @@ public class EditEnchantGUI implements Listener
 				currentEnchantFile.saveYaml();
 				EPS.reloadConfigs();
 				Language.sendMessage(player, "modified-config");
+				EPS.logger.log(Level.INFO, "Player " + player.getName() + " changed " + key + " in "
+						+ currentEnchantFile.getPath() + " to " + e.getMessage());
 				Bukkit.getScheduler().runTask(EPS.plugin, new Runnable() {
 					@Override
 					public void run()
 					{
 						EnchantGUI.openInventory(player, EnchantGUI.guiNames.get(player));
-
 					}
 				});
 			}
@@ -126,13 +128,6 @@ public class EditEnchantGUI implements Listener
 
 	private static boolean isBoolean(String s)
 	{
-		try
-		{
-			Boolean.parseBoolean(s);
-			return true;
-		} catch (NumberFormatException e)
-		{
-			return false;
-		}
+		return s.equalsIgnoreCase("true") || s.equalsIgnoreCase("false");
 	}
 }

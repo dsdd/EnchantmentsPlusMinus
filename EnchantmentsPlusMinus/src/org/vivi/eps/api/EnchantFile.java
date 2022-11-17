@@ -23,6 +23,7 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 {
 	private static final long serialVersionUID = 112837910008494619L;
 	private Map<String, Map<Integer, Double>> cachedAutofillsMap = new HashMap<String, Map<Integer, Double>>();
+	private String enchantName = null;
 	private Integer maxLevel = 0;
 	private Integer scrapValue = 0;
 	private Material upgradeIcon = Material.getMaterial("BOOK");
@@ -39,6 +40,7 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 	public void loadYaml(YamlConfiguration configurationToLoad)
 	{
 		super.loadYaml(configurationToLoad);
+		enchantName = isSet("name") ? getString("name") : null;
 		maxLevel = isSet("maxlevel") ? getInt("maxlevel") : null;
 		scrapValue = isSet("scrapvalue") ? getInt("scrapvalue") : null;
 		upgradeIcon = getMaterialBySekai("upgradeicon");
@@ -53,6 +55,11 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 			}
 		});
 
+	}
+
+	public String getEnchantName()
+	{
+		return enchantName;
 	}
 
 	public int getMaxLevel()
@@ -70,7 +77,7 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 		return upgradeIcon;
 	}
 
-	public String getUpgradeDescription()
+	public String getEnchantDescription()
 	{
 		return enchantDescription;
 	}
@@ -98,15 +105,17 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 	{
 		super.set(path, value);
 		// no way
-		if (path == "maxlevel")
-			maxLevel = (int) value;
-		else if (path == "scrapvalue")
-			scrapValue = (int) value;
-		else if (path == "upgradeicon")
+		if (path.equals("name"))
+			enchantName = (String) value;
+		else if (path.equals("maxlevel"))
+			maxLevel = value instanceof Double ? Double.valueOf((double) value).intValue() : (int) value;
+		else if (path.equals("scrapvalue"))
+			scrapValue = value instanceof Double ? Double.valueOf((double) value).intValue() : (int) value;
+		else if (path.equals("upgradeicon"))
 			upgradeIcon = value instanceof Material ? (Material) value : Material.matchMaterial((String) value);
-		else if (path == "upgradedesc")
+		else if (path.equals("upgradedesc"))
 			enchantDescription = (String) value;
-		else if (path == "cost")
+		else if (path.equals("cost"))
 		{
 			costExpression = (String) value;
 			cachedCosts.clear();
@@ -117,6 +126,8 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 	@Override
 	public void saveYaml()
 	{
+		if (enchantName != null)
+			set("name", enchantName);
 		if (maxLevel != null)
 			set("maxlevel", maxLevel);
 		if (scrapValue != null)
@@ -127,7 +138,7 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 			set("upgradedesc", enchantDescription);
 		if (costExpression != null)
 			set("cost", costExpression);
-		
+
 		super.saveYaml();
 	}
 
@@ -178,6 +189,7 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 	 * Fills the max level, scrap value, upgrade icon and cost using provided values
 	 * if they do not exist.
 	 * 
+	 * @param defaultName        The default name of this enchant
 	 * @param maxLevel           The max level of this enchant
 	 * @param scrapValue         How much each level of this enchant is worth when
 	 *                           scrapped
@@ -188,15 +200,17 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 	 * @param cost               The cost of this enchant unevaluated. (e.g.
 	 *                           %lvl%*200 makes this enchant cost 400 for level 2)
 	 */
-	public void fillEnchantConfig(int maxLevel, int scrapValue, Material upgradeIcon, String enchantDescription,
-			String cost)
+	public void fillEnchantConfig(String defaultName, int maxLevel, int scrapValue, Material upgradeIcon,
+			String enchantDescription, String cost)
 	{
+		fill("name", defaultName);
 		fill("maxlevel", maxLevel);
 		fill("scrapvalue", scrapValue);
 		fill("upgradeicon",
 				((upgradeIcon == null || upgradeIcon == Material.AIR) ? Material.BOOK : upgradeIcon).name());
-		fill("upgradedesc", enchantDescription == null ? "Blank description" : enchantDescription);
+		fill("upgradedesc", enchantDescription);
 		fill("cost", cost == null ? "9999999" : cost);
+
 		saveYaml();
 	}
 
@@ -213,15 +227,15 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 	 *                    makes this enchant cost 400 for level 2)
 	 * @param params      Extra parameters to be added.
 	 */
-	public void fillEnchantConfig(int maxLevel, int scrapValue, Material upgradeIcon, String description, String cost,
-			Parameter... params)
+	public void fillEnchantConfig(String defaultName, int maxLevel, int scrapValue, Material upgradeIcon,
+			String description, String cost, Parameter... params)
 	{
-		fillEnchantConfig(maxLevel, scrapValue, upgradeIcon, description, cost);
+		fillEnchantConfig(defaultName, maxLevel, scrapValue, upgradeIcon, description, cost);
 		for (Parameter param : params)
 			fill(param.key, param.value);
 		saveYaml();
 	}
-	
+
 	private void fill(String key, Object value)
 	{
 		if (!isSet(key))

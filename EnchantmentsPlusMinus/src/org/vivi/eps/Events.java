@@ -32,13 +32,13 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.vivi.eps.EPS.EnchantMetaWriter;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.items.CustomEnchantedBook;
 import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Language;
 import org.vivi.eps.util.economy.Economy;
 import org.vivi.eps.visual.EnchantGUI;
-import org.vivi.eps.visual.EnchantMetaWriter;
 import org.vivi.epsbuiltin.enchants.Durability;
 import org.vivi.sekai.Sekai;
 import org.vivi.sekai.enchantment.EnchantmentInfo;
@@ -151,7 +151,7 @@ public class Events implements Listener, Reloadable
 				Sign sign = (Sign) clickedBlock.getState();
 				if (sign.getLine(0).equals(Language.getLangMessage("enchant-sign-success", false)))
 				{
-					Enchantment enchant = EnchantmentInfo.findEnchantByDefaultName(sign.getLine(1));
+					Enchantment enchant = EnchantmentInfo.getEnchantByName(sign.getLine(1));
 					if (enchant == null)
 					{
 						EPS.logger.log(Level.WARNING,
@@ -267,15 +267,15 @@ public class Events implements Listener, Reloadable
 		{
 			try
 			{
-				Enchantment enchant = EnchantmentInfo.findEnchantByKey(e.getLine(1));
+				Enchantment enchant = EnchantmentInfo.getEnchantByKey(e.getLine(1));
 				if (enchant == null)
 				{
-					enchant = EnchantmentInfo.findEnchantByDefaultName(e.getLine(1));
+					enchant = EnchantmentInfo.getEnchantByName(e.getLine(1));
 					if (enchant == null)
 						throw new Exception();
 				}
 
-				String enchantName = EnchantmentInfo.getDefaultName(enchant);
+				String enchantName = EnchantmentInfo.getName(enchant);
 				double amount = Sekai.parseAbbreviated(e.getLine(2));
 
 				e.setLine(1, enchantName);

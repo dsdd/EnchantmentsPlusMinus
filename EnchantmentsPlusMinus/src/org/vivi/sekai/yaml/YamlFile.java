@@ -26,8 +26,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
-import org.vivi.sekai.GUIHolder;
 import org.vivi.sekai.enchantment.EnchantmentInfo;
+import org.vivi.sekai.inventory.GUIHolder;
 
 /**
  * A {@code File} with automatic {@code FileConfiguration} linking. I dont know
@@ -462,6 +462,7 @@ public class YamlFile<T extends FileConfiguration> extends File
 		yaml.setInlineComments(path, comments);
 	}
 
+	@SuppressWarnings("unchecked")
 	public void setBySekai(String path, Object value)
 	{
 		if (value == null)
@@ -475,6 +476,21 @@ public class YamlFile<T extends FileConfiguration> extends File
 			if (firstElement instanceof ItemStack)
 				for (int i = 0; i < list.size(); i++)
 					configurationSection.set(Integer.toString(i), list.get(i));
+			else if (firstElement instanceof Material)
+			{
+				List<String> materialNames = new ArrayList<String>();
+				for (Material material : (List<Material>) list)
+					materialNames.add(material.name());
+				configurationSection.set(path, materialNames);
+			}
+			else if (firstElement instanceof Enchantment)
+			{
+				List<String> keys = new ArrayList<String>();
+				for (Enchantment enchant : (List<Enchantment>) list)
+					keys.add(EnchantmentInfo.getKey(enchant));
+				configurationSection.set(path, keys);
+			}
+
 		} else if (value instanceof Inventory)
 		{
 			Inventory inventory = (Inventory) value;
@@ -505,6 +521,26 @@ public class YamlFile<T extends FileConfiguration> extends File
 		return list;
 	}
 
+	public List<Material> getMaterialListBySekai(String path)
+	{
+		List<Material> list = new ArrayList<Material>();
+		for (String materialName : getStringList(path))
+		{
+			Material modernMaterial = Material.matchMaterial(materialName);
+			list.add(modernMaterial == null ? Material.matchMaterial(materialName, true) : modernMaterial);
+		}
+			
+		return list;
+	}
+
+	public List<Enchantment> getEnchantmentListBySekai(String path)
+	{
+		List<Enchantment> list = new ArrayList<Enchantment>();
+		for (String key : getStringList(path))
+			list.add(EnchantmentInfo.getEnchantByKey(key));
+		return list;
+	}
+
 	public Inventory getInventoryBySekai(String path)
 	{
 		ConfigurationSection configurationSection = getConfigurationSection(path);
@@ -517,7 +553,7 @@ public class YamlFile<T extends FileConfiguration> extends File
 
 	public Enchantment getEnchantmentBySekai(String path)
 	{
-		return EnchantmentInfo.findEnchantByKey(getString(path));
+		return EnchantmentInfo.getEnchantByKey(getString(path));
 	}
 
 	public Material getMaterialBySekai(String path)

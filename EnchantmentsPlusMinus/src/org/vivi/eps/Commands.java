@@ -4,12 +4,14 @@ import java.io.File;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
@@ -17,11 +19,12 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.vivi.eps.EPS.EnchantMetaWriter;
 import org.vivi.eps.api.EPSPlayerData;
 import org.vivi.eps.items.CustomEnchantedBook;
 import org.vivi.eps.items.TokenPouch;
 import org.vivi.eps.util.Language;
-import org.vivi.eps.visual.EnchantMetaWriter;
+import org.vivi.eps.visual.EnchantGUI;
 import org.vivi.sekai.CommandProxy.CommandOptions;
 import org.vivi.sekai.Sekai;
 import org.vivi.sekai.enchantment.EnchantmentInfo;
@@ -31,6 +34,9 @@ public class Commands
 {
 	public static String playerOnlyMessage = Language.getLangMessage("invalidplayertype");
 	public static String insufficientPermissionsMessage = Language.getLangMessage("insufficientpermission");
+	
+	public static PluginCommand epsPluginCommand = Bukkit.getPluginCommand("eps");
+	public static PluginCommand enchantsPluginCommand = Bukkit.getPluginCommand("enchants");
 
 	public static void registerEPSCommand()
 	{
@@ -113,7 +119,7 @@ public class Commands
 					if (itemStack.getAmount() > 0)
 					{
 						int level = Integer.parseInt(args[2]);
-						Enchantment enchant = EnchantmentInfo.findEnchantByKey(args[1].toLowerCase());
+						Enchantment enchant = EnchantmentInfo.getEnchantByKey(args[1].toLowerCase());
 						if (enchant == null)
 						{
 							Language.sendMessage(player, "invalid-enchant");
@@ -153,7 +159,7 @@ public class Commands
 						if (parts.length == 0)
 							continue;
 
-						Enchantment enchant = EnchantmentInfo.findEnchantByKey(parts[0]);
+						Enchantment enchant = EnchantmentInfo.getEnchantByKey(parts[0]);
 						if (parts.length == 1)
 						{
 							map.put(enchant, 1);
@@ -212,10 +218,50 @@ public class Commands
 				return true;
 			}
 		};
-		
-		PluginCommand epsPluginCommand = Bukkit.getPluginCommand("eps");
+
 		Sekai.registerCommand(epsPluginCommand, epsCommandOptions);
 		Sekai.connectCommand(epsPluginCommand, epsCommandConnection);
+	}
+
+	public static void registerEnchantsCommand()
+	{
+		CommandOptions enchantsCommandOptions = new CommandOptions(true, false, 0, 0, "eps.enchants", playerOnlyMessage, null,
+				null, insufficientPermissionsMessage);
+
+		CommandConnection enchantsCommandConnection = new CommandConnection() {
+
+			@Override
+			public boolean onCommand(CommandSender sender, Command command, String label, String[] args)
+			{
+
+				Player player = (Player)sender;
+				
+				for (int i = 0; i < EPS.guis.size(); i++)
+				{
+					for (Map.Entry<List<Material>, String> entry : EPS.guis.entrySet())
+						if (entry.getKey().contains(player.getInventory().getItemInMainHand().getType()))
+						{
+							Language.sendMessage(sender, "openenchantsgui");
+							EnchantGUI.openInventory(player, entry.getValue());
+							return true;
+						}
+				}
+				if (args.length > 0)
+				{
+					if (args[0] != "dontshow")
+						Language.sendMessage(sender, "invaliditem");
+				} else
+				{
+					Language.sendMessage(sender, "invaliditem");
+				}
+				
+				return false;
+			}
+		};
+
+		
+		Sekai.registerCommand(enchantsPluginCommand, enchantsCommandOptions);
+		Sekai.connectCommand(enchantsPluginCommand, enchantsCommandConnection);
 	}
 
 	public static boolean setBalance(String playerName, String amountLabel)

@@ -24,25 +24,6 @@ public class CustomEnchantedBook extends ItemStack {
 		
 	}
 	
-	public ItemStack getItemStack()
-	{
-		return this;
-	}
-	
-	public static ItemStack getItemStack(CustomEnchantedBook book)
-	{
-		return book;
-	}
-	
-	public static CustomEnchantedBook getCustomEnchantedBook(ItemStack item)
-	{
-		if (item instanceof CustomEnchantedBook)
-			return (CustomEnchantedBook)item;
-		else
-			return null;
-		
-	}
-	
 	public static Map<Enchantment, Integer> getEnchants(ItemStack item)
 	{
 		if (item.getItemMeta() instanceof EnchantmentStorageMeta)

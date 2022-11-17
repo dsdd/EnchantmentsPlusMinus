@@ -14,7 +14,9 @@ public class EnchantmentInfo
 	public final Enchantment enchantment;
 	public String key;
 	public String defaultName;
+	public String name;
 	public String defaultDescription;
+	public String description;
 
 	static
 	{
@@ -169,6 +171,18 @@ public class EnchantmentInfo
 		return this;
 	}
 
+	public EnchantmentInfo name(String name)
+	{
+		this.name = name;
+		return this;
+	}
+
+	public EnchantmentInfo description(String description)
+	{
+		this.description = description;
+		return this;
+	}
+
 	public EnchantmentInfo defaultName(String defaultName)
 	{
 		this.defaultName = defaultName;
@@ -179,6 +193,16 @@ public class EnchantmentInfo
 	{
 		this.defaultDescription = defaultDescription;
 		return this;
+	}
+	
+	public String getName()
+	{
+		return name == null ? defaultName : name;
+	}
+	
+	public String getDescription()
+	{
+		return description == null ? defaultDescription : description;
 	}
 
 	public static EnchantmentInfo getEnchantmentInfo(Enchantment enchantment)
@@ -194,14 +218,14 @@ public class EnchantmentInfo
 		return getEnchantmentInfo(enchantment).key;
 	}
 
-	public static String getDefaultName(Enchantment enchantment)
+	public static String getName(Enchantment enchantment)
 	{
-		return getEnchantmentInfo(enchantment).defaultName;
+		return getEnchantmentInfo(enchantment).getName();
 	}
 
-	public static String getDefaultDescription(Enchantment enchantment)
+	public static String getDescription(Enchantment enchantment)
 	{
-		return getEnchantmentInfo(enchantment).defaultDescription;
+		return getEnchantmentInfo(enchantment).getDescription();
 	}
 
 	/**
@@ -210,7 +234,7 @@ public class EnchantmentInfo
 	 * @param key Key to search with
 	 * @return Requested {@code Enchantment}
 	 */
-	public static Enchantment findEnchantByKey(String key)
+	public static Enchantment getEnchantByKey(String key)
 	{
 		for (EnchantmentInfo enchantmentInfo : enchantmentInfos)
 			if (enchantmentInfo.key.equalsIgnoreCase(key))
@@ -219,15 +243,16 @@ public class EnchantmentInfo
 	}
 
 	/**
-	 * Finds the requested {@code Enchantment} by the specified default name.
+	 * Finds the requested {@code Enchantment} by the specified name.
 	 * 
-	 * @param defaultName Default name to search with
+	 * @param name Name to search with
 	 * @return Requested {@code Enchantment}
 	 */
-	public static Enchantment findEnchantByDefaultName(String defaultName)
+	public static Enchantment getEnchantByName(String name)
 	{
 		for (EnchantmentInfo enchantmentInfo : enchantmentInfos)
-			if (enchantmentInfo.defaultName.equalsIgnoreCase(defaultName))
+			if (enchantmentInfo.defaultName.equalsIgnoreCase(name)
+					|| (enchantmentInfo.name != null && enchantmentInfo.name.equalsIgnoreCase(name)))
 				return enchantmentInfo.enchantment;
 		return null;
 	}

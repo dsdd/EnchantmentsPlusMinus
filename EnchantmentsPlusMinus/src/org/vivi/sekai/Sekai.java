@@ -99,15 +99,20 @@ public class Sekai
 		}
 	}
 
+	public static CommandProxy getCommandProxy()
+	{
+		return commandProxy;
+	}
+
 	public static void registerCommand(PluginCommand command, CommandOptions options)
 	{
-		commandProxy.commandOptionsMap.put(command, options);
-		command.setExecutor(commandProxy);
+		getCommandProxy().commandOptionsMap.put(command, options);
+		command.setExecutor(getCommandProxy());
 	}
 
 	public static void connectCommand(PluginCommand command, CommandConnection connection)
 	{
-		commandProxy.commandActivationMap.put(command, connection);
+		getCommandProxy().commandActivationMap.put(command, connection);
 	}
 
 	public static boolean isSameInventory(Inventory first, Inventory second)
@@ -118,7 +123,11 @@ public class Sekai
 			return false;
 		if (first.getType() != second.getType())
 			return false;
-		if (!first.getHolder().equals(second.getHolder()))
+		if (first.getHolder() == null && second.getHolder() == null)
+			return true;
+		if ((first.getHolder() == null && second.getHolder() != null)
+				|| (first.getHolder() != null && second.getHolder() == null)
+				|| !first.getHolder().equals(second.getHolder()))
 			return false;
 		if (first.getSize() != second.getSize())
 			return false;
@@ -186,7 +195,7 @@ public class Sekai
 			if (suffixes[i] == suffix)
 			{
 				Double parsedValue = Double.parseDouble(abbreviated.substring(0, abbreviated.length() - 1));
-				parsedValue *= Math.pow(1000, i+1);
+				parsedValue *= Math.pow(1000, i + 1);
 				return parsedValue;
 			}
 		}
@@ -391,5 +400,4 @@ public class Sekai
 			}
 		}.parse();
 	}
-
 }

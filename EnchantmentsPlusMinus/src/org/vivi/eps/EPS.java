@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,20 +16,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.vivi.eps.api.EnchantFile;
 import org.vivi.eps.api.Reloadable;
-import org.vivi.eps.command.EnchantsCommand;
 import org.vivi.eps.command.PayTokensCommand;
 import org.vivi.eps.command.ScrapCommand;
 import org.vivi.eps.command.TokensCommand;
-import org.vivi.eps.dependencies.PlaceholderAPIHook;
 import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Language;
 import org.vivi.eps.util.EnchantWrapper;
@@ -36,7 +40,6 @@ import org.vivi.eps.util.economy.Economy;
 import org.vivi.eps.util.economy.TokenEconomy;
 import org.vivi.eps.util.economy.VaultEconomy;
 import org.vivi.eps.visual.EnchantGUI;
-import org.vivi.eps.visual.EnchantMetaWriter;
 import org.vivi.epsbuiltin.enchants.BuiltInEnchantsLoader;
 import org.vivi.sekai.Sekai;
 import org.vivi.sekai.dependencies.Metrics;
@@ -44,9 +47,10 @@ import org.vivi.sekai.dependencies.VaultHook;
 import org.vivi.sekai.enchantment.EnchantmentInfo;
 import org.vivi.sekai.yaml.YamlFile;
 
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+
 public class EPS extends JavaPlugin implements Reloadable
 {
-
 	public static EPS plugin;
 	public static File dataFolder;
 	public static File enchantsFolder;
@@ -55,14 +59,17 @@ public class EPS extends JavaPlugin implements Reloadable
 	public static YamlFile<YamlConfiguration> incompatibilitiesFile;
 	public static YamlFile<YamlConfiguration> guisFile;
 	public static YamlFile<YamlConfiguration> uuidDataStore;
+	public static YamlFile<YamlConfiguration> oldEnchantNamesFile;
 	public static Map<Enchantment, EnchantFile> enchantmentFilesMap = new HashMap<Enchantment, EnchantFile>();
 	public static Set<Set<Enchantment>> incompatibilities = new HashSet<Set<Enchantment>>();
 	public static Map<List<Material>, String> guis = new HashMap<List<Material>, String>();
 	public static Map<Integer, Double> globalCostsMap = new HashMap<Integer, Double>();
-	public static EnchantsCommand enchantsCommand;
 	public static EnchantMetaWriter enchantMetaWriter;
 	public static Logger logger;
 
+	private static Map<Enchantment, ArrayList<String>> enchantDescriptionLinesMap = new HashMap<Enchantment, ArrayList<String>>();
+	public static Set<String> oldEnchantNames = new HashSet<String>();
+	public static Set<String> allDescriptionLines = new HashSet<String>();
 	private static Economy economy = null;
 	private static Updater updater = new Updater();
 	private static Events epsEvents = new Events();
@@ -94,17 +101,16 @@ public class EPS extends JavaPlugin implements Reloadable
 			// Load dependencies
 			new Metrics(plugin, 9735);
 			if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
-				new PlaceholderAPIHook();
+				new EPSPlaceholderExpansion().register();
 
 			if (VaultHook.hook())
 				logger.log(Level.INFO, "Successfully hooked into Vault.");
-			economy = ConfigSettings.isUseVaultEconomy() ? new VaultEconomy() : new TokenEconomy();
+			setEconomy(ConfigSettings.isUseVaultEconomy() ? new VaultEconomy() : new TokenEconomy());
 
 			// Load commands
-			enchantsCommand = new EnchantsCommand();
 			enchantMetaWriter = new EnchantMetaWriter();
 			Commands.registerEPSCommand();
-			Bukkit.getPluginCommand("enchants").setExecutor(enchantsCommand);
+			Commands.registerEnchantsCommand();
 			Bukkit.getPluginCommand("paytokens").setExecutor(new PayTokensCommand());
 			Bukkit.getPluginCommand("scrap").setExecutor(new ScrapCommand());
 			Bukkit.getPluginCommand("tokens").setExecutor(new TokensCommand());
@@ -114,10 +120,7 @@ public class EPS extends JavaPlugin implements Reloadable
 			Bukkit.getPluginManager().registerEvents(epsEvents, this);
 
 			EPS.registerReloadable(this); // This has to be reloaded first.
-			EPS.registerReloadable(enchantMetaWriter);
 			EPS.registerReloadable(new EnchantGUI());
-
-			enchantMetaWriter.reload();
 
 			configFile.saveYaml();
 			epsEvents.reload();
@@ -129,7 +132,7 @@ public class EPS extends JavaPlugin implements Reloadable
 
 			// And load in the built-in enchants.
 
-			NULL_ENCHANT = EPS.newEnchant("null", "null");
+			NULL_ENCHANT = EPS.newEnchant("null");
 			new BuiltInEnchantsLoader().onEnable();
 
 			logger.log(Level.INFO,
@@ -209,6 +212,10 @@ public class EPS extends JavaPlugin implements Reloadable
 	@Override
 	public void reload()
 	{
+		if (dataFolder == null)
+			dataFolder = new File(getDataFolder(), "data");
+		if (enchantsFolder == null)
+			enchantsFolder = new File(getDataFolder(), "enchants");
 		if (configFile == null)
 			configFile = new YamlFile<YamlConfiguration>(getDataFolder(), "config.yml");
 		if (languageFile == null)
@@ -219,10 +226,8 @@ public class EPS extends JavaPlugin implements Reloadable
 			incompatibilitiesFile = new YamlFile<YamlConfiguration>(getDataFolder(), "incompatibilities.yml");
 		if (uuidDataStore == null)
 			uuidDataStore = new YamlFile<YamlConfiguration>(dataFolder, "usernamestore.yml");
-		if (dataFolder == null)
-			dataFolder = new File(getDataFolder(), "data");
-		if (enchantsFolder == null)
-			enchantsFolder = new File(getDataFolder(), "enchants");
+		if (oldEnchantNamesFile == null)
+			oldEnchantNamesFile = new YamlFile<YamlConfiguration>(dataFolder, "oldenchantnames.yml");
 
 		if (!dataFolder.exists())
 			dataFolder.mkdirs();
@@ -235,80 +240,92 @@ public class EPS extends JavaPlugin implements Reloadable
 		Sekai.saveDefaultFile(EPS.plugin, "/guis.yml", guisFile);
 		Sekai.saveDefaultFile(EPS.plugin, "/incompatibilities.yml", incompatibilitiesFile);
 
-		if (!uuidDataStore.exists())
-			try
-			{
+		try
+		{
+			if (!uuidDataStore.exists())
 				uuidDataStore.createNewFile();
-			} catch (IOException e)
-			{
-				e.printStackTrace();
-			}
+			if (!oldEnchantNamesFile.exists())
+				oldEnchantNamesFile.createNewFile();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}	
+		
+			
 		configFile.loadYaml(new YamlConfiguration());
-		uuidDataStore.loadYaml(new YamlConfiguration());
 		languageFile.loadYaml(new YamlConfiguration());
 		incompatibilitiesFile.loadYaml(new YamlConfiguration());
 		guisFile.loadYaml(new YamlConfiguration());
-
-		Bukkit.getScheduler().runTask(plugin, new Runnable() {
-
-			@Override
-			public void run()
+		uuidDataStore.loadYaml(new YamlConfiguration());
+		oldEnchantNamesFile.loadYaml(new YamlConfiguration());
+		
+		oldEnchantNames = new HashSet<String>(oldEnchantNamesFile.getStringList("old-enchant-names"));
+		
+		for (Enchantment enchant : Enchantment.values())
+		{
+			EnchantmentInfo enchantmentInfo = EnchantmentInfo.getEnchantmentInfo(enchant);
+			EnchantFile enchantFile = EPS.getEnchantFile(enchant, false);
+			if (enchantFile == null || !enchantFile.exists())
+				continue;
+			enchantFile.loadYaml(new YamlConfiguration());
+			String enchantName = enchantFile.getEnchantName();
+			if (enchantName != null)
 			{
-				ConfigurationSection configurationSection = incompatibilitiesFile
-						.getConfigurationSection("incompatibilities");
-				incompatibilities.clear();
-
-				if (configurationSection == null)
-				{
-					logger.log(Level.WARNING,
-							"Invalid incompatibilities.yml file! Delete the current one to generate a new one.");
-					return;
-				}
-				for (Map.Entry<String, Object> entry : configurationSection.getValues(false).entrySet())
-				{
-					if (entry.getValue() instanceof List)
-					{
-						List<?> written = (List<?>) entry.getValue();
-						Set<Enchantment> incompatibleEnchants = new HashSet<Enchantment>();
-
-						logger.log(Level.FINE, "Setting incompatibilities " + entry.getKey());
-
-						for (Object enchantKey : written)
-							if (enchantKey instanceof String)
-							{
-								incompatibleEnchants.add(EnchantmentInfo.findEnchantByKey((String) enchantKey));
-								logger.log(Level.FINER, "Added " + enchantKey);
-							}
-
-						incompatibilities.add(incompatibleEnchants);
-					}
-				}
-
+				enchantmentInfo.name(enchantName);
+				oldEnchantNames.add(enchantName);
 			}
+				
+			if (enchantFile.getEnchantDescription() != null)
+				enchantmentInfo.description(enchantFile.getEnchantDescription());
+		}
+		
+		oldEnchantNamesFile.set("old-enchant-names", new ArrayList<String>(oldEnchantNames));
+		oldEnchantNamesFile.saveYaml();
 
-		});
+		ConfigurationSection incompatibilitiesConfigurationSection = incompatibilitiesFile
+				.getConfigurationSection("incompatibilities");
+		incompatibilities.clear();
 
-		Bukkit.getScheduler().runTask(plugin, new Runnable() {
-
-			@Override
-			public void run()
+		if (incompatibilitiesConfigurationSection == null)
+		{
+			logger.log(Level.WARNING, "Invalid incompatibilities.yml file! Delete the current one to repair.");
+			return;
+		}
+		for (Map.Entry<String, Object> entry : incompatibilitiesConfigurationSection.getValues(false).entrySet())
+		{
+			if (entry.getValue() instanceof List)
 			{
-				for (Map.Entry<String, Object> entry : guisFile.getConfigurationSection("guis").getValues(false).entrySet())
-					if (entry.getValue() instanceof ConfigurationSection)
+				List<?> written = (List<?>) entry.getValue();
+				Set<Enchantment> incompatibleEnchants = new HashSet<Enchantment>();
+
+				logger.log(Level.FINE, "Setting incompatibilities " + entry.getKey());
+
+				for (Object enchantKey : written)
+					if (enchantKey instanceof String)
 					{
-						ConfigurationSection configurationSection = (ConfigurationSection) entry.getValue();
-
-						List<Material> materials = new ArrayList<Material>();
-						for (String materialName : configurationSection.getStringList("items"))
-							if (Material.matchMaterial(materialName) != null)
-								materials.add(Material.matchMaterial(materialName));
-
-						if (!materials.isEmpty())
-							guis.put(materials, entry.getKey());
+						incompatibleEnchants.add(EnchantmentInfo.getEnchantByKey((String) enchantKey));
+						logger.log(Level.FINER, "Added " + enchantKey);
 					}
 
+				incompatibilities.add(incompatibleEnchants);
 			}
-		});
+		}
+
+		for (Map.Entry<String, Object> entry : guisFile.getConfigurationSection("guis").getValues(false).entrySet())
+			if (entry.getValue() instanceof ConfigurationSection)
+			{
+				ConfigurationSection configurationSection = (ConfigurationSection) entry.getValue();
+
+				List<Material> materials = new ArrayList<Material>();
+				for (String materialName : configurationSection.getStringList("items"))
+					if (Material.matchMaterial(materialName) != null)
+						materials.add(Material.matchMaterial(materialName));
+
+				if (!materials.isEmpty())
+					guis.put(materials, entry.getKey());
+			}
+
 	}
 
 	/**
@@ -369,7 +386,7 @@ public class EPS extends JavaPlugin implements Reloadable
 			try
 			{
 				Enchantment.registerEnchantment(enchant);
-				EnchantMetaWriter.prepareLore(enchant);
+				getEnchantDescriptionLines(enchant);
 				logger.log(Level.FINE, "Registered " + EnchantmentInfo.getKey(enchant).toUpperCase());
 				return true;
 			} catch (Exception e)
@@ -379,7 +396,7 @@ public class EPS extends JavaPlugin implements Reloadable
 			return false;
 		} else
 		{
-			EnchantMetaWriter.prepareLore(enchant);
+			getEnchantDescriptionLines(enchant);
 			return false;
 		}
 	}
@@ -396,7 +413,7 @@ public class EPS extends JavaPlugin implements Reloadable
 		if ((enchantFile == null || !enchantFile.exists()))
 		{
 			enchantFile = new EnchantFile(enchantsFolder, EnchantmentInfo.getKey(enchant) + ".yml");
-			
+
 			if (autoCreateIfNull)
 				try
 				{
@@ -405,7 +422,7 @@ public class EPS extends JavaPlugin implements Reloadable
 				{
 					e.printStackTrace();
 				}
-			
+
 			if (enchantFile.exists())
 			{
 				enchantFile.loadYaml(new YamlConfiguration());
@@ -435,18 +452,259 @@ public class EPS extends JavaPlugin implements Reloadable
 	 * Creates a custom enchant with the specified namespace and name and returns it
 	 * 
 	 * @param namespace The hard-coded name of this enchant
-	 * @param name      The default display name of this enchant
 	 * @return A custom enchant with the specified namespace and name
 	 */
-	public static Enchantment newEnchant(String namespace, String name)
+	public static Enchantment newEnchant(String namespace)
 	{
 		List<String> disabledEnchants = ConfigSettings.getDisabledEnchants();
-		if (disabledEnchants.contains(name))
-			return NULL_ENCHANT;
 		if (disabledEnchants.contains(namespace))
 			return NULL_ENCHANT;
-		return Sekai.getMCVersion() < 13 ? new EnchantWrapper.Legacy(namespace, name.replaceAll(" ", "_"))
-				: new EnchantWrapper(namespace, name.replaceAll(" ", "_"));
+		return Sekai.getMCVersion() < 13 ? new EnchantWrapper.Legacy(namespace) : new EnchantWrapper(namespace);
 	}
 
+	/**
+	 * Returns the enchant description formatted in an organised {@code List} of
+	 * {@code String} used to write ItemMeta lore.
+	 * 
+	 * @param enchant Enchant to get description lines of
+	 * @return Requested enchant description lines
+	 */
+	public static ArrayList<String> getEnchantDescriptionLines(Enchantment enchant)
+	{
+		ArrayList<String> cachedEnchantDescriptionLines = enchantDescriptionLinesMap.get(enchant);
+		if (cachedEnchantDescriptionLines != null)
+			return cachedEnchantDescriptionLines;
+
+		EnchantmentInfo enchantmentInfo = EnchantmentInfo.getEnchantmentInfo(enchant);
+		EnchantFile enchantFile = EPS.getEnchantFile(enchant, false);
+		if (enchantFile != null && enchantFile.getEnchantDescription() != null)
+			enchantmentInfo.description(enchantFile.getEnchantDescription());
+
+		ArrayList<String> enchantDescriptionLines = new ArrayList<String>() {
+			private static final long serialVersionUID = -5686650364578005499L;
+			{
+				add("");
+				if (enchantmentInfo.description.length() > 120)
+					for (int i = 0; i <= (enchantmentInfo.description.length() / 90); i++)
+					{
+						String str = ChatColor.GRAY + enchantmentInfo.description.substring(45 * i,
+								45 * i + 45 > enchantmentInfo.description.length()
+										? enchantmentInfo.description.length()
+										: 45 * i + 45);
+						add(str);
+						allDescriptionLines.add(str);
+					}
+				else
+				{
+					add(ChatColor.GRAY + enchantmentInfo.description);
+					allDescriptionLines.add(ChatColor.GRAY + enchantmentInfo.description);
+				}
+				add("");
+			}
+		};
+
+		enchantDescriptionLinesMap.put(enchant, enchantDescriptionLines);
+		return enchantDescriptionLines;
+	}
+
+	private static final class EPSPlaceholderExpansion extends PlaceholderExpansion
+	{
+		@Override
+		public boolean canRegister()
+		{
+			return true;
+		}
+		
+		@Override
+		public boolean register()
+		{
+			boolean result = super.register();
+			if (result)
+				logger.log(Level.INFO, "Added EPS PlaceholderExpansion: "+getIdentifier());
+			return result;
+		}
+		
+		@Override
+		public String getAuthor()
+		{
+			return "vivisan";
+		}
+
+		@Override
+		public String getIdentifier()
+		{
+			return "eps";
+		}
+
+		@Override
+		public String getPlugin()
+		{
+			return "EnchantmentsPlusMinus";
+		}
+
+		@Override
+		public String getVersion()
+		{
+			return EPS.plugin.getDescription().getVersion();
+		}
+
+		@Override
+		public String onPlaceholderRequest(Player p, String identifier)
+		{
+			return identifier.equals("tokens") ? Double.toString(EPS.getEconomy().getBalance(p)) : null;
+		}
+	}
+	
+	public static class EnchantMetaWriter
+	{
+		private static final String NEW_LINE_PLACEHOLDER = ChatColor.BLACK + "-";
+		private static String prefix;
+
+		public EnchantMetaWriter()
+		{
+			prefix = ChatColor.translateAlternateColorCodes('&', ConfigSettings.getEnchantLoreColor());
+		}
+
+		private static List<String> getWrittenEnchantLore(ItemStack item)
+		{
+			ItemMeta meta = item.getItemMeta();
+			if (meta == null)
+				return (new ArrayList<String>());
+			if (!ConfigSettings.isShowEnchants())
+				return meta.getLore();
+			List<String> list = meta.getLore() == null ? new ArrayList<String>() : meta.getLore();
+			Collection<Enchantment> enchants = Arrays.asList(Enchantment.values());
+
+			for (String enchantName : oldEnchantNames)
+			{
+				for (int i = 0; i < list.size(); i++)
+				{
+					String s = list.get(i);
+					if ((s != null && s.split(" ").length > 0 && s.contains(enchantName))
+							|| EPS.allDescriptionLines.contains(s) || s.equals(NEW_LINE_PLACEHOLDER))
+						list.remove(i);
+				}
+			}
+
+			for (Map.Entry<Enchantment, Integer> entry : meta.getEnchants().entrySet())
+			{
+				if (enchants.contains(entry.getKey()))
+				{
+					EnchantmentInfo enchantmentInfo = EnchantmentInfo.getEnchantmentInfo(entry.getKey());
+					EnchantFile enchantFile = EPS.getEnchantFile(entry.getKey());
+					String lore = (entry.getKey().getMaxLevel() < 2
+							|| (enchantFile != null && enchantFile.getMaxLevel() < 2) ? enchantmentInfo.getName()
+									: enchantmentInfo.getName() + " " + getLevelLabel(entry.getValue()));
+					String colorPrefix = ConfigSettings.getEnchantSpecificLoreColors().get(enchantmentInfo.key);
+					lore = colorPrefix == null ? prefix + lore
+							: ChatColor.translateAlternateColorCodes('&', colorPrefix) + lore;
+					if (ConfigSettings.isShowEnchantDescriptions())
+					{
+						@SuppressWarnings("unchecked")
+						List<String> enchantDescriptionLines = (List<String>) EPS.getEnchantDescriptionLines(entry.getKey()).clone();
+						for (int i = enchantDescriptionLines.size() - 1; i > -1; i--)
+							if (enchantDescriptionLines.get(i) != "")
+								list.add(0, enchantDescriptionLines.get(i));
+					}
+					list.add(0, lore);
+					if (ConfigSettings.isShowEnchantDescriptions())
+						list.add(0, NEW_LINE_PLACEHOLDER);
+				}
+			}
+			return list;
+		}
+
+		/**
+		 * Gets the modified ItemMeta of the ItemStack. Only lore is modified to match
+		 * custom enchant lore.
+		 * 
+		 * @param item The item to modify
+		 * @return The modified ItemMeta
+		 */
+		public static ItemMeta getWrittenMeta(ItemStack item)
+		{
+			if (!ConfigSettings.isShowEnchants())
+				return item.getItemMeta();
+			List<String> lore = EnchantMetaWriter.getWrittenEnchantLore(item);
+			ItemMeta meta = item.getItemMeta();
+			if (meta != null)
+				if (lore != null)
+				{
+					meta.setLore(lore);
+					meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+				}
+			return meta;
+		}
+		
+		public static String getLevelLabel(int level)
+		{
+			return ConfigSettings.isUseRomanNumerals() ? Sekai.getRomanNumeral(level) : Integer.toString(level);
+		}
+
+		public static List<String> getWrittenEnchantLoreBook(ItemStack item)
+		{
+			EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
+			if (meta == null)
+				return (new ArrayList<String>());
+			Map<Enchantment, Integer> map = meta.getStoredEnchants();
+			List<String> list = meta.getLore() == null ? new ArrayList<String>() : meta.getLore();
+
+			if (!ConfigSettings.isShowEnchants())
+				return list;
+
+			Collection<Enchantment> enchants = Arrays.asList(Enchantment.values());
+
+			for (Enchantment enchant : enchants)
+			{
+				for (int i = 0; i < list.size(); i++)
+				{
+					String s = list.get(i);
+					if (s.split(" ").length > 1)
+						if (s.startsWith(ChatColor.GRAY + EnchantmentInfo.getName(enchant)))
+							list.remove(i);
+					if (EPS.allDescriptionLines.contains(s))
+						list.remove(i);
+				}
+			}
+
+			for (Map.Entry<Enchantment, Integer> entry : map.entrySet())
+			{
+				if (enchants.contains(entry.getKey()))
+				{
+					String lore = ChatColor.GRAY + EnchantmentInfo.getName(entry.getKey()) + " "
+							+ getLevelLabel(entry.getValue());
+					list.add(0, lore);
+				}
+			}
+			return list;
+		}
+
+		public static EnchantmentStorageMeta getWrittenMetaBook(ItemStack item)
+		{
+			if (!ConfigSettings.isShowEnchants())
+				return (EnchantmentStorageMeta) item.getItemMeta();
+			List<String> lore = EnchantMetaWriter.getWrittenEnchantLoreBook(item);
+			EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
+			if (meta != null)
+				if (lore != null)
+					meta.setLore(lore);
+			meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+			return meta;
+		}
+
+		public static void refreshItem(ItemStack item)
+		{
+			if (item == null)
+				return;
+			if (item.getType().equals(Material.ENCHANTED_BOOK))
+				return;
+			if (ConfigSettings.getLoreExemptions().contains(item.getType()))
+				return;
+			ItemMeta meta = getWrittenMeta(item);
+			if (meta == null)
+				return;
+			if (meta.getLore() != item.getItemMeta().getLore())
+				item.setItemMeta(meta);
+		}
+	}
 }
