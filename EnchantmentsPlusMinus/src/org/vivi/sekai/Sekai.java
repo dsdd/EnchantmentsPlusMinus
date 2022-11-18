@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
@@ -23,8 +24,9 @@ import org.vivi.sekai.CommandProxy.CommandOptions;
 public class Sekai
 {
 	private static final CommandProxy commandProxy = new CommandProxy();
-	private static final char[] suffixes = new char[] { 'k', 'M', 'B', 'T', 'q', 'Q', 's', 'S' };
-	private static final int version = (Bukkit.getVersion().contains("1.8")) ? 8
+	private static final char[] SUFFIXES = new char[] { 'k', 'M', 'B', 'T', 'q', 'Q', 's', 'S' };
+	private static final Random RANDOM = new Random();
+	private static final int MC_VERSION = (Bukkit.getVersion().contains("1.8")) ? 8
 			: ((Bukkit.getVersion().contains("1.9")) ? 9
 					: (Bukkit.getVersion().contains("1.10")) ? 10
 							: (Bukkit.getVersion().contains("1.11") ? 11
@@ -161,7 +163,7 @@ public class Sekai
 //		}
 		return true;
 	}
-
+	
 	/**
 	 * Abbreviates a given number using suffixes, rounded to 2 decimal places. e.g.
 	 * Converts 1,581,195 to 1.58M
@@ -171,13 +173,26 @@ public class Sekai
 	 */
 	public static String abbreviate(double value)
 	{
+		return abbreviate(value, false);
+	}
+
+	/**
+	 * Abbreviates a given number using suffixes, rounded to 2 decimal places. e.g.
+	 * Converts 1,581,195 to 1.58M
+	 * 
+	 * @param value Value to abbreviate
+	 * @param isRoundTo2f For values below {@code 1000}, whether to round to 2 decimal places
+	 * @return Abbreviated number in k, M, B, T and Q
+	 */
+	public static String abbreviate(double value, boolean isRoundTo2f)
+	{
 		if (value < 1000)
-			return Double.toString(value);
+			return Double.toString(isRoundTo2f ? Math.floor(value*100)/100 : value);
 		else
 		{
 			int exp = (int) (Math.log10(value) / 3);
 			double norm = Math.floor(value * (100 / (Math.pow(1000, exp)))) * 0.01;
-			return String.format("%." + 2 + "f%s", norm, suffixes[exp - 1]);
+			return String.format("%." + 2 + "f%s", norm, SUFFIXES[exp - 1]);
 		}
 	}
 
@@ -190,9 +205,9 @@ public class Sekai
 	public static double parseAbbreviated(String abbreviated)
 	{
 		char suffix = abbreviated.charAt(abbreviated.length() - 1);
-		for (int i = 0; i < suffixes.length; i++)
+		for (int i = 0; i < SUFFIXES.length; i++)
 		{
-			if (suffixes[i] == suffix)
+			if (SUFFIXES[i] == suffix)
 			{
 				Double parsedValue = Double.parseDouble(abbreviated.substring(0, abbreviated.length() - 1));
 				parsedValue *= Math.pow(1000, i + 1);
@@ -200,6 +215,12 @@ public class Sekai
 			}
 		}
 		return Double.parseDouble(abbreviated);
+	}
+	
+	public static double randomDouble(double origin, double bound)
+	{
+		double difference = bound - origin;
+		return difference > 0 ? RANDOM.nextDouble() * difference + origin : origin;
 	}
 
 	/**
@@ -272,7 +293,7 @@ public class Sekai
 	 */
 	public static int getMCVersion()
 	{
-		return version;
+		return MC_VERSION;
 	}
 
 	/**

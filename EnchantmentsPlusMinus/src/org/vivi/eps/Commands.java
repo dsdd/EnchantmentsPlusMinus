@@ -210,7 +210,7 @@ public class Commands
 						sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
 								baltopPosition.replaceAll("%position%", Integer.toString(i + 1))
 										.replaceAll("%player%", entry.getKey())
-										.replaceAll("%tokens%", Sekai.abbreviate(entry.getValue()))));
+										.replaceAll("%tokens%", EPS.abbreviate(entry.getValue()))));
 						i++;
 					}
 				}

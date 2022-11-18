@@ -8,9 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.vivi.eps.EPS;
 import org.vivi.eps.api.EPSPlayerData;
-import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Language;
-import org.vivi.sekai.Sekai;
 
 public class TokensCommand implements CommandExecutor
 {
@@ -32,10 +30,7 @@ public class TokensCommand implements CommandExecutor
 			return false;
 		}
 		sender.sendMessage(Language.getLangMessage("tokenbalance")
-				.replaceAll("%tokens%",
-						ConfigSettings.isAbbreviateLargeNumbers()
-								? Sekai.abbreviate(EPS.getEconomy().getBalance(targetUUID))
-								: Double.toString(EPS.getEconomy().getBalance(targetUUID)))
+				.replaceAll("%tokens%", EPS.abbreviate(EPS.getEconomy().getBalance(targetUUID)))
 				.replaceAll("%player%", targetName));
 		return true;
 	}

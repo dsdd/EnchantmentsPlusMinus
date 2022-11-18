@@ -208,6 +208,17 @@ public class EPS extends JavaPlugin implements Reloadable
 		for (Reloadable r : Reloadable.CLASSES)
 			r.reload();
 	}
+	
+	/**
+	 * Abbreviates a {@code double} value to a {@code String}
+	 * 
+	 * @param value Value to abbreviate
+	 * @return Requested {@code String} containing abbreviated value
+	 */
+	public static String abbreviate(double value)
+	{
+		return ConfigSettings.isAbbreviateLargeNumbers() ? Sekai.abbreviate(value, true) : Double.toString(Math.floor(value*100)/100);
+	}
 
 	@Override
 	public void reload()
@@ -484,20 +495,21 @@ public class EPS extends JavaPlugin implements Reloadable
 			private static final long serialVersionUID = -5686650364578005499L;
 			{
 				add("");
-				if (enchantmentInfo.description.length() > 120)
-					for (int i = 0; i <= (enchantmentInfo.description.length() / 90); i++)
+				String description = enchantmentInfo.getDescription();
+				if (description.length() > 120)
+					for (int i = 0; i <= (description.length() / 90); i++)
 					{
-						String str = ChatColor.GRAY + enchantmentInfo.description.substring(45 * i,
-								45 * i + 45 > enchantmentInfo.description.length()
-										? enchantmentInfo.description.length()
+						String str = ChatColor.GRAY + description.substring(45 * i,
+								45 * i + 45 > description.length()
+										? description.length()
 										: 45 * i + 45);
 						add(str);
 						allDescriptionLines.add(str);
 					}
 				else
 				{
-					add(ChatColor.GRAY + enchantmentInfo.description);
-					allDescriptionLines.add(ChatColor.GRAY + enchantmentInfo.description);
+					add(ChatColor.GRAY + description);
+					allDescriptionLines.add(ChatColor.GRAY + description);
 				}
 				add("");
 			}

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.WordUtils;
@@ -47,7 +46,6 @@ public class Events implements Listener, Reloadable
 {
 
 	public Map<Player, Integer> blocklog;
-	private Random random;
 	private Economy economy;
 	private String miningTokensGet;
 	private String playerKillGet;
@@ -70,10 +68,9 @@ public class Events implements Listener, Reloadable
 		Player killer = e.getEntity().getKiller();
 		if (killer instanceof Player)
 		{
-			int tokens = random.nextInt(ConfigSettings.getMobKillRewardMax() - ConfigSettings.getMobKillRewardMin())
-					+ ConfigSettings.getMobKillRewardMin() + 1;
+			double tokens = Sekai.randomDouble(ConfigSettings.getMobKillRewardMin(), ConfigSettings.getMobKillRewardMax());
 			String name = e.getEntityType().name();
-			killer.sendMessage(mobKillGet.replaceAll("%tokens%", Integer.toString(tokens)).replaceAll("%mob%",
+			killer.sendMessage(mobKillGet.replaceAll("%tokens%", EPS.abbreviate(tokens)).replaceAll("%mob%",
 					WordUtils.capitalizeFully(name.replaceAll("_", " ").toLowerCase())));
 			economy.changeBalance(killer, tokens);
 		}
@@ -92,10 +89,8 @@ public class Events implements Listener, Reloadable
 			Player killed = (Player) e.getEntity();
 			if (killer == killed)
 				return;
-			int tokens = random
-					.nextInt(ConfigSettings.getPlayerKillRewardMax() - ConfigSettings.getPlayerKillRewardMin())
-					+ ConfigSettings.getPlayerKillRewardMin() + 1;
-			killer.sendMessage(playerKillGet.replaceAll("%tokens%", Integer.toString(tokens)).replaceAll("%victim%",
+			double tokens = Sekai.randomDouble(ConfigSettings.getPlayerKillRewardMin(), ConfigSettings.getPlayerKillRewardMax());
+			killer.sendMessage(playerKillGet.replaceAll("%tokens%", EPS.abbreviate(tokens)).replaceAll("%victim%",
 					killed.getName()));
 			economy.changeBalance(killer, tokens);
 		}
@@ -112,11 +107,9 @@ public class Events implements Listener, Reloadable
 			if (blocklog.get(e.getPlayer()) >= ConfigSettings.getMiningRewardBlocksToBreak())
 			{
 				blocklog.put(e.getPlayer(), 0);
-				Integer tokens = random
-						.nextInt(ConfigSettings.getMiningRewardMax() - ConfigSettings.getMiningRewardMin())
-						+ ConfigSettings.getMiningRewardMin() + 1;
+				double tokens = Sekai.randomDouble(ConfigSettings.getMiningRewardMin(), ConfigSettings.getMiningRewardMax());
 				economy.changeBalance(e.getPlayer(), tokens);
-				e.getPlayer().sendMessage(miningTokensGet.replaceAll("%tokens%", tokens.toString()));
+				e.getPlayer().sendMessage(miningTokensGet.replaceAll("%tokens%", EPS.abbreviate(tokens)));
 			}
 		}
 	}
@@ -279,7 +272,7 @@ public class Events implements Listener, Reloadable
 				double amount = Sekai.parseAbbreviated(e.getLine(2));
 
 				e.setLine(1, enchantName);
-				e.setLine(2, Sekai.abbreviate(amount));
+				e.setLine(2, EPS.abbreviate(amount));
 				EPS.logger.log(Level.INFO,
 						"Created enchant sign, selling " + enchantName + " for " + Double.toString(amount));
 				EPS.logger.log(Level.FINE, e.getBlock().getLocation().toString());
@@ -350,7 +343,6 @@ public class Events implements Listener, Reloadable
 		setDefault("miningtokens.blockstobreak", 1000);
 		Language.setDefaultLangMessage("miningtokensget", "&aYou received %tokens% tokens for mining!");
 		blocklog = new HashMap<Player, Integer>();
-		random = new Random();
 		economy = EPS.getEconomy();
 		miningTokensGet = Language.getLangMessage("miningtokensget");
 		playerKillGet = Language.getLangMessage("playerkill");

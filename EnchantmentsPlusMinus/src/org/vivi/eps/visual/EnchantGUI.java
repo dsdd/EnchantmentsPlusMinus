@@ -33,7 +33,6 @@ import org.vivi.eps.EPS;
 import org.vivi.eps.EPS.EnchantMetaWriter;
 import org.vivi.eps.api.EnchantFile;
 import org.vivi.eps.api.Reloadable;
-import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Language;
 import org.vivi.sekai.Sekai;
 import org.vivi.sekai.enchantment.EnchantmentInfo;
@@ -118,8 +117,7 @@ public class EnchantGUI implements Listener, Reloadable
 		ItemStack i = new ItemStack(Material.GOLD_INGOT, 1);
 		ItemMeta meta = i.getItemMeta();
 		meta.setDisplayName(Language.getLangMessage("balance-display-in-gui", false).replaceAll("%balance%",
-				ConfigSettings.isAbbreviateLargeNumbers() ? Sekai.abbreviate(EPS.getEconomy().getBalance(player))
-						: Double.toString(EPS.getEconomy().getBalance(player))));
+				EPS.abbreviate(EPS.getEconomy().getBalance(player))));
 		i.setItemMeta(meta);
 		inventory.setItem(4, i);
 		inventory.setItem(31, i);
@@ -172,15 +170,10 @@ public class EnchantGUI implements Listener, Reloadable
 		ItemStack itemStack = player.getInventory().getItemInMainHand();
 		ItemMeta itemMeta = itemStack.getItemMeta();
 		EnchantFile enchantFile = EPS.getEnchantFile(enchant);
-		String displayCost;
-
-		if (!(itemMeta.getEnchantLevel(enchant) >= enchantFile.getMaxLevel())
-				|| player.hasPermission("eps.admin.bypassmaxlevel"))
-		{
-			long cost = (long) Math.floor(EPS.getCost(enchant, itemMeta.getEnchantLevel(enchant), 1));
-			displayCost = ConfigSettings.isAbbreviateLargeNumbers() ? Sekai.abbreviate(cost) : Long.toString(cost);
-		} else
-			displayCost = "Maxed!";
+		String displayCost = !(itemMeta.getEnchantLevel(enchant) >= enchantFile.getMaxLevel())
+				|| player.hasPermission("eps.admin.bypassmaxlevel")
+						? EPS.abbreviate((long) Math.floor(EPS.getCost(enchant, itemMeta.getEnchantLevel(enchant), 1)))
+						: "Maxed!";
 
 		if (enchantFile.getEnchantDescription() == null)
 			EPS.logger.log(Level.WARNING, "Invalid upgrade description for enchant " + EnchantmentInfo.getKey(enchant));

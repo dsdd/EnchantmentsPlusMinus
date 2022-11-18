@@ -27,14 +27,14 @@ public class ConfigSettings implements Reloadable
 	private static String enchantLoreColor = "&9";
 	private static List<Material> applyFortuneOn = new ArrayList<Material>();
 	private static boolean playerKillRewardEnabled = true;
-	private static int playerKillRewardMin = 25;
-	private static int playerKillRewardMax = 50;
+	private static double playerKillRewardMin = 25;
+	private static double playerKillRewardMax = 50;
 	private static boolean mobKillRewardEnabled = true;
-	private static int mobKillRewardMin = 5;
-	private static int mobKillRewardMax = 10;
+	private static double mobKillRewardMin = 5;
+	private static double mobKillRewardMax = 10;
 	private static boolean miningRewardEnabled = true;
-	private static int miningRewardMin = 25;
-	private static int miningRewardMax = 50;
+	private static double miningRewardMin = 25;
+	private static double miningRewardMax = 50;
 	private static int miningRewardBlocksToBreak = 1000;
 	private static Map<String, String> enchantSpecificLoreColors = new HashMap<String, String>();
 	private static List<Material> loreExemptions = new ArrayList<Material>();
@@ -57,13 +57,14 @@ public class ConfigSettings implements Reloadable
 		enchantLoreColor = EPS.configFile.getString("enchant-lore-color");
 		applyFortuneOn = EPS.configFile.getMaterialListBySekai("apply-fortune-on");
 		playerKillRewardEnabled = EPS.configFile.getBoolean("player-kill-reward.enabled");
-		playerKillRewardMin = EPS.configFile.getInt("player-kill-reward.min");
-		playerKillRewardMax = EPS.configFile.getInt("player-kill-reward.max");
+		playerKillRewardMin = EPS.configFile.getDouble("player-kill-reward.min");
+		playerKillRewardMax = EPS.configFile.getDouble("player-kill-reward.max");
 		mobKillRewardEnabled = EPS.configFile.getBoolean("mob-kill-reward.enabled");
-		mobKillRewardMin = EPS.configFile.getInt("mob-kill-reward.min");
-		mobKillRewardMax = EPS.configFile.getInt("mob-kill-reward.max");
+		mobKillRewardMin = EPS.configFile.getDouble("mob-kill-reward.min");
+		mobKillRewardMax = EPS.configFile.getDouble("mob-kill-reward.max");
 		miningRewardEnabled = EPS.configFile.getBoolean("mining-reward.enabled");
-		miningRewardMin = EPS.configFile.getInt("mining-reward.min");
+		miningRewardMin = EPS.configFile.getDouble("mining-reward.min");
+		miningRewardMax = EPS.configFile.getDouble("mining-reward.max");
 		miningRewardBlocksToBreak = EPS.configFile.getInt("mining-reward.blockstobreak");
 
 		ConfigurationSection enchantSpecificLoreColors = EPS.configFile
@@ -145,12 +146,12 @@ public class ConfigSettings implements Reloadable
 		return applyFortuneOn;
 	}
 
-	public static int getPlayerKillRewardMin()
+	public static double getPlayerKillRewardMin()
 	{
 		return playerKillRewardMin;
 	}
 
-	public static int getPlayerKillRewardMax()
+	public static double getPlayerKillRewardMax()
 	{
 		return playerKillRewardMax;
 	}
@@ -160,12 +161,12 @@ public class ConfigSettings implements Reloadable
 		return mobKillRewardEnabled;
 	}
 
-	public static int getMobKillRewardMin()
+	public static double getMobKillRewardMin()
 	{
 		return mobKillRewardMin;
 	}
 
-	public static int getMobKillRewardMax()
+	public static double getMobKillRewardMax()
 	{
 		return mobKillRewardMax;
 	}
@@ -175,12 +176,12 @@ public class ConfigSettings implements Reloadable
 		return miningRewardEnabled;
 	}
 
-	public static int getMiningRewardMin()
+	public static double getMiningRewardMin()
 	{
 		return miningRewardMin;
 	}
 
-	public static int getMiningRewardMax()
+	public static double getMiningRewardMax()
 	{
 		return miningRewardMax;
 	}
