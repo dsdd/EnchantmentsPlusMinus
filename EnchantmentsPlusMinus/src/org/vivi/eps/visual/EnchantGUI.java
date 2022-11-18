@@ -334,7 +334,7 @@ public class EnchantGUI implements Listener, Reloadable
 					if (incompatibleEnchants.contains(enchant))
 						for (Enchantment e : incompatibleEnchants)
 							if (e != null)
-								if (itemMeta.hasEnchant(e) && e != enchant)
+								if (itemMeta.hasEnchant(e) && !e.equals(enchant))
 								{
 									Language.sendMessage(player, "lockedupgrade");
 									return;

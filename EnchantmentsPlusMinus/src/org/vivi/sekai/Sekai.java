@@ -5,9 +5,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -283,17 +285,19 @@ public class Sekai
 			return false;
 		}
 	}
-
+	
 	/**
-	 * Returns the version of the Minecraft server in numerical form. e.g. 1.8.6,
-	 * 1.8.2 and 1.8.8 will all return 8. 1.16, 1.14.2 and 1.19.84 will return 16,
-	 * 14 and 19 respectively.
+	 * Converts a {@code List} of {@code String} into a multi-line {@code String}.
 	 * 
-	 * @return Returns the version of the Minecraft server in numerical form.
+	 * @param list To convert
+	 * @return Requested {@code String}
 	 */
-	public static int getMCVersion()
+	public static String convertListToString(List<String> list)
 	{
-		return MC_VERSION;
+		StringBuilder epsUsageStringBuilder = new StringBuilder();
+		for (String line : list)
+			epsUsageStringBuilder.append(ChatColor.translateAlternateColorCodes('&', line)).append("\n");
+		return epsUsageStringBuilder.toString();
 	}
 
 	/**
@@ -420,5 +424,17 @@ public class Sekai
 				return x;
 			}
 		}.parse();
+	}
+	
+	/**
+	 * Returns the version of the Minecraft server in numerical form. e.g. 1.8.6,
+	 * 1.8.2 and 1.8.8 will all return 8. 1.16, 1.14.2 and 1.19.84 will return 16,
+	 * 14 and 19 respectively.
+	 * 
+	 * @return Returns the version of the Minecraft server in numerical form.
+	 */
+	public static int getMCVersion()
+	{
+		return MC_VERSION;
 	}
 }

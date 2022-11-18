@@ -28,8 +28,8 @@ public class CommandProxy implements CommandExecutor
 			if (commandOptions.consoleOnlyMessage != null)
 				sender.sendMessage(commandOptions.consoleOnlyMessage);
 			return false;
-		} else if ((isPlayer && commandOptions.requiredArgumentsConsole > collapsingArgs.length)
-				|| (!isPlayer && commandOptions.requiredArgumentsPlayer > collapsingArgs.length))
+		} else if ((isPlayer && commandOptions.requiredArgumentsPlayer > collapsingArgs.length)
+				|| (!isPlayer && commandOptions.requiredArgumentsConsole > collapsingArgs.length))
 		{
 			if (commandOptions.insufficientArgumentsMessage != null)
 				sender.sendMessage(commandOptions.insufficientArgumentsMessage);
@@ -88,20 +88,20 @@ public class CommandProxy implements CommandExecutor
 		 * @param consoleOnly                    Whether the {@code Command} can only be
 		 *                                       run by the console (Not a
 		 *                                       {@code Player})
-		 * @param requiredArgumentsConsole       The number of arguments required to
-		 *                                       execute the command in the console
 		 * @param requiredArgumentsPlayer        The number of arguments required to
 		 *                                       execute the command as a {@code Player}
-		 * @param executionPermission            The {@code Permission} required to
-		 *                                       execute this command (If multiple
-		 *                                       permissions are required, the general
-		 *                                       {@code Permission} to run it
+		 * @param requiredArgumentsConsole       The number of arguments required to
+		 *                                       execute the command in the console
 		 * @param playerOnlyMessage              The message displayed when the
 		 *                                       player-only command is run by the
 		 *                                       console
 		 * @param consoleOnlyMessage             The message displayed when the
 		 *                                       console-only command is run by a
 		 *                                       {@code Player}
+		 * @param executionPermission            The {@code Permission} required to
+		 *                                       execute this command (If multiple
+		 *                                       permissions are required, the general
+		 *                                       {@code Permission} to run it
 		 * @param insufficientArgumentsMessage   The message displayed when there are
 		 *                                       not enough arguments specified to run
 		 *                                       the command
@@ -109,14 +109,14 @@ public class CommandProxy implements CommandExecutor
 		 *                                       does not have permission to run the
 		 *                                       command
 		 */
-		public CommandOptions(boolean playerOnly, boolean consoleOnly, int requiredArgumentsConsole,
-				int requiredArgumentsPlayer, String executionPermission, String playerOnlyMessage,
-				String consoleOnlyMessage, String insufficientArgumentsMessage, String insufficientPermissionsMessage)
+		public CommandOptions(boolean playerOnly, boolean consoleOnly, int requiredArgumentsPlayer,
+				int requiredArgumentsConsole, String playerOnlyMessage, String consoleOnlyMessage,
+				String executionPermission, String insufficientArgumentsMessage, String insufficientPermissionsMessage)
 		{
 			this.playerOnly = playerOnly;
 			this.consoleOnly = consoleOnly;
-			this.requiredArgumentsConsole = (byte) requiredArgumentsConsole;
 			this.requiredArgumentsPlayer = (byte) requiredArgumentsPlayer;
+			this.requiredArgumentsConsole = (byte) requiredArgumentsConsole;
 			this.executionPermission = executionPermission;
 			this.playerOnlyMessage = playerOnlyMessage;
 			this.consoleOnlyMessage = consoleOnlyMessage;

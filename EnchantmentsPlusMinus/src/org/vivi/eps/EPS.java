@@ -30,9 +30,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.vivi.eps.api.EnchantFile;
 import org.vivi.eps.api.Reloadable;
-import org.vivi.eps.command.PayTokensCommand;
-import org.vivi.eps.command.ScrapCommand;
-import org.vivi.eps.command.TokensCommand;
 import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Language;
 import org.vivi.eps.util.EnchantWrapper;
@@ -64,16 +61,16 @@ public class EPS extends JavaPlugin implements Reloadable
 	public static Set<Set<Enchantment>> incompatibilities = new HashSet<Set<Enchantment>>();
 	public static Map<List<Material>, String> guis = new HashMap<List<Material>, String>();
 	public static Map<Integer, Double> globalCostsMap = new HashMap<Integer, Double>();
-	public static EnchantMetaWriter enchantMetaWriter;
 	public static Logger logger;
 
 	private static Map<Enchantment, ArrayList<String>> enchantDescriptionLinesMap = new HashMap<Enchantment, ArrayList<String>>();
-	public static Set<String> oldEnchantNames = new HashSet<String>();
-	public static Set<String> allDescriptionLines = new HashSet<String>();
+	private static Set<String> oldEnchantNames = new HashSet<String>();
+	private static Set<String> allDescriptionLines = new HashSet<String>();
 	private static Economy economy = null;
 	private static Updater updater = new Updater();
 	private static Events epsEvents = new Events();
 	private static Enchantment NULL_ENCHANT = null;
+	
 
 	@Override
 	public void onEnable()
@@ -101,19 +98,14 @@ public class EPS extends JavaPlugin implements Reloadable
 			// Load dependencies
 			new Metrics(plugin, 9735);
 			if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
-				new EPSPlaceholderExpansion().register();
+				new PlaceholderAPIHook().register();
 
 			if (VaultHook.hook())
 				logger.log(Level.INFO, "Successfully hooked into Vault.");
 			setEconomy(ConfigSettings.isUseVaultEconomy() ? new VaultEconomy() : new TokenEconomy());
 
 			// Load commands
-			enchantMetaWriter = new EnchantMetaWriter();
-			Commands.registerEPSCommand();
-			Commands.registerEnchantsCommand();
-			Bukkit.getPluginCommand("paytokens").setExecutor(new PayTokensCommand());
-			Bukkit.getPluginCommand("scrap").setExecutor(new ScrapCommand());
-			Bukkit.getPluginCommand("tokens").setExecutor(new TokensCommand());
+			Commands.registerCommands();
 
 			// Load events
 			Bukkit.getPluginManager().registerEvents(new EnchantGUI(), this);
@@ -310,7 +302,7 @@ public class EPS extends JavaPlugin implements Reloadable
 				List<?> written = (List<?>) entry.getValue();
 				Set<Enchantment> incompatibleEnchants = new HashSet<Enchantment>();
 
-				logger.log(Level.FINE, "Setting incompatibilities " + entry.getKey());
+				logger.log(Level.FINER, "Setting incompatibilities " + entry.getKey());
 
 				for (Object enchantKey : written)
 					if (enchantKey instanceof String)
@@ -337,6 +329,8 @@ public class EPS extends JavaPlugin implements Reloadable
 					guis.put(materials, entry.getKey());
 			}
 
+		Commands.playerOnlyMessage = Language.getLangMessage("invalidplayertype");
+		Commands.insufficientPermissionsMessage = Language.getLangMessage("insufficientpermission");
 	}
 
 	/**
@@ -392,7 +386,11 @@ public class EPS extends JavaPlugin implements Reloadable
 
 		getEnchantFile(enchant);
 
-		if (!Arrays.asList(Enchantment.values()).contains(enchant))
+		if (Arrays.asList(Enchantment.values()).contains(enchant))
+		{
+			getEnchantDescriptionLines(enchant);
+			return false;
+		} else
 		{
 			try
 			{
@@ -404,10 +402,6 @@ public class EPS extends JavaPlugin implements Reloadable
 			{
 				e.printStackTrace();
 			}
-			return false;
-		} else
-		{
-			getEnchantDescriptionLines(enchant);
 			return false;
 		}
 	}
@@ -519,7 +513,7 @@ public class EPS extends JavaPlugin implements Reloadable
 		return enchantDescriptionLines;
 	}
 
-	private static final class EPSPlaceholderExpansion extends PlaceholderExpansion
+	public class PlaceholderAPIHook extends PlaceholderExpansion
 	{
 		@Override
 		public boolean canRegister()
@@ -570,13 +564,7 @@ public class EPS extends JavaPlugin implements Reloadable
 	public static class EnchantMetaWriter
 	{
 		private static final String NEW_LINE_PLACEHOLDER = ChatColor.BLACK + "-";
-		private static String prefix;
-
-		public EnchantMetaWriter()
-		{
-			prefix = ChatColor.translateAlternateColorCodes('&', ConfigSettings.getEnchantLoreColor());
-		}
-
+		
 		private static List<String> getWrittenEnchantLore(ItemStack item)
 		{
 			ItemMeta meta = item.getItemMeta();
@@ -608,7 +596,7 @@ public class EPS extends JavaPlugin implements Reloadable
 							|| (enchantFile != null && enchantFile.getMaxLevel() < 2) ? enchantmentInfo.getName()
 									: enchantmentInfo.getName() + " " + getLevelLabel(entry.getValue()));
 					String colorPrefix = ConfigSettings.getEnchantSpecificLoreColors().get(enchantmentInfo.key);
-					lore = colorPrefix == null ? prefix + lore
+					lore = colorPrefix == null ? ConfigSettings.getEnchantLoreColor() + lore
 							: ChatColor.translateAlternateColorCodes('&', colorPrefix) + lore;
 					if (ConfigSettings.isShowEnchantDescriptions())
 					{

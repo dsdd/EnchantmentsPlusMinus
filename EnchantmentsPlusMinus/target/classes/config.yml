@@ -3,19 +3,15 @@
 # | |    Enchantments+-   | |
 # | +---------------------+ |
 # +-------------------------+
-#                                                                                     -#-
+#
 # This is the configuration file for Enchantments+-.
-# Need help? Check the GitHub wiki: https://github.com/dsdd/EnchantmentsPlusMinus
+# Need help? Check the GitHub project here: https://github.com/dsdd/EnchantmentsPlusMinus
 #
 # +------------------------+
 # |                        |
 # |     Configuration      |
 # |                        |
 # +------------------------+
-#
-# Enchant configuration has been moved to the /enchants/ folder!
-#
-#                                                                             -#-
 
 auto-update: false
 show-enchants: true

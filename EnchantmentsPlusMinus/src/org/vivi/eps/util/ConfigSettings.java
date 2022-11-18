@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.vivi.eps.EPS;
@@ -24,7 +25,7 @@ public class ConfigSettings implements Reloadable
 	private static boolean useActionBar = true;
 	private static boolean globalCostEnabled = false;
 	private static String globalCostExpression = "69420*%lvl%";
-	private static String enchantLoreColor = "&9";
+	private static String enchantLoreColor = ChatColor.translateAlternateColorCodes('&', "&9");
 	private static List<Material> applyFortuneOn = new ArrayList<Material>();
 	private static boolean playerKillRewardEnabled = true;
 	private static double playerKillRewardMin = 25;
@@ -54,7 +55,7 @@ public class ConfigSettings implements Reloadable
 		useActionBar = EPS.configFile.getBoolean("use-action-bar-instead-of-chat-when-inventory-full");
 		globalCostEnabled = EPS.configFile.getBoolean("global-cost.enabled");
 		globalCostExpression = EPS.configFile.getString("global-cost.cost");
-		enchantLoreColor = EPS.configFile.getString("enchant-lore-color");
+		enchantLoreColor = ChatColor.translateAlternateColorCodes('&', EPS.configFile.getString("enchant-lore-color", ""));
 		applyFortuneOn = EPS.configFile.getMaterialListBySekai("apply-fortune-on");
 		playerKillRewardEnabled = EPS.configFile.getBoolean("player-kill-reward.enabled");
 		playerKillRewardMin = EPS.configFile.getDouble("player-kill-reward.min");

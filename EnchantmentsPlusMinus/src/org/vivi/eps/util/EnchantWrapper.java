@@ -7,26 +7,27 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.inventory.ItemStack;
 import org.vivi.eps.EPS;
+import org.vivi.eps.api.EnchantFile;
 import org.vivi.sekai.enchantment.EnchantmentInfo;
 
-public class EnchantWrapper extends Enchantment {
+public class EnchantWrapper extends Enchantment
+{
 
 	public EnchantWrapper(String key)
 	{
 		super(NamespacedKey.minecraft(key));
 	}
 
-	// Defaults to true for now.
 	@Override
-	public boolean canEnchantItem(ItemStack arg0)
+	public boolean canEnchantItem(ItemStack item)
 	{
 		return true;
 	}
 
 	@Override
-	public boolean conflictsWith(Enchantment arg0)
+	public boolean conflictsWith(Enchantment other)
 	{
-		return conflicts(this, arg0);
+		return conflicts(this, other);
 	}
 
 	@Override
@@ -38,7 +39,7 @@ public class EnchantWrapper extends Enchantment {
 	@Override
 	public int getMaxLevel()
 	{
-		return 32767;
+		return getMaxLevel(this);
 	}
 
 	@Override
@@ -62,7 +63,13 @@ public class EnchantWrapper extends Enchantment {
 	{
 		return false;
 	}
-	
+
+	private static int getMaxLevel(Enchantment enchant)
+	{
+		EnchantFile enchantFile = EPS.getEnchantFile(enchant);
+		return enchantFile == null ? 32767 : (enchantFile.exists() ? enchantFile.getMaxLevel() : 32767);
+	}
+
 	private static boolean conflicts(Enchantment enchant0, Enchantment enchant1)
 	{
 		for (Set<Enchantment> enchantSet : EPS.incompatibilities)
@@ -71,24 +78,24 @@ public class EnchantWrapper extends Enchantment {
 		return false;
 	}
 
-	public static class Legacy extends Enchantment {
+	public static class Legacy extends Enchantment
+	{
+		private String key;
 
-		private int maxLvl;
-
-		public Legacy(String namespace)
+		public Legacy(String key)
 		{
-			super(convertLetters(namespace).intValue());
-			this.maxLvl = 32767;
+			super(convertLetters(key).intValue());
+			this.key = key;
 		}
 
 		public String getName()
 		{
-			return EnchantmentInfo.getName(this);
+			return key;
 		}
 
 		public int getMaxLevel()
 		{
-			return maxLvl;
+			return EnchantWrapper.getMaxLevel(this);
 		}
 
 		public int getStartLevel()
@@ -111,12 +118,12 @@ public class EnchantWrapper extends Enchantment {
 			return false;
 		}
 
-		public boolean conflictsWith(Enchantment paramEnchantment)
+		public boolean conflictsWith(Enchantment other)
 		{
-			return false;
+			return EnchantWrapper.conflicts(this, other);
 		}
 
-		public boolean canEnchantItem(ItemStack paramItemStack)
+		public boolean canEnchantItem(ItemStack item)
 		{
 			return false;
 		}

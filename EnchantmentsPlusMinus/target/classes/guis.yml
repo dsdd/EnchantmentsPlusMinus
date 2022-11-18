@@ -1,3 +1,25 @@
+# +-------------------------+
+# | +---------------------+ |
+# | |    Enchantments+-   | |
+# | +---------------------+ |
+# +-------------------------+
+#
+# This is the configuration file for Enchantments+-.
+# Need help? Check the GitHub project here: https://github.com/dsdd/EnchantmentsPlusMinus
+#
+# +------------------------------------+
+# |                                    |
+# |     Enchant GUI Configuration      |
+# |                                    |
+# +------------------------------------+
+#
+# When running /enchants with an item in hand, EPS will look through all GUIs defined in this YAML configuration.
+# If the item matches one of the items listed in one of the GUIs, it will show an enchant GUI with the listed enchants.
+#
+# IMPORTANT NOTE: This configuration file also serves as a method to decide whether an item can be enchanted with a
+# custom enchant. Even if you do not want to use the built-in enchant GUI, you may still write in this file to define
+# where enchants can be applied to for compatibility with other plugins.
+
 guis:
    examplegui:
       enchants:
