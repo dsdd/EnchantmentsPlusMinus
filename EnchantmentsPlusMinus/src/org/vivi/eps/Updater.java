@@ -48,6 +48,15 @@ public class Updater
 		EPS.configFile.supersedePath("miningtokens", "mining-reward");
 		EPS.configFile.supersedePath("custom-lore-color", "enchant-specific-lore-color");
 		EPS.languageFile.supersedePath("upgradedpickaxe", "upgraded-item");
+		EPS.configFile.supersedePath("open-enchant-gui-on-right-click", "enchant-gui-shortcut.on-right-click");
+		EPS.configFile.set("enchant-gui-shortcut.disable-if-holding", new ArrayList<String>(Arrays.asList(new String[] {
+				"BOW", "CROSSBOW", "FISHING_ROD", "SHIELD", "WOODEN_HOE", "WOOD_HOE", "STONE_HOE", "IRON_HOE",
+				"GOLDEN_HOE", "GOLD_HOE", "DIAMOND_HOE", "NETHERITE_HOE", "LEATHER_HELMET", "CHAILMAIL_HELMET",
+				"IRON_HELMET", "GOLDEN_HELMET", "GOLD_HELMET", "DIAMOND_HELMET", "NETHERITE_HELMET", "TURTLE_HELMET",
+				"LEATHER_CHESTPLATE", "CHAILMAIL_CHESTPLATE", "IRON_CHESTPLATE", "GOLDEN_CHESTPLATE", "GOLD_CHESTPLATE",
+				"DIAMOND_CHESTPLATE", "NETHERITE_CHESTPLATE", "LEATHER_LEGGINGS", "CHAILMAIL_LEGGINGS", "IRON_LEGGINGS",
+				"GOLDEN_LEGGINGS", "GOLD_LEGGINGS", "DIAMOND_LEGGINGS", "NETHERITE_LEGGINGS", "LEATHER_BOOTS",
+				"CHAILMAIL_BOOTS", "IRON_BOOTS", "GOLDEN_BOOTS", "GOLD_BOOTS", "DIAMOND_BOOTS", "NETHERITE_BOOTS" })));
 
 		if (EPS.configFile.contains("global-cost-type"))
 		{

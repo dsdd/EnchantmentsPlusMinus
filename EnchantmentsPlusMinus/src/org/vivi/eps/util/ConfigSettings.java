@@ -19,7 +19,6 @@ public class ConfigSettings implements Reloadable
 	private static boolean showEnchantDescriptions = true;
 	private static boolean abbreviateLargeNumbers = true;
 	private static boolean useRomanNumerals = false;
-	private static boolean openEnchantGuiOnRightClick = true;
 	private static boolean anvilCombiningEnabled = true;
 	private static boolean useVaultEconomy = true;
 	private static boolean useActionBar = true;
@@ -40,6 +39,8 @@ public class ConfigSettings implements Reloadable
 	private static Map<String, String> enchantSpecificLoreColors = new HashMap<String, String>();
 	private static List<Material> loreExemptions = new ArrayList<Material>();
 	private static List<String> disabledEnchants = new ArrayList<String>();
+	private static boolean enchantGuiOnRightClick = true;
+	private static List<Material> enchantGuiDisableIfHolding = new ArrayList<Material>();
 
 	@Override
 	public void reload()
@@ -49,7 +50,6 @@ public class ConfigSettings implements Reloadable
 		showEnchantDescriptions = EPS.configFile.getBoolean("show-enchant-descriptions");
 		abbreviateLargeNumbers = EPS.configFile.getBoolean("abbreviate-large-numbers");
 		useRomanNumerals = EPS.configFile.getBoolean("use-roman-numerals");
-		openEnchantGuiOnRightClick = EPS.configFile.getBoolean("open-enchant-gui-on-right-click");
 		anvilCombiningEnabled = EPS.configFile.getBoolean("anvil-combining-enabled");
 		useVaultEconomy = EPS.configFile.getBoolean("use-vault-economyy");
 		useActionBar = EPS.configFile.getBoolean("use-action-bar-instead-of-chat-when-inventory-full");
@@ -67,6 +67,8 @@ public class ConfigSettings implements Reloadable
 		miningRewardMin = EPS.configFile.getDouble("mining-reward.min");
 		miningRewardMax = EPS.configFile.getDouble("mining-reward.max");
 		miningRewardBlocksToBreak = EPS.configFile.getInt("mining-reward.blockstobreak");
+		enchantGuiOnRightClick = EPS.configFile.getBoolean("enchant-gui-shortcut.on-right-click");
+		enchantGuiDisableIfHolding = EPS.configFile.getMaterialListBySekai("enchant-gui-shortcut.disable-if-holding");
 
 		ConfigurationSection enchantSpecificLoreColors = EPS.configFile
 				.getConfigurationSection("enchant-specific-lore-color");
@@ -100,11 +102,6 @@ public class ConfigSettings implements Reloadable
 	public static boolean isUseRomanNumerals()
 	{
 		return useRomanNumerals;
-	}
-
-	public static boolean isOpenEnchantGuiOnRightClick()
-	{
-		return openEnchantGuiOnRightClick;
 	}
 
 	public static boolean isAnvilCombiningEnabled()
@@ -196,15 +193,24 @@ public class ConfigSettings implements Reloadable
 	{
 		return enchantSpecificLoreColors;
 	}
+	
+	public static List<Material> getLoreExemptions()
+	{
+		return loreExemptions;
+	}
 
 	public static List<String> getDisabledEnchants()
 	{
 		return disabledEnchants;
 	}
 
-	public static List<Material> getLoreExemptions()
+	public static boolean isEnchantGuiOnRightClick()
 	{
-		return loreExemptions;
+		return enchantGuiOnRightClick;
 	}
 
+	public static List<Material> getEnchantGuiDisableIfHolding()
+	{
+		return enchantGuiDisableIfHolding;
+	}
 }

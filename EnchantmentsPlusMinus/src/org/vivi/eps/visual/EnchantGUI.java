@@ -2,10 +2,8 @@ package org.vivi.eps.visual;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -33,6 +31,7 @@ import org.vivi.eps.EPS;
 import org.vivi.eps.EPS.EnchantMetaWriter;
 import org.vivi.eps.api.EnchantFile;
 import org.vivi.eps.api.Reloadable;
+import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Language;
 import org.vivi.sekai.Sekai;
 import org.vivi.sekai.enchantment.EnchantmentInfo;
@@ -44,10 +43,6 @@ public class EnchantGUI implements Listener, Reloadable
 
 	public static Map<Player, Inventory> GUIs = new HashMap<Player, Inventory>();
 	public static Map<Player, String> guiNames = new HashMap<Player, String>();
-	private static final Set<Material> HOES = new HashSet<Material>(Arrays.asList(new Material[] {
-			Material.matchMaterial("WOODEN_HOE"), Material.matchMaterial("WOOD_HOE"), Material.STONE_HOE,
-			Material.IRON_HOE, Material.matchMaterial("GOLDEN_HOE"), Material.matchMaterial("GOLD_HOE"),
-			Material.DIAMOND_HOE, Material.matchMaterial("NETHERITE_HOE") }));
 	private static List<Player> disabled = new ArrayList<Player>();
 	private static Player modifying = null;
 	private static Enchantment enchantToMove = null;
@@ -366,11 +361,9 @@ public class EnchantGUI implements Listener, Reloadable
 		{
 			if (e.getPlayer().isSneaking())
 				return;
-			PlayerInventory inv = e.getPlayer().getInventory();
-			Material m = inv.getItemInMainHand().getType();
-			if (m.equals(Material.BOW) || m.equals(Material.matchMaterial("CROSSBOW"))
-					|| inv.getItemInOffHand().getType().equals(Material.SHIELD) || HOES.contains(m)
-					|| m.equals(Material.FISHING_ROD) || (Sekai.getMCVersion() > 11 && e.getClickedBlock() != null
+			PlayerInventory inventory = e.getPlayer().getInventory();
+			if (ConfigSettings.getEnchantGuiDisableIfHolding().contains(inventory.getItemInMainHand().getType())
+					|| (Sekai.getMCVersion() > 11 && e.getClickedBlock() != null
 							&& e.getClickedBlock().getType().isInteractable()))
 				return;
 			if (EPS.configFile.yaml.getBoolean("open-enchant-gui-on-right-click") == true)
