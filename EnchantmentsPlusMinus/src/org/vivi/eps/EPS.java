@@ -59,7 +59,7 @@ public class EPS extends JavaPlugin implements Reloadable
 	public static YamlFile<YamlConfiguration> oldEnchantNamesFile;
 	public static Map<Enchantment, EnchantFile> enchantmentFilesMap = new HashMap<Enchantment, EnchantFile>();
 	public static Set<Set<Enchantment>> incompatibilities = new HashSet<Set<Enchantment>>();
-	public static Map<List<Material>, String> guis = new HashMap<List<Material>, String>();
+	public static Map<Set<Material>, List<Enchantment>> guis = new HashMap<Set<Material>, List<Enchantment>>();
 	public static Map<Integer, Double> globalCostsMap = new HashMap<Integer, Double>();
 	public static Logger logger;
 
@@ -320,13 +320,18 @@ public class EPS extends JavaPlugin implements Reloadable
 			{
 				ConfigurationSection configurationSection = (ConfigurationSection) entry.getValue();
 
-				List<Material> materials = new ArrayList<Material>();
+				Set<Material> materials = new HashSet<Material>();
 				for (String materialName : configurationSection.getStringList("items"))
 					if (Material.matchMaterial(materialName) != null)
 						materials.add(Material.matchMaterial(materialName));
+				
+				List<Enchantment> enchants = new ArrayList<Enchantment>();
+				for (String enchantKey : configurationSection.getStringList("enchants"))
+					if (EnchantmentInfo.getEnchantByKey(enchantKey) != null)
+						enchants.add(EnchantmentInfo.getEnchantByKey(enchantKey));
 
 				if (!materials.isEmpty())
-					guis.put(materials, entry.getKey());
+					guis.put(materials, enchants);
 			}
 
 		Commands.playerOnlyMessage = Language.getLangMessage("invalidplayertype");

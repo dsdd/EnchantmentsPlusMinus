@@ -42,7 +42,7 @@ public class EnchantGUI implements Listener, Reloadable
 {
 
 	public static Map<Player, Inventory> GUIs = new HashMap<Player, Inventory>();
-	public static Map<Player, String> guiNames = new HashMap<Player, String>();
+	public static Map<Player, List<Enchantment>> cachedOpenGUIs = new HashMap<Player, List<Enchantment>>();
 	private static List<Player> disabled = new ArrayList<Player>();
 	private static Player modifying = null;
 	private static Enchantment enchantToMove = null;
@@ -68,11 +68,11 @@ public class EnchantGUI implements Listener, Reloadable
 				Bukkit.createInventory(player, 36, Language.getLangMessage("enchants-gui-label", false)))
 				.constructBorder(fillerItemStack).toInventory();
 		GUIs.put(player, inventory);
-		guiNames.put(player, "null");
+		cachedOpenGUIs.put(player, new ArrayList<Enchantment>());
 		return inventory;
 	}
 
-	public static void openInventory(Player player, String name)
+	public static void openInventory(Player player, List<Enchantment> enchants)
 	{
 		if (disabled.contains(player))
 		{
@@ -82,20 +82,20 @@ public class EnchantGUI implements Listener, Reloadable
 		if (modifying == player)
 			modifying = null;
 		enchantToMove = null;
-		guiNames.put(player, name);
+		cachedOpenGUIs.put(player, enchants);
 		Inventory inventory = GUIs.get(player);
 		if (inventory == null)
 			inventory = setupGUI(player);
 
 		player.openInventory(inventory);
-		loadInventory(player, name);
+		loadInventory(player);
 
 	}
 
-	public static void loadInventory(Player player, String guiToOpen)
+	public static void loadInventory(Player player)
 	{
 		Inventory inventory = new GUIBuilder(GUIs.get(player)).clear().constructBorder(fillerItemStack).toInventory();
-		List<Enchantment> enchants = EPS.guisFile.getEnchantmentListBySekai("guis." + guiToOpen + ".enchants");
+		List<Enchantment> enchants = cachedOpenGUIs.get(player);
 		if (enchants.size() > 14)
 		{
 			inventory.setItem(17, nextPageItemStack);
@@ -126,13 +126,15 @@ public class EnchantGUI implements Listener, Reloadable
 	 * 
 	 * @param player      The player to show the GUI to (assuming their enchants GUI
 	 *                    is open in the first place)
-	 * @param enchantList The list of enchants to cycle through
+	 * @param enchants The list of enchants to cycle through
 	 */
-	private static void nextPage(Player player, List<Enchantment> enchantList)
+	private static void nextPage(Player player)
 	{
 		Inventory inventory = GUIs.get(player);
+		List<Enchantment> enchants = cachedOpenGUIs.get(player);
+		
 		ItemStack nextPage = inventory.getItem(17);
-		if (nextPage.getAmount() * 14 > enchantList.size())
+		if (nextPage.getAmount() * 14 > enchants.size())
 			nextPage.setAmount(1);
 		else
 			nextPage.setAmount(nextPage.getAmount() + 1);
@@ -149,8 +151,8 @@ public class EnchantGUI implements Listener, Reloadable
 			ItemStack i = modifyGuiItemStack.clone();
 			inventory.setItem(8, i);
 		}
-		for (int i = nextPage.getAmount() * 14 - 14; i < enchantList.size(); i++)
-			put(player, inventory, enchantList.get(i));
+		for (int i = nextPage.getAmount() * 14 - 14; i < enchants.size(); i++)
+			put(player, inventory, enchants.get(i));
 		inventory.setItem(17, nextPage);
 		inventory.setItem(26, nextPage);
 
@@ -249,11 +251,9 @@ public class EnchantGUI implements Listener, Reloadable
 		e.setCancelled(true);
 
 		String displayName = clickedItem.getItemMeta().getDisplayName();
-		List<Enchantment> enchants = EPS.guisFile
-				.getEnchantmentListBySekai("guis." + guiNames.get(player) + ".enchants");
 		if (displayName.equals(nextPageName))
 		{
-			nextPage(player, enchants);
+			nextPage(player);
 			return;
 		} else if (displayName.equals(modifyGuiToggleLabel))
 		{
@@ -270,7 +270,7 @@ public class EnchantGUI implements Listener, Reloadable
 
 			if (modifying == player)
 			{
-				String path = "guis." + guiNames.get(player) + ".enchants";
+				String path = "guis." + cachedOpenGUIs.get(player) + ".enchants";
 				List<String> list = EPS.guisFile.getStringList(path);
 
 				if (e.isRightClick())
@@ -302,9 +302,9 @@ public class EnchantGUI implements Listener, Reloadable
 				}
 			} else
 				upgradeItemInMainHand(player, enchant, e.isLeftClick() ? 1 : (e.isShiftClick() ? 50 : 5));
-			loadInventory(player, guiNames.get(player));
+			loadInventory(player);
 			for (int i = 1; i < pageNumber; i++)
-				nextPage(player, enchants);
+				nextPage(player);
 		} catch (NoSuchElementException e1)
 		{
 		}
@@ -366,7 +366,7 @@ public class EnchantGUI implements Listener, Reloadable
 					|| (Sekai.getMCVersion() > 11 && e.getClickedBlock() != null
 							&& e.getClickedBlock().getType().isInteractable()))
 				return;
-			if (EPS.configFile.yaml.getBoolean("open-enchant-gui-on-right-click") == true)
+			if (ConfigSettings.isEnchantGuiOnRightClick())
 				Sekai.getCommandProxy().onCommand(e.getPlayer(), Bukkit.getPluginCommand("enchants"), "enchants",
 						new String[] { "dontshow" });
 		}

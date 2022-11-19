@@ -435,11 +435,15 @@ public class EnchantProcessor implements Listener, Reloadable
 	{
 		if (e.getEntity().getKiller() == null)
 			return;
-		final ItemStack item = e.getEntity().getKiller().getInventory().getItemInMainHand();
-		final ItemMeta meta = item.getItemMeta();
-		if (meta.hasEnchant(CustomEnchants.BEHEADING))
+		ItemStack itemStack = e.getEntity().getKiller().getInventory().getItemInMainHand();
+		if (itemStack == null)
+			return;
+		ItemMeta itemMeta = itemStack.getItemMeta();
+		if (itemMeta == null)
+			return;
+		if (itemMeta.hasEnchant(CustomEnchants.BEHEADING))
 		{
-			final int enchlvl = meta.getEnchantLevel(CustomEnchants.BEHEADING);
+			final int enchlvl = itemMeta.getEnchantLevel(CustomEnchants.BEHEADING);
 			final double chance = CustomEnchants.beheadingConfig.getAutofilledInt(enchlvl, "mob-chance");
 			if (getNext() <= chance)
 			{
@@ -608,7 +612,10 @@ public class EnchantProcessor implements Listener, Reloadable
 	@EventHandler
 	public void onPlayerRespawn(final PlayerRespawnEvent e)
 	{
-		for (final ItemStack i : itemsToKeep.get(e.getPlayer()))
+		List<ItemStack> drops = itemsToKeep.get(e.getPlayer());
+		if (drops == null)
+			return;
+		for (ItemStack i : drops)
 			e.getPlayer().getInventory().addItem(i);
 		itemsToKeep.put(e.getPlayer(), new ArrayList<ItemStack>());
 	}

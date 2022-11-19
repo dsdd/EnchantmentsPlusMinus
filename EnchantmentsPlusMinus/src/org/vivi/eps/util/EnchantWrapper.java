@@ -1,7 +1,10 @@
 package org.vivi.eps.util;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
@@ -21,7 +24,7 @@ public class EnchantWrapper extends Enchantment
 	@Override
 	public boolean canEnchantItem(ItemStack item)
 	{
-		return true;
+		return canEnchantItem(this, item);
 	}
 
 	@Override
@@ -61,6 +64,18 @@ public class EnchantWrapper extends Enchantment
 
 	public boolean isTreasure()
 	{
+		return false;
+	}
+	
+	private static boolean canEnchantItem(Enchantment enchant, ItemStack itemStack)
+	{
+		for (Map.Entry<Set<Material>, List<Enchantment>> entry : EPS.guis.entrySet())
+			if (entry.getKey().contains(itemStack.getType()))
+			{
+				for (Enchantment foundEnchant : entry.getValue())
+					if (enchant.equals(foundEnchant))
+						return true;
+			}
 		return false;
 	}
 
@@ -125,7 +140,7 @@ public class EnchantWrapper extends Enchantment
 
 		public boolean canEnchantItem(ItemStack item)
 		{
-			return false;
+			return EnchantWrapper.canEnchantItem(this, item);
 		}
 
 		private static Integer convertLetters(String s)

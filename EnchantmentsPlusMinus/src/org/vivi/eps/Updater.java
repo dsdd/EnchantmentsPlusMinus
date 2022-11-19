@@ -48,7 +48,8 @@ public class Updater
 		EPS.configFile.supersedePath("miningtokens", "mining-reward");
 		EPS.configFile.supersedePath("custom-lore-color", "enchant-specific-lore-color");
 		EPS.languageFile.supersedePath("upgradedpickaxe", "upgraded-item");
-		EPS.configFile.supersedePath("open-enchant-gui-on-right-click", "enchant-gui-shortcut.on-right-click");
+		EPS.configFile.set("enchant-gui-shortcut.on-right-click", EPS.configFile.getBoolean("open-enchant-gui-on-right-click", true));
+		EPS.configFile.set("open-enchant-gui-on-right-click", null);
 		EPS.configFile.set("enchant-gui-shortcut.disable-if-holding", new ArrayList<String>(Arrays.asList(new String[] {
 				"BOW", "CROSSBOW", "FISHING_ROD", "SHIELD", "WOODEN_HOE", "WOOD_HOE", "STONE_HOE", "IRON_HOE",
 				"GOLDEN_HOE", "GOLD_HOE", "DIAMOND_HOE", "NETHERITE_HOE", "LEATHER_HELMET", "CHAILMAIL_HELMET",

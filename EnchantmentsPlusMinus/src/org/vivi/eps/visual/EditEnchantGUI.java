@@ -95,7 +95,7 @@ public class EditEnchantGUI implements Listener
 					@Override
 					public void run()
 					{
-						EnchantGUI.openInventory(player, EnchantGUI.guiNames.get(player));
+						EnchantGUI.openInventory(player, EnchantGUI.cachedOpenGUIs.get(player));
 					}
 				});
 			}

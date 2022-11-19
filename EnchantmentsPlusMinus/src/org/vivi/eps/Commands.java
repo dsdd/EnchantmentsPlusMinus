@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -239,7 +240,7 @@ public class Commands
 
 			for (int i = 0; i < EPS.guis.size(); i++)
 			{
-				for (Map.Entry<List<Material>, String> entry : EPS.guis.entrySet())
+				for (Map.Entry<Set<Material>, List<Enchantment>> entry : EPS.guis.entrySet())
 					if (entry.getKey().contains(player.getInventory().getItemInMainHand().getType()))
 					{
 						Language.sendMessage(sender, "openenchantsgui");

@@ -40,12 +40,18 @@ public class EnchantFile extends YamlFile<YamlConfiguration>
 	public void loadYaml(YamlConfiguration configurationToLoad)
 	{
 		super.loadYaml(configurationToLoad);
-		enchantName = isSet("name") ? getString("name") : null;
-		maxLevel = isSet("maxlevel") ? getInt("maxlevel") : null;
-		scrapValue = isSet("scrapvalue") ? getInt("scrapvalue") : null;
-		upgradeIcon = getMaterialBySekai("upgradeicon");
-		enchantDescription = getString("upgradedesc");
-		costExpression = getString("cost");
+		if (isSet("name"))
+			enchantName = getString("name");
+		if (isSet("maxlevel"))
+			maxLevel = getInt("maxlevel");
+		if (isSet("scrapvalue"))
+			scrapValue = getInt("scrapvalue");
+		if (isSet("upgradeicon"))
+			upgradeIcon = getMaterialBySekai("upgradeicon");
+		if (isSet("upgradedesc"))
+			enchantDescription = getString("upgradedesc");
+		if (isSet("cost"))
+			costExpression = getString("cost");
 		Bukkit.getScheduler().runTaskAsynchronously(EPS.plugin, new Runnable() {
 			@Override
 			public void run()

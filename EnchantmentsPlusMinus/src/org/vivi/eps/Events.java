@@ -3,14 +3,12 @@ package org.vivi.eps;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -152,8 +150,6 @@ public class Events implements Listener, Reloadable
 						return;
 					}
 
-					String enchantKey = EnchantmentInfo.getKey(enchant);
-
 					double amount = Sekai.parseAbbreviated(sign.getLine(2));
 					if (EPS.getEconomy().getBalance(player) < amount)
 					{
@@ -168,23 +164,15 @@ public class Events implements Listener, Reloadable
 						return;
 					}
 
-					for (Map.Entry<List<Material>, String> entry : EPS.guis.entrySet())
-						if (entry.getKey().contains(itemStack.getType()))
-						{
-							for (String foundEnchantKey : EPS.guisFile.getConfigurationSection("guis")
-									.getConfigurationSection(entry.getValue()).getStringList("enchants"))
-								if (foundEnchantKey.equalsIgnoreCase(enchantKey))
-								{
-									EPS.getEconomy().changeBalance(player, -amount);
-									itemStack.addUnsafeEnchantment(enchant, currentEnchantLevel + 1);
-									itemStack.setItemMeta(EnchantMetaWriter.getWrittenMeta(itemStack));
-									player.sendMessage(Language.getLangMessage("upgraded-item")
-											.replaceAll("%enchant%", sign.getLine(1))
-											.replaceAll("%lvl%", Integer.toString(currentEnchantLevel + 1)));
-									break;
-								}
-							break;
-						}
+					if (enchant.canEnchantItem(itemStack))
+					{
+						EPS.getEconomy().changeBalance(player, -amount);
+						itemStack.addUnsafeEnchantment(enchant, currentEnchantLevel + 1);
+						itemStack.setItemMeta(EnchantMetaWriter.getWrittenMeta(itemStack));
+						player.sendMessage(Language.getLangMessage("upgraded-item")
+								.replaceAll("%enchant%", sign.getLine(1))
+								.replaceAll("%lvl%", Integer.toString(currentEnchantLevel + 1)));
+					}
 				}
 			}
 		}
