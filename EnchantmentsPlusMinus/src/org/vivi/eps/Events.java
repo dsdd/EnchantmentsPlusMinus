@@ -364,7 +364,8 @@ public class Events implements Listener, Reloadable
 				EPS.logger.log(Level.FINE, "Clicked Modify GUI");
 				EnchantsGUI.setCurrentlyEditing(player);
 				return;
-			}
+			} else if (e.getClickedInventory() instanceof PlayerInventory)
+				Language.sendMessage(player, enchantsGui.open(clickedItem, 1) ? "openenchantsgui" : "invaliditem");
 
 			try
 			{

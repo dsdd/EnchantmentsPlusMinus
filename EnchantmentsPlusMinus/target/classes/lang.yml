@@ -6,7 +6,7 @@ messages:
    invalidplayertype: '&cThis command can only be executed by a player.'
    invalidplayer: '&cCannot find specified player.'
    reloadconfig: '&aReloaded config!'
-   item-selector-title: 'Select an item to enchant...'
+   item-selector-title: 'Click an item in your inventory to enchant...'
    openenchantsgui: '&2Opening enchants GUI...'
    enchants-gui-label: 'Enchantments'
    invaliditem: '&cThis item cannot be enchanted.'
@@ -75,4 +75,4 @@ modify-gui:
    - '&7Right-Click to remove this enchant'
    - '&7Shift-Left-Click to enable slot movement'
    add-enchant: &aAdd Enchant
-   move-notification: '&aChoose a slot to move this enchant.'
+   move-notification: '&Click an existing slot to move this enchant.'
