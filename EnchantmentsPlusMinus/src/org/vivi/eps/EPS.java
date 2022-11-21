@@ -36,7 +36,6 @@ import org.vivi.eps.util.EnchantWrapper;
 import org.vivi.eps.util.economy.Economy;
 import org.vivi.eps.util.economy.TokenEconomy;
 import org.vivi.eps.util.economy.VaultEconomy;
-import org.vivi.eps.visual.EnchantGUI;
 import org.vivi.epsbuiltin.enchants.BuiltInEnchantsLoader;
 import org.vivi.sekai.Sekai;
 import org.vivi.sekai.dependencies.Metrics;
@@ -70,7 +69,6 @@ public class EPS extends JavaPlugin implements Reloadable
 	private static Updater updater = new Updater();
 	private static Events epsEvents = new Events();
 	private static Enchantment NULL_ENCHANT = null;
-	
 
 	@Override
 	public void onEnable()
@@ -108,19 +106,14 @@ public class EPS extends JavaPlugin implements Reloadable
 			Commands.registerCommands();
 
 			// Load events
-			Bukkit.getPluginManager().registerEvents(new EnchantGUI(), this);
 			Bukkit.getPluginManager().registerEvents(epsEvents, this);
-
 			EPS.registerReloadable(this); // This has to be reloaded first.
-			EPS.registerReloadable(new EnchantGUI());
 
 			configFile.saveYaml();
 			epsEvents.reload();
 			for (Player player : Bukkit.getOnlinePlayers())
-			{
 				epsEvents.onJoin(new PlayerJoinEvent(player, null));
-				EnchantGUI.setupGUI(player);
-			}
+
 
 			// And load in the built-in enchants.
 
@@ -197,10 +190,10 @@ public class EPS extends JavaPlugin implements Reloadable
 	 */
 	public static void reloadConfigs()
 	{
-		for (Reloadable r : Reloadable.CLASSES)
+		for (Reloadable r : Reloadable.INSTANCES)
 			r.reload();
 	}
-	
+
 	/**
 	 * Abbreviates a {@code double} value to a {@code String}
 	 * 
@@ -209,7 +202,8 @@ public class EPS extends JavaPlugin implements Reloadable
 	 */
 	public static String abbreviate(double value)
 	{
-		return ConfigSettings.isAbbreviateLargeNumbers() ? Sekai.abbreviate(value, true) : Double.toString(Math.floor(value*100)/100);
+		return ConfigSettings.isAbbreviateLargeNumbers() ? Sekai.abbreviate(value, true)
+				: Double.toString(Math.floor(value * 100) / 100);
 	}
 
 	@Override
@@ -249,22 +243,20 @@ public class EPS extends JavaPlugin implements Reloadable
 				uuidDataStore.createNewFile();
 			if (!oldEnchantNamesFile.exists())
 				oldEnchantNamesFile.createNewFile();
-		}
-		catch (IOException e)
+		} catch (IOException e)
 		{
 			e.printStackTrace();
-		}	
-		
-			
+		}
+
 		configFile.loadYaml(new YamlConfiguration());
 		languageFile.loadYaml(new YamlConfiguration());
 		incompatibilitiesFile.loadYaml(new YamlConfiguration());
 		guisFile.loadYaml(new YamlConfiguration());
 		uuidDataStore.loadYaml(new YamlConfiguration());
 		oldEnchantNamesFile.loadYaml(new YamlConfiguration());
-		
+
 		oldEnchantNames = new HashSet<String>(oldEnchantNamesFile.getStringList("old-enchant-names"));
-		
+
 		for (Enchantment enchant : Enchantment.values())
 		{
 			EnchantmentInfo enchantmentInfo = EnchantmentInfo.getEnchantmentInfo(enchant);
@@ -278,11 +270,11 @@ public class EPS extends JavaPlugin implements Reloadable
 				enchantmentInfo.name(enchantName);
 				oldEnchantNames.add(enchantName);
 			}
-				
+
 			if (enchantFile.getEnchantDescription() != null)
 				enchantmentInfo.description(enchantFile.getEnchantDescription());
 		}
-		
+
 		oldEnchantNamesFile.set("old-enchant-names", new ArrayList<String>(oldEnchantNames));
 		oldEnchantNamesFile.saveYaml();
 
@@ -324,7 +316,7 @@ public class EPS extends JavaPlugin implements Reloadable
 				for (String materialName : configurationSection.getStringList("items"))
 					if (Material.matchMaterial(materialName) != null)
 						materials.add(Material.matchMaterial(materialName));
-				
+
 				List<Enchantment> enchants = new ArrayList<Enchantment>();
 				for (String enchantKey : configurationSection.getStringList("enchants"))
 					if (EnchantmentInfo.getEnchantByKey(enchantKey) != null)
@@ -336,6 +328,54 @@ public class EPS extends JavaPlugin implements Reloadable
 
 		Commands.playerOnlyMessage = Language.getLangMessage("invalidplayertype");
 		Commands.insufficientPermissionsMessage = Language.getLangMessage("insufficientpermission");
+	}
+
+	public static void purchaseEnchant(Player player, ItemStack itemToEnchant, Enchantment enchant, int levels)
+	{
+		EnchantFile enchantFile = getEnchantFile(enchant);
+		ItemMeta itemMeta = itemToEnchant.getItemMeta();
+		int currentLevel = itemMeta.getEnchantLevel(enchant);
+		int upgradedLevel = currentLevel + levels;
+
+		double cost = getCost(enchant, currentLevel, levels);
+		if (!(upgradedLevel - 1 >= enchantFile.getMaxLevel()) || player.hasPermission("eps.admin.bypassmaxlevel"))
+		{
+			if (!player.hasPermission("eps.admin.bypassincompatibilities"))
+			{
+				for (Set<Enchantment> incompatibleEnchants : incompatibilities)
+				{
+					if (incompatibleEnchants.contains(enchant))
+						for (Enchantment e : incompatibleEnchants)
+							if (e != null)
+								if (itemMeta.hasEnchant(e) && !e.equals(enchant))
+								{
+									Language.sendMessage(player, "lockedupgrade");
+									return;
+								}
+				}
+				
+				if (!enchant.canEnchantItem(itemToEnchant))
+				{
+					Language.sendMessage(player, "lockedupgrade");
+					return;
+				}
+			}
+
+			if (getEconomy().getBalance(player) >= cost)
+			{
+				player.sendMessage(Language.getLangMessage("upgraded-item")
+						.replaceAll("%enchant%", EnchantmentInfo.getName(enchant))
+						.replaceAll("%lvl%", Integer.toString(upgradedLevel)));
+				itemToEnchant.addUnsafeEnchantment(enchant, upgradedLevel);
+				getEconomy().setBalance(player, getEconomy().getBalance(player) - cost);
+				itemToEnchant.setItemMeta(EnchantMetaWriter.getWrittenMeta(itemToEnchant));
+			} else
+				Language.sendMessage(player, "insufficienttokens");
+		} else if ((currentLevel >= enchantFile.getInt("maxlevel")))
+			Language.sendMessage(player, "exceedmaxlvl");
+		else
+			Language.sendMessage(player, "maxedupgrade");
+
 	}
 
 	/**
@@ -499,9 +539,7 @@ public class EPS extends JavaPlugin implements Reloadable
 					for (int i = 0; i <= (description.length() / 90); i++)
 					{
 						String str = ChatColor.GRAY + description.substring(45 * i,
-								45 * i + 45 > description.length()
-										? description.length()
-										: 45 * i + 45);
+								45 * i + 45 > description.length() ? description.length() : 45 * i + 45);
 						add(str);
 						allDescriptionLines.add(str);
 					}
@@ -525,16 +563,16 @@ public class EPS extends JavaPlugin implements Reloadable
 		{
 			return true;
 		}
-		
+
 		@Override
 		public boolean register()
 		{
 			boolean result = super.register();
 			if (result)
-				logger.log(Level.INFO, "Added EPS PlaceholderExpansion: "+getIdentifier());
+				logger.log(Level.INFO, "Added EPS PlaceholderExpansion: " + getIdentifier());
 			return result;
 		}
-		
+
 		@Override
 		public String getAuthor()
 		{
@@ -562,14 +600,15 @@ public class EPS extends JavaPlugin implements Reloadable
 		@Override
 		public String onPlaceholderRequest(Player p, String identifier)
 		{
-			return identifier.equals("tokens") ? Double.toString(EPS.getEconomy().getBalance(p)) : null;
+			return identifier.equals("tokens") ? Double.toString(EPS.getEconomy().getBalance(p))
+					: (identifier.equals("tokens_formatted") ? EPS.abbreviate(EPS.getEconomy().getBalance(p)) : null);
 		}
 	}
-	
+
 	public static class EnchantMetaWriter
 	{
 		private static final String NEW_LINE_PLACEHOLDER = ChatColor.BLACK + "-";
-		
+
 		private static List<String> getWrittenEnchantLore(ItemStack item)
 		{
 			ItemMeta meta = item.getItemMeta();
@@ -606,7 +645,8 @@ public class EPS extends JavaPlugin implements Reloadable
 					if (ConfigSettings.isShowEnchantDescriptions())
 					{
 						@SuppressWarnings("unchecked")
-						List<String> enchantDescriptionLines = (List<String>) EPS.getEnchantDescriptionLines(entry.getKey()).clone();
+						List<String> enchantDescriptionLines = (List<String>) EPS
+								.getEnchantDescriptionLines(entry.getKey()).clone();
 						for (int i = enchantDescriptionLines.size() - 1; i > -1; i--)
 							if (enchantDescriptionLines.get(i) != "")
 								list.add(0, enchantDescriptionLines.get(i));
@@ -640,7 +680,7 @@ public class EPS extends JavaPlugin implements Reloadable
 				}
 			return meta;
 		}
-		
+
 		public static String getLevelLabel(int level)
 		{
 			return ConfigSettings.isUseRomanNumerals() ? Sekai.getRomanNumeral(level) : Integer.toString(level);

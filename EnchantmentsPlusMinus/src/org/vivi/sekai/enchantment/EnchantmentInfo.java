@@ -194,12 +194,12 @@ public class EnchantmentInfo
 		this.defaultDescription = defaultDescription;
 		return this;
 	}
-	
+
 	public String getName()
 	{
 		return name == null ? defaultName : name;
 	}
-	
+
 	public String getDescription()
 	{
 		return description == null ? defaultDescription : description;
@@ -255,6 +255,36 @@ public class EnchantmentInfo
 					|| (enchantmentInfo.name != null && enchantmentInfo.name.equalsIgnoreCase(name)))
 				return enchantmentInfo.enchantment;
 		return null;
+	}
+
+	/**
+	 * Converts a {@code List} of {@code Enchantment} into a {@code List} of their
+	 * respective namespace keys.
+	 * 
+	 * @param enchants Enchants to convert
+	 * @return Requested {@code List} of {@code String}
+	 */
+	public static List<String> enchantListToString(List<Enchantment> enchants)
+	{
+		List<String> enchantKeys = new ArrayList<String>();
+		for (Enchantment enchant : enchants)
+			enchantKeys.add(getKey(enchant));
+		return enchantKeys;
+	}
+	
+	/**
+	 * Converts a {@code List} of {@code Enchantment} namespace keys into a {@code List} of their
+	 * respective {@code Enchantment}s.
+	 * 
+	 * @param enchantKeys Enchant keys to convert
+	 * @return Requested {@code List} of {@code Enchantment}
+	 */
+	public static List<Enchantment> parseEnchantKeys(List<String> enchantKeys)
+	{
+		List<Enchantment> enchants = new ArrayList<Enchantment>();
+		for (String enchantKey : enchantKeys)
+			enchants.add(getEnchantByKey(enchantKey));
+		return enchants;
 	}
 
 }

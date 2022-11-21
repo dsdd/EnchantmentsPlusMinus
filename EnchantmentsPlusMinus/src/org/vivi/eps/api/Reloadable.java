@@ -5,11 +5,11 @@ import java.util.List;
 
 public interface Reloadable {
 
-	static List<Reloadable> CLASSES = new ArrayList<Reloadable>();
+	static List<Reloadable> INSTANCES = new ArrayList<Reloadable>();
 	
 	static void addReloadable(Reloadable r)
 	{
-		CLASSES.add(r);
+		INSTANCES.add(r);
 	}
 	
 	/**

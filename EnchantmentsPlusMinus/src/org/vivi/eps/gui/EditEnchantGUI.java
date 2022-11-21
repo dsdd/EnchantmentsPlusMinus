@@ -1,4 +1,4 @@
-package org.vivi.eps.visual;
+package org.vivi.eps.gui;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -26,19 +26,24 @@ import org.vivi.sekai.inventory.GUIHolder;
 
 public class EditEnchantGUI implements Listener
 {
+	private static Inventory inventory = null;
+	private static Enchantment enchant = null;
+	private static String key = null;
+	private static boolean editing = false;
 
-	private Inventory inventory = null;
-	private Player player = null;
-	private boolean editing = false;
-	private String key = null;
-	private EnchantFile currentEnchantFile = null;
+	private static EditEnchantGUI editEnchantGui = null;
 
-	public EditEnchantGUI(Player player, Enchantment enchant)
+	private EditEnchantGUI()
 	{
 		Bukkit.getPluginManager().registerEvents(this, EPS.plugin);
-		this.player = player;
-		currentEnchantFile = EPS.getEnchantFile(enchant);
-		Map<String, Object> entries = currentEnchantFile.getValues(true);
+	}
+
+	public static void open(Enchantment enchant)
+	{
+		if (editEnchantGui == null)
+			editEnchantGui = new EditEnchantGUI();
+		EditEnchantGUI.enchant = enchant;
+		Map<String, Object> entries = EPS.getEnchantFile(enchant).getValues(true);
 		int size = (int) (Math.ceil((double) entries.size() / 9) * 9);
 		inventory = Bukkit.createInventory(new GUIHolder(), size,
 				"Modifying " + EnchantmentInfo.getKey(enchant).toUpperCase() + "...");
@@ -54,7 +59,7 @@ public class EditEnchantGUI implements Listener
 			itemStack.setItemMeta(itemMeta);
 			inventory.addItem(itemStack);
 		}
-		player.openInventory(inventory);
+		EnchantsGUI.getCurrentlyEditing().openInventory(inventory);
 	}
 
 	@EventHandler
@@ -71,31 +76,35 @@ public class EditEnchantGUI implements Listener
 		if (clickedItem == null || clickedItem.getType() == Material.AIR)
 			return;
 
-		player.closeInventory();
+		EnchantsGUI.getCurrentlyEditing().closeInventory();
 		key = clickedItem.getItemMeta().getDisplayName().substring(4);
-		player.sendMessage(Language.getLangMessage("modifying-config").replace("%entry%", key));
+		EnchantsGUI.getCurrentlyEditing()
+				.sendMessage(Language.getLangMessage("modifying-config").replace("%entry%", key));
 		editing = true;
 	}
 
 	@EventHandler
 	public void onChat(AsyncPlayerChatEvent e)
 	{
+		Player player = EnchantsGUI.getCurrentlyEditing();
 		if (e.getPlayer() == player && editing)
 		{
 			e.setCancelled(true);
 			if (!e.getMessage().equals("cancel")) // Not using ignore case just in case :O
 			{
-				currentEnchantFile.set(key, parse(e.getMessage()));
-				currentEnchantFile.saveYaml();
+				EnchantFile enchantFile = EPS.getEnchantFile(enchant);
+				enchantFile.set(key, parse(e.getMessage()));
+				enchantFile.saveYaml();
 				EPS.reloadConfigs();
 				Language.sendMessage(player, "modified-config");
 				EPS.logger.log(Level.INFO, "Player " + player.getName() + " changed " + key + " in "
-						+ currentEnchantFile.getPath() + " to " + e.getMessage());
+						+ enchantFile.getPath() + " to " + e.getMessage());
 				Bukkit.getScheduler().runTask(EPS.plugin, new Runnable() {
 					@Override
 					public void run()
 					{
-						EnchantGUI.openInventory(player, EnchantGUI.cachedOpenGUIs.get(player));
+						EnchantsGUI.get(player).refresh();
+						;
 					}
 				});
 			}

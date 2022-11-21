@@ -4,15 +4,13 @@ import java.io.File;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
@@ -23,10 +21,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.vivi.eps.EPS.EnchantMetaWriter;
 import org.vivi.eps.api.EPSPlayerData;
+import org.vivi.eps.gui.EnchantsGUI;
 import org.vivi.eps.items.CustomEnchantedBook;
 import org.vivi.eps.items.TokenPouch;
 import org.vivi.eps.util.Language;
-import org.vivi.eps.visual.EnchantGUI;
 import org.vivi.sekai.CommandProxy.CommandOptions;
 import org.vivi.sekai.Sekai;
 import org.vivi.sekai.enchantment.EnchantmentInfo;
@@ -50,6 +48,9 @@ public class Commands
 			"eps.admin", Sekai.convertListToString(EPS.languageFile.getStringList("eps-command-usage")),
 			insufficientPermissionsMessage)
 			.argument("reload",
+					new CommandOptions(false, false, 0, 0, null, null, "eps.admin.reload", null,
+							insufficientPermissionsMessage))
+			.argument("debug",
 					new CommandOptions(false, false, 0, 0, null, null, "eps.admin.reload", null,
 							insufficientPermissionsMessage))
 			.argument("setbal",
@@ -77,12 +78,12 @@ public class Commands
 
 	public static final CommandOptions ENCHANTS_COMMAND_OPTIONS = new CommandOptions(true, false, 0, 0,
 			playerOnlyMessage, null, "eps.enchants", null, insufficientPermissionsMessage);
-	
+
 	public static final CommandOptions PAYTOKENS_COMMAND_OPTIONS = new CommandOptions(true, false, 2, 0,
 			playerOnlyMessage, null, "eps.paytokens",
 			ChatColor.translateAlternateColorCodes('&', "&cUsage: /paytokens [player] [amount]"),
 			insufficientPermissionsMessage);
-	
+
 	public static final CommandOptions SCRAP_COMMAND_OPTIONS = new CommandOptions(true, false, 0, 0, playerOnlyMessage,
 			null, "eps.scrap", null, insufficientPermissionsMessage);
 
@@ -102,7 +103,17 @@ public class Commands
 			{
 				EPS.reloadConfigs();
 				Language.sendMessage(sender, "reloadconfig");
-			} else if (args[0].equalsIgnoreCase("setbal"))
+			} else if (args[0].equalsIgnoreCase("debug"))
+				if (EPS.logger.getLevel() == null)
+				{
+					EPS.logger.setLevel(Level.FINER);
+					EPS.logger.log(Level.INFO, "Enabled debug mode");
+				} else
+				{
+					EPS.logger.setLevel(null);
+					EPS.logger.log(Level.INFO, "Disabled debug mode");
+				}
+			else if (args[0].equalsIgnoreCase("setbal"))
 			{
 
 				if (!setBalance(args[1], args[2]))
@@ -238,26 +249,18 @@ public class Commands
 
 			Player player = (Player) sender;
 
-			for (int i = 0; i < EPS.guis.size(); i++)
-			{
-				for (Map.Entry<Set<Material>, List<Enchantment>> entry : EPS.guis.entrySet())
-					if (entry.getKey().contains(player.getInventory().getItemInMainHand().getType()))
-					{
-						Language.sendMessage(sender, "openenchantsgui");
-						EnchantGUI.openInventory(player, entry.getValue());
-						return true;
-					}
-			}
-			if (args.length > 0)
-			{
-				if (args[0] != "dontshow")
-					Language.sendMessage(sender, "invaliditem");
-			} else
-			{
-				Language.sendMessage(sender, "invaliditem");
-			}
+			boolean success = EnchantsGUI.get(player).open(player.getInventory().getItemInMainHand(), 1);
 
-			return false;
+			if (args.length < 1 || !args[0].equalsIgnoreCase("dontshow"))
+				if (success)
+					Language.sendMessage(sender, "openenchantsgui");
+				else
+				{
+					EPS.logger.log(Level.FINE, "Opened item selector GUI");
+					player.openInventory(EnchantsGUI.itemSelectorInventory);
+				}
+
+			return true;
 		}
 	};
 

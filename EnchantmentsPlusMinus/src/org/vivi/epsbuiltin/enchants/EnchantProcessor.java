@@ -63,10 +63,10 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import org.vivi.eps.EPS;
 import org.vivi.eps.api.Reloadable;
+import org.vivi.eps.gui.EnchantsGUI;
 import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Language;
 import org.vivi.eps.util.economy.Economy;
-import org.vivi.eps.visual.EnchantGUI;
 import org.vivi.sekai.PlayerKeeper.PlayerStopwatch;
 import org.vivi.sekai.PlayerAttributes;
 import org.vivi.sekai.Sekai;
@@ -548,7 +548,7 @@ public class EnchantProcessor implements Listener, Reloadable
 					PlayerStopwatch.log(player, CustomEnchants.BOOSTED, System.currentTimeMillis());
 					PlayerAttributes.addAttribute(player, CustomEnchants.BOOSTED);
 					Language.sendMessage(player, "boosted-activate");
-					EnchantGUI.setOpenable(player, false);
+					EnchantsGUI.get(player).setOpenable(false);
 					final int duration = CustomEnchants.boostedConfig.getAutofilledInt(enchlvl, "duration-seconds");
 					Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(EPS.plugin, new Runnable() {
 						public void run()

@@ -89,6 +89,7 @@ public class Updater
 		Language.setDefaultLangMessage("enchant-sign-success", "&1[Enchant]");
 		Language.setDefaultLangMessage("enchant-sign-failure", "&4[Enchant]");
 		Language.setDefaultLangMessage("enchants-gui-label", "Enchantments");
+		Language.setDefaultLangMessage("item-selector-title", "Select an item to enchant...");
 		EPS.languageFile.addDefault("modify-gui.toggle-label", "&aModify GUI - Admin Only");
 		EPS.languageFile.addDefault("modify-gui.modify-enchant-lore",
 				new ArrayList<String>(Arrays.asList(new String[] { "&7Left-Click to edit this enchant",

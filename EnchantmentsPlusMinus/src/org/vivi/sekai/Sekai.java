@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -121,7 +122,7 @@ public class Sekai
 
 	public static boolean isSameInventory(Inventory first, Inventory second)
 	{
-		if (first == null && second == null)
+		if (first == second)
 			return true;
 		if ((first == null && second != null) || (first != null && second == null))
 			return false;
@@ -298,6 +299,24 @@ public class Sekai
 		for (String line : list)
 			epsUsageStringBuilder.append(ChatColor.translateAlternateColorCodes('&', line)).append("\n");
 		return epsUsageStringBuilder.toString();
+	}
+	
+	/**
+     * Translates a {@code List} of string using an alternate color code character into a
+     * string that uses the internal ChatColor.COLOR_CODE color code
+     * character. The alternate color code character will only be replaced if
+     * it is immediately followed by 0-9, A-F, a-f, K-O, k-o, R or r.
+     *
+     * @param altColorChar The alternate color code character to replace. Ex: {@literal &}
+     * @param linesToTranslate Text containing the alternate color code character.
+     * @return Text containing the ChatColor.COLOR_CODE color code character.
+     */
+	public static List<String> translateAlternateColorCodes(char altColorChar, List<String> linesToTranslate)
+	{
+		List<String> translatedLines = new ArrayList<String>();
+		for (String line : linesToTranslate)
+			translatedLines.add(ChatColor.translateAlternateColorCodes(altColorChar, line));
+		return translatedLines;
 	}
 
 	/**

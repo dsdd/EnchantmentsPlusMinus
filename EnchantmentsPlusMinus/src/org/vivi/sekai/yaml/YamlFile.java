@@ -482,14 +482,8 @@ public class YamlFile<T extends FileConfiguration> extends File
 				for (Material material : (List<Material>) list)
 					materialNames.add(material.name());
 				configurationSection.set(path, materialNames);
-			}
-			else if (firstElement instanceof Enchantment)
-			{
-				List<String> keys = new ArrayList<String>();
-				for (Enchantment enchant : (List<Enchantment>) list)
-					keys.add(EnchantmentInfo.getKey(enchant));
-				configurationSection.set(path, keys);
-			}
+			} else if (firstElement instanceof Enchantment)
+				configurationSection.set(path, EnchantmentInfo.enchantListToString((List<Enchantment>) list));
 
 		} else if (value instanceof Inventory)
 		{
@@ -529,16 +523,13 @@ public class YamlFile<T extends FileConfiguration> extends File
 			Material modernMaterial = Material.matchMaterial(materialName);
 			list.add(modernMaterial == null ? Material.matchMaterial(materialName, true) : modernMaterial);
 		}
-			
+
 		return list;
 	}
 
 	public List<Enchantment> getEnchantmentListBySekai(String path)
 	{
-		List<Enchantment> list = new ArrayList<Enchantment>();
-		for (String key : getStringList(path))
-			list.add(EnchantmentInfo.getEnchantByKey(key));
-		return list;
+		return EnchantmentInfo.parseEnchantKeys(getStringList(path));
 	}
 
 	public Inventory getInventoryBySekai(String path)
