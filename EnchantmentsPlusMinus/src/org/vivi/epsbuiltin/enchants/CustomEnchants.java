@@ -300,7 +300,7 @@ public class CustomEnchants
 		diamondConfig.fillEnchantConfig("Diamond", 10, 75, Material.matchMaterial("IRON_PICKAXE"),
 				"Has a chance to destroy blocks in a diamond shape.", "100 * 1.35^%lvl%",
 				new Parameter("chance", "%lvl%"));
-		veinMinerConfig.fillEnchantConfig("Vein Miner", 10, 50, Material.matchMaterial("VINES", true),
+		veinMinerConfig.fillEnchantConfig("Vein Miner", 10, 50, Material.matchMaterial("VINE"),
 				"Has a chance to break all blocks in a vein of ores.", "75 * 1.2^%lvl%",
 				new Parameter("chance", "%lvl%*4"));
 		boostedConfig.fillEnchantConfig("Boosted", 3, 100, Material.matchMaterial("DIAMOND_BLOCK"),

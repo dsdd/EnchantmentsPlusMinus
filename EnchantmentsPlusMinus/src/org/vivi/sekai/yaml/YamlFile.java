@@ -26,6 +26,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
+import org.vivi.sekai.Sekai;
 import org.vivi.sekai.enchantment.EnchantmentInfo;
 import org.vivi.sekai.inventory.GUIHolder;
 
@@ -521,7 +522,7 @@ public class YamlFile<T extends FileConfiguration> extends File
 		for (String materialName : getStringList(path))
 		{
 			Material modernMaterial = Material.matchMaterial(materialName);
-			list.add(modernMaterial == null ? Material.matchMaterial(materialName, true) : modernMaterial);
+			list.add(modernMaterial == null ? (Sekai.getMCVersion() > 12 ? Material.matchMaterial(materialName, true) : null) : modernMaterial);
 		}
 
 		return list;
