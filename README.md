@@ -7,7 +7,7 @@ Enchantments+- is a custom enchantment plugin that is made for Prison and PVP se
 Easily customizable custom enchants  
 A special currency called Tokens that can be easily integrated with voting systems, crate systems, etc  
 An easy-to-use API to make your own custom enchants  
-PAPI Support, use %eps_tokens% to display your tokens!  
+PAPI Support, use %eps_tokens% or %eps_tokens_formatted% to display your tokens!  
 
 # Commands  
 /enchants - Opens the enchant GUI  
@@ -29,7 +29,7 @@ Anything below is broken.
 
 
 # Known bugs:  
-Failed to handle packet error. Looking into this right now
+None  
 
 # Registered built-in enchants:  
 
@@ -64,6 +64,15 @@ Machinery: Send down a barrage of arrows on your opponents! (Only activates ever
 Energized: Shoot yourself to gain a temporary speed and regeneration buff!  
 Shockwave: Damages all entities near the place you shot your arrow on!  
 
+#### Global enchantments  
+Fly: Equip your tool to fly!  
+Repair: Automatically repairs your tool while moving!  
+Soulbound: Keep your item on death!  
+Experience: Multiplies the amount of experience you get!  
+Night Vision: Gain Night Vision upon equipping this tool.  
+Speed: Move faster while holding this item.  
+Jump Boost: Jump higher while holding this item.  
+
 # Permissions  
 
 #### Player commands  
@@ -85,7 +94,6 @@ eps.admin.bypassincompatibilities - Allows bypassing of incompatibilities of enc
 
 
 # Misc  
-The plugin is in an early release stage.  
 You can report bugs or crashes at https://github.com/dsdd/EnchantmentsPlusMinus/issues or in the Discord server listed below.  
 
 # Discord  
