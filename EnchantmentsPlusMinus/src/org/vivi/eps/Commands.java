@@ -28,6 +28,7 @@ import org.vivi.eps.util.Language;
 import org.vivi.sekai.CommandProxy.CommandOptions;
 import org.vivi.sekai.Sekai;
 import org.vivi.sekai.enchantment.EnchantmentInfo;
+import org.vivi.sekai.misc.numbers.NumberAbbreviations;
 import org.vivi.sekai.CommandProxy.CommandConnection;
 
 public class Commands
@@ -123,7 +124,7 @@ public class Commands
 					return false;
 				}
 				sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-						"&aSet " + args[1] + "'s balance to " + Sekai.parseAbbreviated(args[2])));
+						"&aSet " + args[1] + "'s balance to " + NumberAbbreviations.parseAbbreviated(args[2])));
 			} else if (args[0].equalsIgnoreCase("changebal"))
 			{
 				if (!changeBalance(args[1], args[2]))
@@ -133,7 +134,7 @@ public class Commands
 					return false;
 				}
 				sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
-						"&cChanged " + args[1] + "'s balance by " + Sekai.parseAbbreviated(args[2])));
+						"&cChanged " + args[1] + "'s balance by " + NumberAbbreviations.parseAbbreviated(args[2])));
 			} else if (args[0].equalsIgnoreCase("enchant"))
 			{
 				Player player = (Player) sender;
@@ -371,7 +372,7 @@ public class Commands
 		UUID targetUUID = EPSPlayerData.getUUID(playerName);
 		if (targetUUID != null)
 		{
-			EPS.getEconomy().setBalance(targetUUID, Sekai.parseAbbreviated(amountLabel));
+			EPS.getEconomy().setBalance(targetUUID, NumberAbbreviations.parseAbbreviated(amountLabel));
 			return true;
 
 		} else
@@ -383,7 +384,7 @@ public class Commands
 		UUID targetUUID = EPSPlayerData.getUUID(playerName);
 		if (targetUUID != null)
 		{
-			EPS.getEconomy().changeBalance(targetUUID, Sekai.parseAbbreviated(amountLabel));
+			EPS.getEconomy().changeBalance(targetUUID, NumberAbbreviations.parseAbbreviated(amountLabel));
 			return true;
 
 		} else

@@ -13,8 +13,6 @@
 # |                        |
 # +------------------------+
 #
-# config.yml is constantly being updated (at least for now)~ feel free to suggest any new options!
-#
 
 auto-update: false
 show-enchants: true

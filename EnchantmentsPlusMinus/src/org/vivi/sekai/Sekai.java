@@ -27,7 +27,6 @@ import org.vivi.sekai.CommandProxy.CommandOptions;
 public class Sekai
 {
 	private static final CommandProxy commandProxy = new CommandProxy();
-	private static final char[] SUFFIXES = new char[] { 'k', 'M', 'B', 'T', 'q', 'Q', 's', 'S' };
 	private static final Random RANDOM = new Random();
 	private static final int MC_VERSION = (Bukkit.getVersion().contains("1.8")) ? 8
 			: ((Bukkit.getVersion().contains("1.9")) ? 9
@@ -120,26 +119,26 @@ public class Sekai
 		getCommandProxy().commandActivationMap.put(command, connection);
 	}
 
-	public static boolean isSameInventory(Inventory first, Inventory second)
+	public static boolean isSameInventory(Inventory a, Inventory b)
 	{
-		if (first == second)
+		if (a == b)
 			return true;
-		if ((first == null && second != null) || (first != null && second == null))
+		if ((a == null && b != null) || (a != null && b == null))
 			return false;
-		if (first.getType() != second.getType())
+		if (a.getType() != b.getType())
 			return false;
-		if (first.getHolder() == null && second.getHolder() == null)
+		if (a.getHolder() == null && b.getHolder() == null)
 			return true;
-		if ((first.getHolder() == null && second.getHolder() != null)
-				|| (first.getHolder() != null && second.getHolder() == null)
-				|| !first.getHolder().equals(second.getHolder()))
+		if ((a.getHolder() == null && b.getHolder() != null)
+				|| (a.getHolder() != null && b.getHolder() == null)
+				|| !a.getHolder().equals(b.getHolder()))
 			return false;
-		if (first.getSize() != second.getSize())
+		if (a.getSize() != b.getSize())
 			return false;
-		if (first.getViewers().size() != second.getViewers().size())
+		if (a.getViewers().size() != b.getViewers().size())
 			return false;
-		ItemStack[] firstContents = first.getContents();
-		ItemStack[] secondContents = second.getContents();
+		ItemStack[] firstContents = a.getContents();
+		ItemStack[] secondContents = b.getContents();
 		if (firstContents.length != secondContents.length)
 			return false;
 		for (int i = 0; i < firstContents.length; i++)
@@ -167,124 +166,10 @@ public class Sekai
 		return true;
 	}
 	
-	/**
-	 * Abbreviates a given number using suffixes, rounded to 2 decimal places. e.g.
-	 * Converts 1,581,195 to 1.58M
-	 * 
-	 * @param value Value to abbreviate
-	 * @return Abbreviated number in k, M, B, T and Q
-	 */
-	public static String abbreviate(double value)
-	{
-		return abbreviate(value, false);
-	}
-
-	/**
-	 * Abbreviates a given number using suffixes, rounded to 2 decimal places. e.g.
-	 * Converts 1,581,195 to 1.58M
-	 * 
-	 * @param value Value to abbreviate
-	 * @param isRoundTo2f For values below {@code 1000}, whether to round to 2 decimal places
-	 * @return Abbreviated number in k, M, B, T and Q
-	 */
-	public static String abbreviate(double value, boolean isRoundTo2f)
-	{
-		if (value < 1000)
-			return Double.toString(isRoundTo2f ? Math.floor(value*100)/100 : value);
-		else
-		{
-			int exp = (int) (Math.log10(value) / 3);
-			double norm = Math.floor(value * (100 / (Math.pow(1000, exp)))) * 0.01;
-			return String.format("%." + 2 + "f%s", norm, SUFFIXES[exp - 1]);
-		}
-	}
-
-	/**
-	 * Parses an abbreviated value such as 1.58M into a {@code double}.
-	 * 
-	 * @param abbreviated Abbreviated value stored in a {@code String}
-	 * @return Parsed value
-	 */
-	public static double parseAbbreviated(String abbreviated)
-	{
-		char suffix = abbreviated.charAt(abbreviated.length() - 1);
-		for (int i = 0; i < SUFFIXES.length; i++)
-		{
-			if (SUFFIXES[i] == suffix)
-			{
-				Double parsedValue = Double.parseDouble(abbreviated.substring(0, abbreviated.length() - 1));
-				parsedValue *= Math.pow(1000, i + 1);
-				return parsedValue;
-			}
-		}
-		return Double.parseDouble(abbreviated);
-	}
-	
 	public static double randomDouble(double origin, double bound)
 	{
 		double difference = bound - origin;
 		return difference > 0 ? RANDOM.nextDouble() * difference + origin : origin;
-	}
-
-	/**
-	 * Gets the Roman numeral of the specified value.
-	 * 
-	 * @param value The value
-	 * @return The Roman numeral of the value
-	 */
-	public static String getRomanNumeral(int value)
-	{
-		switch (value)
-		{
-		case 1:
-			return "I";
-		case 2:
-			return "II";
-		case 3:
-			return "III";
-		case 4:
-			return "IV";
-		case 5:
-			return "V";
-		case 6:
-			return "VI";
-		case 7:
-			return "VII";
-		case 8:
-			return "VIII";
-		case 9:
-			return "IX";
-		case 10:
-			return "X";
-		default:
-			return Integer.toString(value);
-		}
-	}
-
-	/**
-	 * Checks if the specified {@code String} is a Roman numeral.
-	 * 
-	 * @param romanNumeral The Roman numeral
-	 * @return If the String is a Roman numeral
-	 */
-	public static boolean isRomanNumeral(String romanNumeral)
-	{
-		switch (romanNumeral)
-		{
-		case "I":
-		case "II":
-		case "III":
-		case "IV":
-		case "V":
-		case "VI":
-		case "VII":
-		case "VIII":
-		case "IX":
-		case "X":
-			return true;
-		default:
-			return false;
-		}
 	}
 	
 	/**

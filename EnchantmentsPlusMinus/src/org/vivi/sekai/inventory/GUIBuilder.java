@@ -23,6 +23,7 @@ public class GUIBuilder implements Listener
 	private static final Set<GUIBuilder> GUI_BUILDERS = new HashSet<GUIBuilder>();
 
 	private Inventory inventory;
+	private boolean isRegistered = false;
 	private boolean isWritable = true;
 
 	private GUIBuilder(Inventory inventory)
@@ -50,7 +51,9 @@ public class GUIBuilder implements Listener
 
 	public GUIBuilder registerEvents(Plugin plugin)
 	{
-		Bukkit.getPluginManager().registerEvents(this, plugin);
+		if (!isRegistered)
+			Bukkit.getPluginManager().registerEvents(this, plugin);
+		isRegistered = true;
 		return this;
 	}
 

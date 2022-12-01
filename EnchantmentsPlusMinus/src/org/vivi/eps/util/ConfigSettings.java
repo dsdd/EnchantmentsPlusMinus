@@ -51,7 +51,7 @@ public class ConfigSettings implements Reloadable
 		abbreviateLargeNumbers = EPS.configFile.getBoolean("abbreviate-large-numbers");
 		useRomanNumerals = EPS.configFile.getBoolean("use-roman-numerals");
 		anvilCombiningEnabled = EPS.configFile.getBoolean("anvil-combining-enabled");
-		useVaultEconomy = EPS.configFile.getBoolean("use-vault-economyy");
+		useVaultEconomy = EPS.configFile.getBoolean("use-vault-economy");
 		useActionBar = EPS.configFile.getBoolean("use-action-bar-instead-of-chat-when-inventory-full");
 		globalCostEnabled = EPS.configFile.getBoolean("global-cost.enabled");
 		globalCostExpression = EPS.configFile.getString("global-cost.cost");

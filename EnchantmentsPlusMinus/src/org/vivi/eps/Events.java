@@ -2,6 +2,8 @@ package org.vivi.eps;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +27,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -34,12 +37,15 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.vivi.eps.EPS.EnchantMetaWriter;
+import org.vivi.eps.api.EnchantAction;
+import org.vivi.eps.api.EnchantHandler;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.gui.EditEnchantGUI;
 import org.vivi.eps.gui.EnchantsGUI;
@@ -53,10 +59,12 @@ import org.vivi.sekai.enchantment.EnchantmentInfo;
 import org.vivi.sekai.inventory.GUIBuilder;
 import org.vivi.sekai.inventory.GUIHolder;
 import org.vivi.sekai.inventory.ItemBuilder;
+import org.vivi.sekai.misc.numbers.NumberAbbreviations;
 
 public class Events implements Listener, Reloadable
 {
 	private static final Map<Player, Integer> blocklog = new HashMap<Player, Integer>();
+	private static final List<EnchantHandler> HANDLERS = new ArrayList<EnchantHandler>();
 	private static Economy economy;
 	private static String miningTokensGet;
 	private static String playerKillGet;
@@ -111,7 +119,7 @@ public class Events implements Listener, Reloadable
 		}
 	}
 
-	@EventHandler(ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent e)
 	{
 		if (!ConfigSettings.isMiningRewardEnabled())
@@ -128,6 +136,30 @@ public class Events implements Listener, Reloadable
 				e.getPlayer().sendMessage(miningTokensGet.replaceAll("%tokens%", EPS.abbreviate(tokens)));
 			}
 		}
+
+		ItemStack itemStack = e.getPlayer().getItemInUse();
+		Collection<ItemStack> drops = e.getBlock().getDrops(itemStack);
+		EnchantAction.BlockBreak action = new EnchantAction.BlockBreak(e, drops);
+		for (EnchantHandler handler : HANDLERS)
+		{
+			if (itemStack.getItemMeta().hasEnchant(handler.getEnchant()))
+			{
+				action.setCurrentEnchant(handler.getEnchant());
+				handler.blockBreak(action);
+			}
+		}
+		if (action.getDrops().equals(drops))
+		{
+			e.setDropItems(false);
+			for (ItemStack drop : action.getDrops())
+				e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), drop);
+		}
+	}
+
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void onBlockDropItem(BlockDropItemEvent e)
+	{
+		// TODO: 1.15+ Compatibility with new EnchantHandler code system
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -168,7 +200,7 @@ public class Events implements Listener, Reloadable
 						return;
 					}
 
-					double amount = Sekai.parseAbbreviated(sign.getLine(2));
+					double amount = NumberAbbreviations.parseAbbreviated(sign.getLine(2));
 					if (EPS.getEconomy().getBalance(player) < amount)
 					{
 						Language.sendMessage(player, "insufficienttokens");
@@ -275,7 +307,7 @@ public class Events implements Listener, Reloadable
 				}
 
 				String enchantName = EnchantmentInfo.getName(enchant);
-				double amount = Sekai.parseAbbreviated(e.getLine(2));
+				double amount = NumberAbbreviations.parseAbbreviated(e.getLine(2));
 
 				e.setLine(1, enchantName);
 				e.setLine(2, EPS.abbreviate(amount));
@@ -315,6 +347,25 @@ public class Events implements Listener, Reloadable
 			if (ConfigSettings.isEnchantGuiOnRightClick())
 				Sekai.getCommandProxy().onCommand(e.getPlayer(), Bukkit.getPluginCommand("enchants"), "enchants",
 						new String[] { "dontshow" });
+		}
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	public void onPlayerItemHeld(PlayerItemHeldEvent e)
+	{
+		EnchantAction.EquipItem action = new EnchantAction.EquipItem(e);
+		for (EnchantHandler handler : HANDLERS)
+		{
+			if (action.getNewItemStack().getItemMeta().hasEnchant(handler.getEnchant()))
+			{
+				action.setCurrentEnchant(handler.getEnchant());
+				handler.equipItem(action);
+			} else if (action.getPreviousItemStack().getItemMeta().hasEnchant(handler.getEnchant()))
+			{
+				action.setCurrentEnchant(handler.getEnchant());
+				handler.unequipItem(action);
+			}
+
 		}
 	}
 
@@ -460,6 +511,12 @@ public class Events implements Listener, Reloadable
 			fileConfiguration.set(path, replace);
 	}
 
+	public static void addHandler(EnchantHandler handler)
+	{
+		HANDLERS.add(handler);
+		Collections.sort(HANDLERS);
+	}
+
 	@Override
 	public void reload()
 	{
@@ -493,7 +550,7 @@ public class Events implements Listener, Reloadable
 				: new ItemBuilder(Material.matchMaterial("GREEN_STAINED_GLASS_PANE"), 1))
 				.displayName(Language.getLangMessage("next-page", false));
 		EnchantsGUI.itemSelectorInventory = GUIBuilder
-				.build(new GUIHolder(), 27, Language.getLangMessage("item-selector-title", false))
+				.build(new GUIHolder(null), 27, Language.getLangMessage("item-selector-title", false))
 				.fill(EnchantsGUI.fillerItemStack).setWritable(false).registerEvents(EPS.plugin).toInventory();
 	}
 }

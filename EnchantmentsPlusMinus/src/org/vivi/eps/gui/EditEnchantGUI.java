@@ -45,7 +45,7 @@ public class EditEnchantGUI implements Listener
 		EditEnchantGUI.enchant = enchant;
 		Map<String, Object> entries = EPS.getEnchantFile(enchant).getValues(true);
 		int size = (int) (Math.ceil((double) entries.size() / 9) * 9);
-		inventory = Bukkit.createInventory(new GUIHolder(), size,
+		inventory = Bukkit.createInventory(new GUIHolder(null), size,
 				"Modifying " + EnchantmentInfo.getKey(enchant).toUpperCase() + "...");
 		for (Map.Entry<String, Object> entry : entries.entrySet())
 		{

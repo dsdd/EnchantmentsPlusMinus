@@ -29,6 +29,7 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.vivi.eps.api.EnchantFile;
+import org.vivi.eps.api.EnchantHandler;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.util.ConfigSettings;
 import org.vivi.eps.util.Language;
@@ -41,6 +42,8 @@ import org.vivi.sekai.Sekai;
 import org.vivi.sekai.dependencies.Metrics;
 import org.vivi.sekai.dependencies.VaultHook;
 import org.vivi.sekai.enchantment.EnchantmentInfo;
+import org.vivi.sekai.misc.numbers.NumberAbbreviations;
+import org.vivi.sekai.misc.numbers.RomanNumeral;
 import org.vivi.sekai.yaml.YamlFile;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
@@ -202,7 +205,7 @@ public class EPS extends JavaPlugin implements Reloadable
 	 */
 	public static String abbreviate(double value)
 	{
-		return ConfigSettings.isAbbreviateLargeNumbers() ? Sekai.abbreviate(value, true)
+		return ConfigSettings.isAbbreviateLargeNumbers() ? NumberAbbreviations.abbreviate(value, true)
 				: Double.toString(Math.floor(value * 100) / 100);
 	}
 
@@ -416,20 +419,36 @@ public class EPS extends JavaPlugin implements Reloadable
 
 		return val;
 	}
+	
+	/**
+	 * Registers an enchant for use. Without registering an enchant, the enchant
+	 * will stay unusable.
+	 * 
+	 * @param enchant The enchant you want to register.
+	 * @param handler An {@link EnchantHandler} to handle the specified enchant.
+	 * @return Returns if the registering was successful.
+	 */
+	public static boolean registerEnchant(Enchantment enchant)
+	{
+		return registerEnchant(enchant, null);
+	}
 
 	/**
 	 * Registers an enchant for use. Without registering an enchant, the enchant
 	 * will stay unusable.
 	 * 
 	 * @param enchant The enchant you want to register.
+	 * @param handler An {@link EnchantHandler} to handle the specified enchant.
 	 * @return Returns if the registering was successful.
 	 */
-	public static boolean registerEnchant(Enchantment enchant)
+	public static boolean registerEnchant(Enchantment enchant, EnchantHandler handler)
 	{
 		if (enchant == NULL_ENCHANT)
 			return false;
 
 		getEnchantFile(enchant);
+		if (handler != null)
+			Events.addHandler(handler);
 
 		if (Arrays.asList(Enchantment.values()).contains(enchant))
 		{
@@ -683,7 +702,7 @@ public class EPS extends JavaPlugin implements Reloadable
 
 		public static String getLevelLabel(int level)
 		{
-			return ConfigSettings.isUseRomanNumerals() ? Sekai.getRomanNumeral(level) : Integer.toString(level);
+			return ConfigSettings.isUseRomanNumerals() ? RomanNumeral.toRomanNumeral(level) : Integer.toString(level);
 		}
 
 		public static List<String> getWrittenEnchantLoreBook(ItemStack item)

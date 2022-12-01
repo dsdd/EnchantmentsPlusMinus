@@ -22,24 +22,15 @@ import org.vivi.eps.util.Language;
 import org.vivi.sekai.Sekai;
 import org.vivi.sekai.enchantment.EnchantmentInfo;
 import org.vivi.sekai.inventory.GUIBuilder;
-import org.vivi.sekai.inventory.GUIHolder;
 import org.vivi.sekai.inventory.ItemBuilder;
 
 public class EnchantsGUI
 {
 	private static final Set<EnchantsGUI> ENCHANTS_GUIS = new HashSet<EnchantsGUI>();
-	public static ItemStack fillerItemStack = (Sekai.getMCVersion() < 13
-			? new ItemBuilder(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short) 15)
-			: new ItemBuilder(Material.matchMaterial("BLACK_STAINED_GLASS_PANE"), 1)).displayName(" ");
-	public static ItemStack modifyGuiItemStack = (new ItemBuilder(Material.BOOK, 1)).displayName(
-			ChatColor.translateAlternateColorCodes('&', EPS.languageFile.getString("modify-gui.toggle-label")));
-	public static ItemStack nextPageItemStack = (Sekai.getMCVersion() < 13
-			? new ItemBuilder(Material.matchMaterial("STAINED_GLASS_PANE"), 1, (short) 13)
-			: new ItemBuilder(Material.matchMaterial("GREEN_STAINED_GLASS_PANE"), 1))
-			.displayName(Language.getLangMessage("next-page", false));
-	public static Inventory itemSelectorInventory = GUIBuilder
-			.build(new GUIHolder(), 27, Language.getLangMessage("item-selector-title", false)).fill(fillerItemStack)
-			.setWritable(false).registerEvents(EPS.plugin).toInventory();
+	public static ItemStack fillerItemStack;
+	public static ItemStack modifyGuiItemStack;
+	public static ItemStack nextPageItemStack;
+	public static Inventory itemSelectorInventory;
 
 	private static Player currentlyEditing = null;
 	private final Player player;

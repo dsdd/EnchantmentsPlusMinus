@@ -522,7 +522,9 @@ public class YamlFile<T extends FileConfiguration> extends File
 		for (String materialName : getStringList(path))
 		{
 			Material modernMaterial = Material.matchMaterial(materialName);
-			list.add(modernMaterial == null ? (Sekai.getMCVersion() > 12 ? Material.matchMaterial(materialName, true) : null) : modernMaterial);
+			list.add(modernMaterial == null
+					? (Sekai.getMCVersion() > 12 ? Material.matchMaterial(materialName, true) : null)
+					: modernMaterial);
 		}
 
 		return list;
@@ -536,7 +538,7 @@ public class YamlFile<T extends FileConfiguration> extends File
 	public Inventory getInventoryBySekai(String path)
 	{
 		ConfigurationSection configurationSection = getConfigurationSection(path);
-		Inventory inventory = Bukkit.createInventory(new GUIHolder(), configurationSection.getInt("size"),
+		Inventory inventory = Bukkit.createInventory(new GUIHolder(null), configurationSection.getInt("size"),
 				configurationSection.getString("name"));
 		for (String key : configurationSection.getConfigurationSection("items").getKeys(false))
 			inventory.setItem(Integer.parseInt(key), getItemStack(path + ".items." + key));

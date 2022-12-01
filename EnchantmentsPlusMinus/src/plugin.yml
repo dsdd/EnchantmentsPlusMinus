@@ -1,5 +1,5 @@
 name: EnchantmentsPlusMinus
-version: 1.9r-18
+version: 1.10r-1
 author: vivisan
 main: org.vivi.eps.EPS
 description: Provides a unique way of obtaining custom enchantments for tools and armor
@@ -7,7 +7,6 @@ api-version: 1.13
 softdepend:
 - PlaceholderAPI
 - Vault
-- LegacyWrapper
 - WorldGuard
 
 commands:
