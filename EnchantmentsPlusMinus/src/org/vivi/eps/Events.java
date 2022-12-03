@@ -141,14 +141,12 @@ public class Events implements Listener, Reloadable
 		Collection<ItemStack> drops = e.getBlock().getDrops(itemStack);
 		EnchantAction.BlockBreak action = new EnchantAction.BlockBreak(e, drops);
 		for (EnchantHandler handler : HANDLERS)
-		{
 			if (itemStack.getItemMeta().hasEnchant(handler.getEnchant()))
 			{
 				action.setCurrentEnchant(handler.getEnchant());
 				handler.blockBreak(action);
 			}
-		}
-		if (action.getDrops().equals(drops))
+		if (!action.getDrops().equals(drops))
 		{
 			e.setDropItems(false);
 			for (ItemStack drop : action.getDrops())
@@ -356,16 +354,20 @@ public class Events implements Listener, Reloadable
 		EnchantAction.EquipItem action = new EnchantAction.EquipItem(e);
 		for (EnchantHandler handler : HANDLERS)
 		{
-			if (action.getNewItemStack().getItemMeta().hasEnchant(handler.getEnchant()))
-			{
-				action.setCurrentEnchant(handler.getEnchant());
-				handler.equipItem(action);
-			} else if (action.getPreviousItemStack().getItemMeta().hasEnchant(handler.getEnchant()))
+			ItemStack newItemStack = action.getNewItemStack();
+			ItemStack prevItemStack = action.getPreviousItemStack();
+			if (prevItemStack != null && prevItemStack.getItemMeta() != null
+					&& prevItemStack.getItemMeta().hasEnchant(handler.getEnchant()))
 			{
 				action.setCurrentEnchant(handler.getEnchant());
 				handler.unequipItem(action);
 			}
-
+			if (newItemStack != null && newItemStack.getItemMeta() != null
+					&& newItemStack.getItemMeta().hasEnchant(handler.getEnchant()))
+			{
+				action.setCurrentEnchant(handler.getEnchant());
+				handler.equipItem(action);
+			}
 		}
 	}
 

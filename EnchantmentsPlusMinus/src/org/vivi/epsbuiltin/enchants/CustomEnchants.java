@@ -100,7 +100,7 @@ public class CustomEnchants
 
 	public static void register()
 	{
-		EPS.registerEnchant(FLY, new Fly());
+		EPS.registerEnchant(new Fly());
 		EPS.registerEnchant(SPEED);
 		EPS.registerEnchant(JUMP_BOOST);
 		EPS.registerEnchant(REPAIR);

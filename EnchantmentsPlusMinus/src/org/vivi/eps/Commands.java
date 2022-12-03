@@ -1,11 +1,13 @@
 package org.vivi.eps;
 
 import java.io.File;
+//import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+//import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -33,6 +35,8 @@ import org.vivi.sekai.CommandProxy.CommandConnection;
 
 public class Commands
 {
+	//private static ConsoleHandler consoleHandler = new ConsoleHandler();;
+	
 	public static String playerOnlyMessage = Language.getLangMessage("invalidplayertype");
 	public static String insufficientPermissionsMessage = Language.getLangMessage("insufficientpermission");
 
@@ -105,15 +109,25 @@ public class Commands
 				EPS.reloadConfigs();
 				Language.sendMessage(sender, "reloadconfig");
 			} else if (args[0].equalsIgnoreCase("debug"))
-				if (EPS.logger.getLevel() == null)
+			{
+				if (EPS.logger.getLevel() == Level.INFO)
 				{
+					//if (!Arrays.asList(EPS.logger.getHandlers()).contains(consoleHandler))
+					//	EPS.logger.addHandler(consoleHandler);
+					
 					EPS.logger.setLevel(Level.FINER);
+					//consoleHandler.setLevel(Level.FINER);
 					EPS.logger.log(Level.INFO, "Enabled debug mode");
 				} else
 				{
-					EPS.logger.setLevel(null);
+					//EPS.logger.removeHandler(consoleHandler);
+					
+					EPS.logger.setLevel(Level.INFO);
+					//consoleHandler.setLevel(Level.OFF);
 					EPS.logger.log(Level.INFO, "Disabled debug mode");
 				}
+				
+			}
 			else if (args[0].equalsIgnoreCase("setbal"))
 			{
 

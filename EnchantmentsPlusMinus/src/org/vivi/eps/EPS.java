@@ -117,7 +117,6 @@ public class EPS extends JavaPlugin implements Reloadable
 			for (Player player : Bukkit.getOnlinePlayers())
 				epsEvents.onJoin(new PlayerJoinEvent(player, null));
 
-
 			// And load in the built-in enchants.
 
 			NULL_ENCHANT = EPS.newEnchant("null");
@@ -193,6 +192,7 @@ public class EPS extends JavaPlugin implements Reloadable
 	 */
 	public static void reloadConfigs()
 	{
+		logger.log(Level.INFO, "Reload fired.");
 		for (Reloadable r : Reloadable.INSTANCES)
 			r.reload();
 	}
@@ -264,18 +264,19 @@ public class EPS extends JavaPlugin implements Reloadable
 		{
 			EnchantmentInfo enchantmentInfo = EnchantmentInfo.getEnchantmentInfo(enchant);
 			EnchantFile enchantFile = EPS.getEnchantFile(enchant, false);
-			if (enchantFile == null || !enchantFile.exists())
-				continue;
-			enchantFile.loadYaml(new YamlConfiguration());
-			String enchantName = enchantFile.getEnchantName();
-			if (enchantName != null)
-			{
-				enchantmentInfo.name(enchantName);
-				oldEnchantNames.add(enchantName);
-			}
 
-			if (enchantFile.getEnchantDescription() != null)
-				enchantmentInfo.description(enchantFile.getEnchantDescription());
+			if (enchantFile != null && enchantFile.exists())
+			{
+				enchantFile.loadYaml(new YamlConfiguration());
+				if (enchantFile.getEnchantName() != null)
+					enchantmentInfo.name(enchantFile.getEnchantName());
+
+				if (enchantFile.getEnchantDescription() != null)
+					enchantmentInfo.description(enchantFile.getEnchantDescription());
+			}
+			
+			oldEnchantNames.add(enchantmentInfo.getName());
+			getEnchantDescriptionLines(enchant);
 		}
 
 		oldEnchantNamesFile.set("old-enchant-names", new ArrayList<String>(oldEnchantNames));
@@ -356,7 +357,7 @@ public class EPS extends JavaPlugin implements Reloadable
 									return;
 								}
 				}
-				
+
 				if (!enchant.canEnchantItem(itemToEnchant))
 				{
 					Language.sendMessage(player, "lockedupgrade");
@@ -419,7 +420,7 @@ public class EPS extends JavaPlugin implements Reloadable
 
 		return val;
 	}
-	
+
 	/**
 	 * Registers an enchant for use. Without registering an enchant, the enchant
 	 * will stay unusable.
@@ -430,25 +431,10 @@ public class EPS extends JavaPlugin implements Reloadable
 	 */
 	public static boolean registerEnchant(Enchantment enchant)
 	{
-		return registerEnchant(enchant, null);
-	}
-
-	/**
-	 * Registers an enchant for use. Without registering an enchant, the enchant
-	 * will stay unusable.
-	 * 
-	 * @param enchant The enchant you want to register.
-	 * @param handler An {@link EnchantHandler} to handle the specified enchant.
-	 * @return Returns if the registering was successful.
-	 */
-	public static boolean registerEnchant(Enchantment enchant, EnchantHandler handler)
-	{
 		if (enchant == NULL_ENCHANT)
 			return false;
 
 		getEnchantFile(enchant);
-		if (handler != null)
-			Events.addHandler(handler);
 
 		if (Arrays.asList(Enchantment.values()).contains(enchant))
 		{
@@ -468,6 +454,22 @@ public class EPS extends JavaPlugin implements Reloadable
 			}
 			return false;
 		}
+	}
+
+	/**
+	 * Registers an enchant for use. Without registering an enchant, the enchant
+	 * will stay unusable.
+	 * 
+	 * @param handler An {@link EnchantHandler} to handle the specified enchant.
+	 * @return Returns if the registering was successful.
+	 */
+	public static boolean registerEnchant(EnchantHandler handler)
+	{
+		boolean success = registerEnchant(handler.getEnchant());
+		if (handler != null)
+			Events.addHandler(handler);
+
+		return success;
 	}
 
 	public static EnchantFile getEnchantFile(Enchantment enchant)
@@ -628,54 +630,44 @@ public class EPS extends JavaPlugin implements Reloadable
 	{
 		private static final String NEW_LINE_PLACEHOLDER = ChatColor.BLACK + "-";
 
-		private static List<String> getWrittenEnchantLore(ItemStack item)
+		private static List<String> getEnchantLore(ItemStack itemStack)
 		{
-			ItemMeta meta = item.getItemMeta();
-			if (meta == null)
+			ItemMeta itemMeta = itemStack.getItemMeta();
+			if (itemMeta == null)
 				return (new ArrayList<String>());
 			if (!ConfigSettings.isShowEnchants())
-				return meta.getLore();
-			List<String> list = meta.getLore() == null ? new ArrayList<String>() : meta.getLore();
-			Collection<Enchantment> enchants = Arrays.asList(Enchantment.values());
+				return itemMeta.getLore();
+			List<String> currentLore = itemMeta.getLore() == null ? new ArrayList<String>() : itemMeta.getLore();
 
 			for (String enchantName : oldEnchantNames)
-			{
-				for (int i = 0; i < list.size(); i++)
-				{
-					String s = list.get(i);
-					if ((s != null && s.split(" ").length > 0 && s.contains(enchantName))
-							|| EPS.allDescriptionLines.contains(s) || s.equals(NEW_LINE_PLACEHOLDER))
-						list.remove(i);
-				}
-			}
+				currentLore.removeIf(s -> (s != null && s.contains(enchantName)) || EPS.allDescriptionLines.contains(s)
+						|| s.equals(NEW_LINE_PLACEHOLDER));
 
-			for (Map.Entry<Enchantment, Integer> entry : meta.getEnchants().entrySet())
+			for (Map.Entry<Enchantment, Integer> entry : itemMeta.getEnchants().entrySet())
 			{
-				if (enchants.contains(entry.getKey()))
+				EnchantmentInfo enchantmentInfo = EnchantmentInfo.getEnchantmentInfo(entry.getKey());
+
+				String colorPrefix = ConfigSettings.getEnchantSpecificLoreColors().get(enchantmentInfo.key);
+				StringBuilder titleBuilder = new StringBuilder(
+						colorPrefix == null ? ConfigSettings.getEnchantLoreColor()
+								: ChatColor.translateAlternateColorCodes('&', colorPrefix));
+				titleBuilder.append(enchantmentInfo.getName());
+				if (entry.getKey().getMaxLevel() > 1)
+					titleBuilder.append(" " + getLevelLabel(entry.getValue()));
+
+				if (ConfigSettings.isShowEnchantDescriptions())
 				{
-					EnchantmentInfo enchantmentInfo = EnchantmentInfo.getEnchantmentInfo(entry.getKey());
-					EnchantFile enchantFile = EPS.getEnchantFile(entry.getKey());
-					String lore = (entry.getKey().getMaxLevel() < 2
-							|| (enchantFile != null && enchantFile.getMaxLevel() < 2) ? enchantmentInfo.getName()
-									: enchantmentInfo.getName() + " " + getLevelLabel(entry.getValue()));
-					String colorPrefix = ConfigSettings.getEnchantSpecificLoreColors().get(enchantmentInfo.key);
-					lore = colorPrefix == null ? ConfigSettings.getEnchantLoreColor() + lore
-							: ChatColor.translateAlternateColorCodes('&', colorPrefix) + lore;
-					if (ConfigSettings.isShowEnchantDescriptions())
-					{
-						@SuppressWarnings("unchecked")
-						List<String> enchantDescriptionLines = (List<String>) EPS
-								.getEnchantDescriptionLines(entry.getKey()).clone();
-						for (int i = enchantDescriptionLines.size() - 1; i > -1; i--)
-							if (enchantDescriptionLines.get(i) != "")
-								list.add(0, enchantDescriptionLines.get(i));
-					}
-					list.add(0, lore);
-					if (ConfigSettings.isShowEnchantDescriptions())
-						list.add(0, NEW_LINE_PLACEHOLDER);
+					List<String> enchantDescriptionLines = new ArrayList<String>(
+							EPS.getEnchantDescriptionLines(entry.getKey()));
+					for (int i = enchantDescriptionLines.size() - 1; i > -1; i--)
+						if (enchantDescriptionLines.get(i) != "")
+							currentLore.add(0, enchantDescriptionLines.get(i));
 				}
+				currentLore.add(0, titleBuilder.toString());
+				if (ConfigSettings.isShowEnchantDescriptions())
+					currentLore.add(0, NEW_LINE_PLACEHOLDER);
 			}
-			return list;
+			return currentLore;
 		}
 
 		/**
@@ -689,7 +681,7 @@ public class EPS extends JavaPlugin implements Reloadable
 		{
 			if (!ConfigSettings.isShowEnchants())
 				return item.getItemMeta();
-			List<String> lore = EnchantMetaWriter.getWrittenEnchantLore(item);
+			List<String> lore = EnchantMetaWriter.getEnchantLore(item);
 			ItemMeta meta = item.getItemMeta();
 			if (meta != null)
 				if (lore != null)
