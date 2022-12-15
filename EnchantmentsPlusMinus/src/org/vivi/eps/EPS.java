@@ -619,6 +619,11 @@ public class EPS extends JavaPlugin implements Reloadable
 		}
 
 		@Override
+		public boolean persist() {
+			return true;
+		}
+
+		@Override
 		public String onPlaceholderRequest(Player p, String identifier)
 		{
 			return identifier.equals("tokens") ? Double.toString(EPS.getEconomy().getBalance(p))
