@@ -622,11 +622,7 @@ public class EPS extends JavaPlugin implements Reloadable
 		public boolean persist() {
 			return true;
 		}
-<<<<<<< HEAD
-		
-=======
 
->>>>>>> d03e8046d1e4fe16164cfb4c95c2a8c5ac540ea8
 		@Override
 		public String onPlaceholderRequest(Player p, String identifier)
 		{
