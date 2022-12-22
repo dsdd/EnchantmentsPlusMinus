@@ -14,7 +14,6 @@ import java.util.UUID;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -78,6 +77,13 @@ import com.mojang.authlib.properties.Property;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
+/**
+ * To be superseded by {@link org.vivi.eps.api.EnchantHandler}
+ * 
+ * @author vivisan
+ *
+ */
+@Deprecated
 public class EnchantProcessor implements Listener, Reloadable
 {
 	private static String cooldownError = Language.getLangMessage("cooldown-error");
@@ -210,101 +216,6 @@ public class EnchantProcessor implements Listener, Reloadable
 	public void onEntityDamageByEntity(final EntityDamageByEntityEvent e)
 	{
 		Entity entityDamager = e.getDamager();
-		if (entityDamager instanceof Player)
-		{
-
-			final Player damager = (Player) entityDamager;
-			final World world = damager.getWorld();
-			final ItemStack itemStack = damager.getInventory().getItemInMainHand();
-			final ItemMeta itemMeta = itemStack.getItemMeta();
-			if (itemStack == null || itemMeta == null)
-				return;
-			if (itemMeta.hasEnchant(CustomEnchants.JAGGED))
-			{
-				final Durability dmg = new Durability(itemStack);
-				final int enchlvl = itemMeta.getEnchantLevel(CustomEnchants.JAGGED);
-				final double dtp = CustomEnchants.jaggedConfig.getAutofilledDouble(enchlvl,
-						"durabilitythresholdpercent");
-				final double dp = (double) (dmg.getMaxDurability() / dmg.getDurability() * 100);
-				if (dp < dtp)
-				{
-					e.setDamage(e.getDamage() + enchlvl);
-					if (Sekai.getMCVersion() > 12)
-						world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1,
-								new Particle.DustOptions(Color.RED, 5));
-					else
-						world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1);
-				}
-			}
-
-			if (itemMeta.hasEnchant(CustomEnchants.LIFESTEAL))
-			{
-				double hp = damager.getHealth() + CustomEnchants.lifeStealConfig.getAutofilledDouble(
-						itemMeta.getEnchantLevel(CustomEnchants.LIFESTEAL), "hearts") * (e.getDamage() / 10);
-				if (hp > 20)
-					hp = 20.0;
-				damager.setHealth(hp);
-				world.spawnParticle(Particle.HEART, e.getEntity().getLocation(), 1);
-			}
-
-			if (itemMeta.hasEnchant(CustomEnchants.MOMENTUM))
-			{
-				final int enchlvl = itemMeta.getEnchantLevel(CustomEnchants.MOMENTUM);
-				final int duration = CustomEnchants.momentumConfig.getAutofilledInt(enchlvl, "duration-seconds") * 20;
-				damager.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration, enchlvl - 1));
-				world.spawnParticle(Particle.CLOUD, e.getEntity().getLocation(), 1);
-			}
-
-			if (itemMeta.hasEnchant(CustomEnchants.LAST_RESORT))
-			{
-				final double healththreshold = CustomEnchants.lastResortConfig
-						.getAutofilledDouble(itemMeta.getEnchantLevel(CustomEnchants.LAST_RESORT), "healththreshold");
-				if (damager.getHealth() <= healththreshold)
-					e.setDamage(e.getDamage() * 3);
-			}
-
-			if (itemMeta.hasEnchant(CustomEnchants.MELTING))
-			{
-				if (e.getEntity() instanceof LivingEntity)
-				{
-					final int enchlvl = itemMeta.getEnchantLevel(CustomEnchants.MELTING);
-					final LivingEntity hit = (LivingEntity) e.getEntity();
-					hit.setFireTicks(
-							hit.getFireTicks() + CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "fire-ticks"));
-					hit.addPotionEffect(new PotionEffect(PotionEffectType.SLOW,
-							CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "slowness-ticks"),
-							CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "slowness-level") - 1));
-					if (PlayerStopwatch.incrementValue(damager, CustomEnchants.MELTING,
-							1) >= CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "freeze-hits"))
-					{
-						PlayerStopwatch.log(damager, CustomEnchants.MELTING, 0);
-						hit.addPotionEffect(new PotionEffect(PotionEffectType.SLOW,
-								CustomEnchants.meltingConfig.getAutofilledInt(enchlvl, "freeze-ticks"), 20));
-					}
-				}
-			}
-
-			final ItemStack[] armor = { damager.getInventory().getHelmet(), damager.getInventory().getChestplate(),
-					damager.getInventory().getLeggings(), damager.getInventory().getBoots() };
-			for (final ItemStack piece : armor)
-			{
-				if (piece != null)
-				{
-					if (piece.getItemMeta().hasEnchant(CustomEnchants.INSATIABLE))
-					{
-						final double damage = CustomEnchants.insatiableConfig.getAutofilledDouble(
-								piece.getItemMeta().getEnchantLevel(CustomEnchants.INSATIABLE), "extradamage");
-						e.setDamage(e.getDamage() + (damage - (damage * (damager.getHealth() * 0.05))));
-						if (Sekai.getMCVersion() > 12)
-							world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1,
-									new org.bukkit.Particle.DustOptions(Color.RED, 5));
-						else
-							world.spawnParticle(Particle.REDSTONE, e.getEntity().getLocation(), 1);
-					}
-				}
-			}
-
-		}
 
 		if (e.getEntity() instanceof Player)
 		{
@@ -454,7 +365,6 @@ public class EnchantProcessor implements Listener, Reloadable
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onPlayerKill(final PlayerDeathEvent e)
 	{
@@ -1131,7 +1041,6 @@ public class EnchantProcessor implements Listener, Reloadable
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	private static ItemStack getHead(final LivingEntity e)
 	{
 		if (Sekai.getMCVersion() < 12 && e instanceof Skeleton)

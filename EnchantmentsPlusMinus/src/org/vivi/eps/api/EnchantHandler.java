@@ -6,11 +6,17 @@ public abstract class EnchantHandler implements Comparable<EnchantHandler>
 {
 	public abstract EnchantAction.Priority getPriority();
 	
+	@Override
 	public int compareTo(EnchantHandler enchantHandler)
 	{
 		return enchantHandler.getPriority().getWeight() - getPriority().getWeight();
 	}
 	
+	/**
+	 * Enchant being handled
+	 * 
+	 * @return Handled {@link Enchantment}
+	 */
 	public abstract Enchantment getEnchant();
 
 	public void equipItem(EnchantAction.EquipItem event)
@@ -33,4 +39,13 @@ public abstract class EnchantHandler implements Comparable<EnchantHandler>
 
 	}
 
+	public void entityDamage(EnchantAction.EntityDamage event)
+	{
+		
+	}
+	
+	public void armorEffect(EnchantAction.ArmorEffect event)
+	{
+		
+	}
 }

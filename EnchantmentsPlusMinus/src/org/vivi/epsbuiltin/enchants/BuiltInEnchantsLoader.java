@@ -7,6 +7,7 @@ public class BuiltInEnchantsLoader {
 
 	public static boolean vaultEnabled = false;
 
+	@SuppressWarnings("deprecation")
 	public void onEnable()
 	{
 		CustomEnchants.register();

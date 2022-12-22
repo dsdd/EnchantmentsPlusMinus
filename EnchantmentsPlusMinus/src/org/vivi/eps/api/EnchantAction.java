@@ -3,30 +3,40 @@ package org.vivi.eps.api;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
+import org.vivi.eps.EPS;
 
 public abstract class EnchantAction
 {
 	private Enchantment enchant;
 
 	/**
-	 * Gets the {@code Event} that has been intercepted by the current
-	 * {@code EnchantAction}
+	 * Gets the {@link Event} that has been intercepted by the current
+	 * {@link EnchantAction}
 	 * 
 	 * @return Requested {@code Event}
 	 */
 	public abstract Event getEvent();
 
 	/**
-	 * Gets the {@code ItemStack} that contains the enchant that is running the
-	 * current {@code EnchantAction}
+	 * Gets the {@code Player} holding the tool that fired the current
+	 * {@link EnchantAction}.
+	 */
+	public abstract Player getPlayer();
+
+	/**
+	 * Gets the {@link ItemStack} that contains the enchant that is running the
+	 * current {@link EnchantAction}
 	 * 
 	 * @return Requested {@code ItemStack}
 	 */
@@ -47,6 +57,12 @@ public abstract class EnchantAction
 		return getItemStack().getItemMeta().getEnchantLevel(enchant);
 	}
 
+	private static void logAction(EnchantAction action)
+	{
+		EPS.logger.log(Level.FINER, new StringBuilder(action.getPlayer().getName()).append(" fired ")
+				.append(action.getClass().getSimpleName()).toString());
+	}
+
 	public static class EquipItem extends EnchantAction
 	{
 		private final PlayerItemHeldEvent event;
@@ -54,6 +70,7 @@ public abstract class EnchantAction
 		public EquipItem(PlayerItemHeldEvent event)
 		{
 			this.event = event;
+			logAction(this);
 		}
 
 		@Override
@@ -62,6 +79,7 @@ public abstract class EnchantAction
 			return event;
 		}
 
+		@Override
 		public Player getPlayer()
 		{
 			return event.getPlayer();
@@ -91,6 +109,7 @@ public abstract class EnchantAction
 		public RightClick(PlayerInteractEvent event)
 		{
 			this.event = event;
+			logAction(this);
 		}
 
 		@Override
@@ -99,6 +118,7 @@ public abstract class EnchantAction
 			return event;
 		}
 
+		@Override
 		public Player getPlayer()
 		{
 			return event.getPlayer();
@@ -120,6 +140,7 @@ public abstract class EnchantAction
 		{
 			this.event = event;
 			this.drops.addAll(drops);
+			logAction(this);
 		}
 
 		public List<ItemStack> getDrops()
@@ -133,6 +154,7 @@ public abstract class EnchantAction
 			return event;
 		}
 
+		@Override
 		public Player getPlayer()
 		{
 			return event.getPlayer();
@@ -142,6 +164,90 @@ public abstract class EnchantAction
 		public ItemStack getItemStack()
 		{
 			return getPlayer().getItemInUse();
+		}
+	}
+
+	public static class EntityDamage extends EnchantAction
+	{
+		private final EntityDamageByEntityEvent event;
+
+		public EntityDamage(EntityDamageByEntityEvent event)
+		{
+			this.event = event;
+			logAction(this);
+		}
+
+		@Override
+		public Event getEvent()
+		{
+			return event;
+		}
+
+		@Override
+		public Player getPlayer()
+		{
+			return (Player) event.getDamager();
+		}
+
+		public Entity getEntity()
+		{
+			return event.getEntity();
+		}
+
+		public void setDamage(double damage)
+		{
+			event.setDamage(damage);
+		}
+
+		public double getDamage()
+		{
+			return event.getDamage();
+		}
+
+		@Override
+		public ItemStack getItemStack()
+		{
+			return getPlayer().getInventory().getItemInMainHand();
+		}
+	}
+	
+	public static class ArmorEffect extends EnchantAction
+	{
+		private final EnchantAction action;
+		private ItemStack itemStack = null;
+		
+		public ArmorEffect(EnchantAction action)
+		{
+			this.action = action;
+			logAction(this);
+		}
+
+		@Override
+		public Event getEvent()
+		{
+			return action.getEvent();
+		}
+
+		@Override
+		public Player getPlayer()
+		{
+			return action.getPlayer();
+		}
+
+		@Override
+		public ItemStack getItemStack()
+		{
+			return itemStack;
+		}
+		
+		public EnchantAction getMainAction()
+		{
+			return action;
+		}
+		
+		public void setItemStack(ItemStack itemStack)
+		{
+			this.itemStack = itemStack;
 		}
 	}
 

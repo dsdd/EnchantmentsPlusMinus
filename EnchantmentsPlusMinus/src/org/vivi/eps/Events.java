@@ -30,6 +30,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -45,6 +46,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.vivi.eps.EPS.EnchantMetaWriter;
 import org.vivi.eps.api.EnchantAction;
+import org.vivi.eps.api.EnchantAction.ArmorEffect;
 import org.vivi.eps.api.EnchantHandler;
 import org.vivi.eps.api.Reloadable;
 import org.vivi.eps.gui.EditEnchantGUI;
@@ -137,20 +139,27 @@ public class Events implements Listener, Reloadable
 			}
 		}
 
-		ItemStack itemStack = e.getPlayer().getItemInUse();
-		Collection<ItemStack> drops = e.getBlock().getDrops(itemStack);
-		EnchantAction.BlockBreak action = new EnchantAction.BlockBreak(e, drops);
-		for (EnchantHandler handler : HANDLERS)
-			if (itemStack.getItemMeta().hasEnchant(handler.getEnchant()))
-			{
-				action.setCurrentEnchant(handler.getEnchant());
-				handler.blockBreak(action);
-			}
-		if (!action.getDrops().equals(drops))
+		ItemStack itemStack = e.getPlayer().getInventory().getItemInMainHand();
+		if (itemStack != null)
 		{
-			e.setDropItems(false);
-			for (ItemStack drop : action.getDrops())
-				e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), drop);
+			ItemMeta itemMeta = itemStack.getItemMeta();
+			if (itemMeta != null)
+			{
+				Collection<ItemStack> drops = e.getBlock().getDrops(itemStack);
+				EnchantAction.BlockBreak action = new EnchantAction.BlockBreak(e, drops);
+				for (EnchantHandler handler : HANDLERS)
+					if (itemMeta.hasEnchant(handler.getEnchant()))
+					{
+						action.setCurrentEnchant(handler.getEnchant());
+						handler.blockBreak(action);
+					}
+				if (!action.getDrops().equals(drops))
+				{
+					e.setDropItems(false);
+					for (ItemStack drop : action.getDrops())
+						e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), drop);
+				}
+			}
 		}
 	}
 
@@ -369,6 +378,30 @@ public class Events implements Listener, Reloadable
 				handler.equipItem(action);
 			}
 		}
+		fireArmorEffects(action);
+	}
+	
+	@EventHandler(ignoreCancelled = true)
+	public void onEntityDamageByEntity(EntityDamageByEntityEvent e)
+	{
+		if (e.getDamager() instanceof Player)
+		{
+			EnchantAction.EntityDamage action = new EnchantAction.EntityDamage(e);
+			ItemStack itemStack = action.getItemStack();
+			if (itemStack != null)
+			{
+				ItemMeta itemMeta = itemStack.getItemMeta();
+				if (itemMeta != null)
+					for (EnchantHandler handler : HANDLERS)
+						if (itemMeta.hasEnchant(handler.getEnchant()))
+						{
+							action.setCurrentEnchant(handler.getEnchant());
+							handler.entityDamage(action);
+						}
+			}
+				
+			fireArmorEffects(action);
+		}
 	}
 
 	@EventHandler
@@ -505,7 +538,31 @@ public class Events implements Listener, Reloadable
 		if (e.getPlayer().getOpenInventory().getTopInventory().equals(EnchantsGUI.get(e.getPlayer()).toInventory()))
 			e.getPlayer().closeInventory();
 	}
+	
+	public static void fireArmorEffects(EnchantAction action)
+	{
+		EnchantAction.ArmorEffect armorEffect = new EnchantAction.ArmorEffect(action);
+		PlayerInventory inventory = action.getPlayer().getInventory();
+		fireArmorEffect(armorEffect, inventory.getHelmet());
+		fireArmorEffect(armorEffect, inventory.getChestplate());
+		fireArmorEffect(armorEffect, inventory.getLeggings());
+		fireArmorEffect(armorEffect, inventory.getBoots());
+	}
 
+	public static void fireArmorEffect(ArmorEffect armorEffect, ItemStack armorPiece)
+	{
+		if (armorPiece != null)
+		{
+			armorEffect.setItemStack(armorPiece);
+			for (EnchantHandler handler : HANDLERS)
+				if (armorEffect.getItemStack().getItemMeta().hasEnchant(handler.getEnchant()))
+				{
+					armorEffect.setCurrentEnchant(handler.getEnchant());
+					handler.armorEffect(armorEffect);
+				}
+		}
+	}
+	
 	public static void setDefault(String path, Object replace)
 	{
 		FileConfiguration fileConfiguration = EPS.configFile.yaml;

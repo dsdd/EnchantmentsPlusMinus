@@ -108,19 +108,19 @@ public class CustomEnchants
 		EPS.registerEnchant(EXPERIENCE);
 		EPS.registerEnchant(NIGHT_VISION);
 		EPS.registerEnchant(SOUL_DESTRUCTION);
-		EPS.registerEnchant(JAGGED);
+		EPS.registerEnchant(new Jagged());
 		EPS.registerEnchant(RETALIATE);
-		EPS.registerEnchant(LIFESTEAL);
-		EPS.registerEnchant(MOMENTUM);
+		EPS.registerEnchant(new LifeSteal());
+		EPS.registerEnchant(new Momentum());
 		EPS.registerEnchant(POISONOUS);
 		EPS.registerEnchant(VOLCANIC);
 		EPS.registerEnchant(SATURATED);
-		EPS.registerEnchant(INSATIABLE);
+		EPS.registerEnchant(new Insatiable());
 		EPS.registerEnchant(BEHEADING);
 		EPS.registerEnchant(STIFFEN);
-		EPS.registerEnchant(LAST_RESORT);
+		EPS.registerEnchant(new LastResort());
 		EPS.registerEnchant(POWERHOUSE);
-		EPS.registerEnchant(MELTING);
+		EPS.registerEnchant(new Melting());
 		EPS.registerEnchant(BACKUP_SPELLS);
 		EPS.registerEnchant(OVERHEALED);
 		EPS.registerEnchant(EVADE);
@@ -143,14 +143,7 @@ public class CustomEnchants
 		EPS.registerEnchant(DIAMOND);
 		EPS.registerEnchant(VEIN_MINER);
 		EPS.registerEnchant(BOOSTED);
-
-		// Right now, there are only 40 custom enchants available.
-		// There are no plans to add more enchants.
-
-		// Hard-coding all the enchant configs... my last method of writing configs was
-		// so very inefficient
-		// Using matchMaterial so that future versions with different material enum
-		// names won't be affected and will default to BOOK
+		
 		EPS.getEnchantFile(Enchantment.DIG_SPEED).fillEnchantConfig("Efficiency", 10, 30,
 				Material.matchMaterial("DIAMOND_PICKAXE"), EnchantmentInfo.getDescription(Enchantment.DIG_SPEED),
 				"30 * 1.4^%lvl%");
