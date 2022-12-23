@@ -32,7 +32,6 @@ public class Insatiable extends EnchantHandler
 			double damage = CustomEnchants.insatiableConfig.getAutofilledDouble(event.getEnchantLevel(), "extradamage");
 			entityDamage.setDamage(
 					entityDamage.getDamage() + (damage - (damage * (entityDamage.getPlayer().getHealth() * 0.05))));
-			System.out.println((damage - (damage * (entityDamage.getPlayer().getHealth() * 0.05))));
 			if (Sekai.getMCVersion() > 12)
 				entityDamage.getEntity().getWorld().spawnParticle(Particle.REDSTONE,
 						entityDamage.getEntity().getLocation(), 1, new org.bukkit.Particle.DustOptions(Color.RED, 5));

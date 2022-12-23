@@ -1,6 +1,7 @@
 package org.vivi.epsbuiltin.enchants;
 
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
 import org.vivi.eps.api.EnchantAction;
 import org.vivi.eps.api.EnchantAction.Priority;
@@ -24,6 +25,9 @@ public class Fly extends EnchantHandler
 	@Override
 	public void equipItem(EnchantAction.EquipItem event)
 	{
+		if (EnchantmentTarget.ARMOR.includes(event.getItemStack()))
+			return;
+		
 		final Player player = event.getPlayer();
 		if (CustomEnchants.flyConfig.getBoolean("enabled", false))
 		{
@@ -36,6 +40,9 @@ public class Fly extends EnchantHandler
 	@Override
 	public void unequipItem(EnchantAction.EquipItem event)
 	{
+		if (EnchantmentTarget.ARMOR.includes(event.getItemStack()))
+			return;
+		
 		final Player player = event.getPlayer();
 		if (PlayerAttributes.hasAttribute(player, CustomEnchants.FLY) && event.getEnchantLevel() == 0)
 		{
@@ -44,5 +51,4 @@ public class Fly extends EnchantHandler
 			PlayerAttributes.removeAttribute(player, CustomEnchants.FLY);
 		}
 	}
-
 }

@@ -159,6 +159,8 @@ public class Events implements Listener, Reloadable
 					for (ItemStack drop : action.getDrops())
 						e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), drop);
 				}
+				
+				fireArmorEffects(action);
 			}
 		}
 	}
@@ -388,18 +390,38 @@ public class Events implements Listener, Reloadable
 		{
 			EnchantAction.EntityDamage action = new EnchantAction.EntityDamage(e);
 			ItemStack itemStack = action.getItemStack();
-			if (itemStack != null)
-			{
-				ItemMeta itemMeta = itemStack.getItemMeta();
-				if (itemMeta != null)
-					for (EnchantHandler handler : HANDLERS)
-						if (itemMeta.hasEnchant(handler.getEnchant()))
-						{
-							action.setCurrentEnchant(handler.getEnchant());
-							handler.entityDamage(action);
-						}
-			}
+			if (itemStack == null)
+				return;
+			ItemMeta itemMeta = itemStack.getItemMeta();
+			if (itemMeta != null)
+				for (EnchantHandler handler : HANDLERS)
+					if (itemMeta.hasEnchant(handler.getEnchant()))
+					{
+						action.setCurrentEnchant(handler.getEnchant());
+						handler.entityDamage(action);
+					}
 				
+			fireArmorEffects(action);
+		}
+	}
+	
+	@EventHandler(ignoreCancelled = true)
+	public void onEntityDeath(EntityDeathEvent e)
+	{
+		EnchantAction.EntityKill action = new EnchantAction.EntityKill(e);
+		if (action.getPlayer() != null) // It works ok
+		{
+			ItemStack itemStack = action.getItemStack();
+			if (itemStack == null)
+				return;
+			ItemMeta itemMeta = itemStack.getItemMeta();
+			if (itemMeta != null)
+				for (EnchantHandler handler : HANDLERS)
+					if (itemMeta.hasEnchant(handler.getEnchant()))
+					{
+						action.setCurrentEnchant(handler.getEnchant());
+						handler.entityKill(action);
+					}
 			fireArmorEffects(action);
 		}
 	}

@@ -19,32 +19,37 @@ public abstract class EnchantHandler implements Comparable<EnchantHandler>
 	 */
 	public abstract Enchantment getEnchant();
 
-	public void equipItem(EnchantAction.EquipItem event)
+	public void equipItem(EnchantAction.EquipItem action)
 	{
 
 	}
 	
-	public void unequipItem(EnchantAction.EquipItem event)
+	public void unequipItem(EnchantAction.EquipItem action)
 	{
 
 	}
 
-	public void rightClick(EnchantAction.RightClick event)
+	public void rightClick(EnchantAction.RightClick action)
 	{
 
 	}
 
-	public void blockBreak(EnchantAction.BlockBreak event)
+	public void blockBreak(EnchantAction.BlockBreak action)
 	{
 
 	}
 
-	public void entityDamage(EnchantAction.EntityDamage event)
+	public void entityDamage(EnchantAction.EntityDamage action)
 	{
 		
 	}
 	
-	public void armorEffect(EnchantAction.ArmorEffect event)
+	public void entityKill(EnchantAction.EntityKill action)
+	{
+		
+	}
+	
+	public void armorEffect(EnchantAction.ArmorEffect armorEffect)
 	{
 		
 	}

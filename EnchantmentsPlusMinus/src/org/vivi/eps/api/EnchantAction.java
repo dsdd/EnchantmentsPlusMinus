@@ -7,10 +7,12 @@ import java.util.logging.Level;
 
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
@@ -202,6 +204,45 @@ public abstract class EnchantAction
 		public double getDamage()
 		{
 			return event.getDamage();
+		}
+
+		@Override
+		public ItemStack getItemStack()
+		{
+			return getPlayer().getInventory().getItemInMainHand();
+		}
+	}
+	
+	public static class EntityKill extends EnchantAction
+	{
+		private final EntityDeathEvent event;
+
+		public EntityKill(EntityDeathEvent event)
+		{
+			this.event = event;
+			logAction(this);
+		}
+
+		@Override
+		public Event getEvent()
+		{
+			return event;
+		}
+
+		@Override
+		public Player getPlayer()
+		{
+			return event.getEntity().getKiller();
+		}
+
+		public LivingEntity getEntity()
+		{
+			return event.getEntity();
+		}
+		
+		public List<ItemStack> getDrops()
+		{
+			return event.getDrops();
 		}
 
 		@Override

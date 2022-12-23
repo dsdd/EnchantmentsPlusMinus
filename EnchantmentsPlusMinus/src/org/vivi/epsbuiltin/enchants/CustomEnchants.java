@@ -116,7 +116,7 @@ public class CustomEnchants
 		EPS.registerEnchant(VOLCANIC);
 		EPS.registerEnchant(SATURATED);
 		EPS.registerEnchant(new Insatiable());
-		EPS.registerEnchant(BEHEADING);
+		EPS.registerEnchant(new Beheading());
 		EPS.registerEnchant(STIFFEN);
 		EPS.registerEnchant(new LastResort());
 		EPS.registerEnchant(POWERHOUSE);
